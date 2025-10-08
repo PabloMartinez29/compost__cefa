@@ -111,6 +111,7 @@
                         <th>Peso (Kg)</th>
                         <th>Entregado Por</th>
                         <th>Recibido Por</th>
+                        <th>Creado por</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -150,6 +151,22 @@
                             <td>{{ $organic->delivered_by }}</td>
                             <td>{{ $organic->received_by }}</td>
                             <td>
+                                <div class="flex items-center">
+                                    @if($organic->creator && $organic->creator->role === 'admin')
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mr-2">
+                                            <i class="fas fa-user-shield mr-1"></i>
+                                            Administrador
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2">
+                                            <i class="fas fa-user-graduate mr-1"></i>
+                                            Aprendiz
+                                        </span>
+                                    @endif
+                                    <span class="text-sm text-gray-600">{{ $organic->creator ? $organic->creator->name : 'Usuario no disponible' }}</span>
+                                </div>
+                            </td>
+                            <td>
                                 <div class="flex space-x-2 items-center">
                                     <button onclick="openViewModal({{ $organic->id }})" 
                                        class="inline-flex items-center text-blue-500 hover:text-blue-700" title="Ver Detalles">
@@ -173,7 +190,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="text-center py-8 text-gray-500">
+                            <td colspan="9" class="text-center py-8 text-gray-500">
                                 <i class="fas fa-inbox text-4xl mb-4 block"></i>
                                 No se encontraron registros de residuos orgánicos
                             </td>

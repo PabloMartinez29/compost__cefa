@@ -76,8 +76,8 @@
         <!-- Sidebar -->
         <div class="w-64 bg-white shadow-lg sidebar-transition">
             <!-- Logo/Brand -->
-            <div class="h-16 flex items-center justify-center border-b border-soft-gray-200 px-4">
-                <img src="{{ asset('img/logo-compost-cefa.png') }}" alt="COMPOST CEFA" class="h-12 w-auto max-w-full object-contain">
+            <div class="h-32 flex items-center justify-center border-b border-soft-gray-200 px-4">
+                <img src="{{ asset('img/logo-compost-cefa.png') }}" alt="COMPOST CEFA" class="h-28 w-auto max-w-full object-contain">
             </div>
             
             <!-- Navigation -->

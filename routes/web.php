@@ -47,6 +47,7 @@ Route::middleware(['auth','role:admin'])->group(function(){
 
     // Warehouse Classification Routes
     Route::get('admin/warehouse', [WarehouseController::class, 'index'])->name('admin.warehouse.index');
+    Route::get('admin/warehouse/{warehouse}', [WarehouseController::class, 'show'])->name('admin.warehouse.show');
     Route::get('admin/warehouse/inventory/{type}', [WarehouseController::class, 'inventory'])->name('admin.warehouse.inventory');
     
     // Notification Routes

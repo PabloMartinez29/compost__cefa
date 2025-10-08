@@ -15,7 +15,7 @@ class OrganicController extends Controller
      */
     public function index()
     {
-        $organics = Organic::orderBy('date', 'desc')->paginate(10);
+        $organics = Organic::with('creator')->orderBy('date', 'desc')->paginate(10);
         
         // Statistics
         $totalWeight = Organic::sum('weight');

@@ -25,6 +25,14 @@ class WarehouseController extends Controller
 
 
     /**
+     * Display the specified resource.
+     */
+    public function show(WarehouseClassification $warehouse)
+    {
+        return view('admin.warehouse.show', compact('warehouse'));
+    }
+
+    /**
      * Show inventory by type
      */
     public function inventory($type)
