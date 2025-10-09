@@ -177,10 +177,61 @@
                     </div>
                     
                     <!-- Creación de Pilas -->
-                    <a href="#" class="flex items-center space-x-3 px-4 py-3 text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-xl transition-all duration-200 group">
-                        <i class="fas fa-mountain w-5 text-center group-hover:text-soft-green-600"></i>
-                        <span class="font-medium">Creación de Pilas</span>
-                    </a>
+                    <div class="relative">
+                        <button onclick="toggleSubmenu('composting-submenu', 'composting-arrow')" class="w-full flex items-center justify-between px-4 py-3 text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-xl transition-all duration-200 group">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-mountain w-5 text-center group-hover:text-soft-green-600"></i>
+                                <span class="font-medium">Creación de Pilas</span>
+                            </div>
+                            <i class="fas fa-chevron-down arrow-transition" id="composting-arrow"></i>
+                        </button>
+                        
+                        <div id="composting-submenu" class="submenu-container submenu-hidden ml-8 mt-2 space-y-1">
+                            <!-- Pila -->
+                            <div class="relative">
+                                <button onclick="toggleSubmenu('pile-submenu', 'pile-arrow')" class="w-full flex items-center justify-between px-3 py-2 text-soft-gray-600 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg transition-all duration-200 group">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fas fa-leaf w-4 text-center group-hover:text-soft-green-600"></i>
+                                        <span class="text-sm font-medium">Pila</span>
+                                    </div>
+                                    <i class="fas fa-chevron-down arrow-transition text-xs" id="pile-arrow"></i>
+                                </button>
+                                
+                                <div id="pile-submenu" class="submenu-container submenu-hidden ml-6 mt-1 space-y-1">
+                                    <a href="{{ route('admin.composting.create') }}" class="submenu-item flex items-center space-x-3 px-3 py-2 text-soft-gray-500 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg transition-all duration-200 group">
+                                        <i class="fas fa-plus w-4 text-center group-hover:text-soft-green-600"></i>
+                                        <span class="text-sm">Registrar Pila</span>
+                                    </a>
+                                    <a href="{{ route('admin.composting.index') }}" class="submenu-item flex items-center space-x-3 px-3 py-2 text-soft-gray-500 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg transition-all duration-200 group">
+                                        <i class="fas fa-list w-4 text-center group-hover:text-soft-green-600"></i>
+                                        <span class="text-sm">Ver Registros</span>
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Seguimiento de Pila -->
+                            <div class="relative">
+                                <button onclick="toggleSubmenu('tracking-submenu', 'tracking-arrow')" class="w-full flex items-center justify-between px-3 py-2 text-soft-gray-500 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg transition-all duration-200 group">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fas fa-chart-line w-4 text-center group-hover:text-soft-green-600"></i>
+                                        <span class="text-sm font-medium">Seguimiento</span>
+                                    </div>
+                                    <i class="fas fa-chevron-down arrow-transition text-xs" id="tracking-arrow"></i>
+                                </button>
+                                
+                                <div id="tracking-submenu" class="submenu-container submenu-hidden ml-6 mt-1 space-y-1">
+                                    <a href="{{ route('admin.tracking.create') }}" class="submenu-item flex items-center space-x-3 px-3 py-2 text-soft-gray-500 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg transition-all duration-200 group">
+                                        <i class="fas fa-plus w-4 text-center group-hover:text-soft-green-600"></i>
+                                        <span class="text-sm">Nuevo Seguimiento</span>
+                                    </a>
+                                    <a href="{{ route('admin.tracking.index') }}" class="submenu-item flex items-center space-x-3 px-3 py-2 text-soft-gray-500 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg transition-all duration-200 group">
+                                        <i class="fas fa-list w-4 text-center group-hover:text-soft-green-600"></i>
+                                        <span class="text-sm">Ver Seguimientos</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     
                     <!-- Maquinaria -->
                     <a href="#" class="flex items-center space-x-3 px-4 py-3 text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-xl transition-all duration-200 group">
@@ -260,7 +311,7 @@
                                 $notifications = \App\Models\Notification::where('user_id', auth()->id())
                                     ->where('type', 'delete_request')
                                     ->where('status', 'pending')
-                                    ->with(['fromUser', 'organic'])
+                                    ->with(['fromUser', 'organic', 'composting'])
                                     ->orderBy('created_at', 'desc')
                                     ->get();
                             @endphp
@@ -276,7 +327,11 @@
                                                 {{ $notification->fromUser->name }}
                                             </p>
                                             <p class="text-xs text-soft-gray-600 mt-1">
-                                                Solicita eliminar registro #{{ str_pad($notification->organic_id, 3, '0', STR_PAD_LEFT) }}
+                                                @if($notification->composting_id)
+                                                    Solicita eliminar pila de compostaje #{{ $notification->composting->formatted_pile_num ?? 'N/A' }}
+                                                @else
+                                                    Solicita eliminar registro #{{ str_pad($notification->organic_id, 3, '0', STR_PAD_LEFT) }}
+                                                @endif
                                             </p>
                                             <p class="text-xs text-soft-gray-500 mt-1">
                                                 {{ $notification->created_at->diffForHumans() }}
@@ -362,11 +417,21 @@
 
     <script>
         function toggleSubmenu(id, arrowId) {
+            console.log('toggleSubmenu called with:', id, arrowId);
             const submenu = document.getElementById(id);
             const arrow = document.getElementById(arrowId);
+            
+            if (!submenu) {
+                console.error('Submenu not found:', id);
+                return;
+            }
+            if (!arrow) {
+                console.error('Arrow not found:', arrowId);
+                return;
+            }
 
-            // Para los menús con animaciones (Abono, Organic Waste y Warehouse)
-            if (id === 'abonoSubmenu' || id === 'organicSubmenu' || id === 'warehouseSubmenu') {
+            // Para los menús con animaciones (Abono, Organic Waste, Warehouse y Composting)
+            if (id === 'abonoSubmenu' || id === 'organicSubmenu' || id === 'warehouseSubmenu' || id === 'composting-submenu' || id === 'pile-submenu' || id === 'tracking-submenu') {
                 const isHidden = submenu.classList.contains('submenu-hidden');
                 const submenuItems = submenu.querySelectorAll('.submenu-item');
                 

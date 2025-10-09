@@ -12,6 +12,10 @@ use App\Http\Controllers\Admin\OrganicController;
 use App\Http\Controllers\Aprendiz\OrganicController as AprendizOrganicController;
 use App\Http\Controllers\Admin\WarehouseController;
 use App\Http\Controllers\Aprendiz\WarehouseController as AprendizWarehouseController;
+use App\Http\Controllers\Aprendiz\CompostingController;
+use App\Http\Controllers\Admin\CompostingController as AdminCompostingController;
+use App\Http\Controllers\Aprendiz\TrackingController;
+use App\Http\Controllers\Admin\TrackingController as AdminTrackingController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -54,6 +58,31 @@ Route::middleware(['auth','role:admin'])->group(function(){
     Route::get('admin/notifications/history', [AdminController::class, 'notificationsHistory'])->name('admin.notifications.history');
     Route::post('admin/notifications/{notification}/approve', [AdminController::class, 'approveNotification'])->name('admin.notifications.approve');
     Route::post('admin/notifications/{notification}/reject', [AdminController::class, 'rejectNotification'])->name('admin.notifications.reject');
+    
+    // Composting Routes for Admin
+    Route::resource('admin/composting', AdminCompostingController::class)->names([
+        'index' => 'admin.composting.index',
+        'create' => 'admin.composting.create',
+        'store' => 'admin.composting.store',
+        'show' => 'admin.composting.show',
+        'edit' => 'admin.composting.edit',
+        'update' => 'admin.composting.update',
+        'destroy' => 'admin.composting.destroy',
+    ]);
+
+    // Tracking Routes for Admin
+    Route::resource('admin/tracking', AdminTrackingController::class)->names([
+        'index' => 'admin.tracking.index',
+        'create' => 'admin.tracking.create',
+        'store' => 'admin.tracking.store',
+        'show' => 'admin.tracking.show',
+        'edit' => 'admin.tracking.edit',
+        'update' => 'admin.tracking.update',
+        'destroy' => 'admin.tracking.destroy',
+    ]);
+
+    // Additional tracking routes for admin
+    Route::get('admin/tracking/composting/{composting}', [AdminTrackingController::class, 'getByComposting'])->name('admin.tracking.by-composting');
 });
 
 
@@ -83,6 +112,36 @@ Route::middleware(['auth', 'role:aprendiz'])->group(function(){
     // Warehouse Classification Routes for Apprentices
     Route::get('aprendiz/warehouse', [AprendizWarehouseController::class, 'index'])->name('aprendiz.warehouse.index');
     Route::get('aprendiz/warehouse/{type}', [AprendizWarehouseController::class, 'inventory'])->name('aprendiz.warehouse.inventory');
+    
+          // Composting Routes for Apprentices
+          Route::resource('aprendiz/composting', CompostingController::class)->names([
+              'index' => 'aprendiz.composting.index',
+              'create' => 'aprendiz.composting.create',
+              'store' => 'aprendiz.composting.store',
+              'show' => 'aprendiz.composting.show',
+              'edit' => 'aprendiz.composting.edit',
+              'update' => 'aprendiz.composting.update',
+              'destroy' => 'aprendiz.composting.destroy',
+          ]);
+          
+          // Permission request routes for composting
+          Route::post('aprendiz/composting/{composting}/request-edit', [CompostingController::class, 'requestEditPermission'])->name('aprendiz.composting.request-edit');
+          Route::post('aprendiz/composting/{composting}/request-delete', [CompostingController::class, 'requestDeletePermission'])->name('aprendiz.composting.request-delete');
+          Route::get('aprendiz/composting/{composting}/check-delete-status', [CompostingController::class, 'checkDeletePermissionStatus'])->name('aprendiz.composting.check-delete-status');
+          
+          // Tracking Routes for Apprentices
+          Route::resource('aprendiz/tracking', TrackingController::class)->names([
+              'index' => 'aprendiz.tracking.index',
+              'create' => 'aprendiz.tracking.create',
+              'store' => 'aprendiz.tracking.store',
+              'show' => 'aprendiz.tracking.show',
+              'edit' => 'aprendiz.tracking.edit',
+              'update' => 'aprendiz.tracking.update',
+              'destroy' => 'aprendiz.tracking.destroy',
+          ]);
+          
+          // Additional tracking routes
+          Route::get('aprendiz/tracking/composting/{composting}', [TrackingController::class, 'getByComposting'])->name('aprendiz.tracking.by-composting');
 });
 
 //rutas de abono

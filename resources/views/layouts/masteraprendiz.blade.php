@@ -142,10 +142,80 @@
                     </div>
                     
                     <!-- Creación de Pilas -->
-                    <a href="#" class="flex items-center space-x-3 px-4 py-3 text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-xl transition-all duration-200 group">
-                        <i class="fas fa-mountain w-5 text-center group-hover:text-soft-green-600"></i>
-                        <span class="font-medium">Creación de Pilas</span>
-                    </a>
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" class="w-full flex items-center space-x-3 px-4 py-3 text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-xl transition-all duration-200 group">
+                            <i class="fas fa-mountain w-5 text-center group-hover:text-soft-green-600"></i>
+                            <span class="font-medium">Creación de Pilas</span>
+                            <i class="fas fa-chevron-down text-xs transition-transform duration-200 ml-auto" :class="{ 'rotate-180': open }"></i>
+                        </button>
+                        
+                        <!-- Submenu -->
+                        <div x-show="open" 
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="ml-8 mt-2 space-y-1">
+                            
+                            <!-- Submódulo Pila -->
+                            <div class="relative" x-data="{ subOpen: false }">
+                                <button @click.stop="subOpen = !subOpen" class="w-full flex items-center space-x-3 px-4 py-2 text-sm text-soft-gray-600 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg transition-all duration-200 group">
+                                    <i class="fas fa-leaf w-4 text-center group-hover:text-soft-green-600"></i>
+                                    <span>Pila</span>
+                                    <i class="fas fa-chevron-right text-xs transition-transform duration-200 ml-auto" :class="{ 'rotate-90': subOpen }"></i>
+                                </button>
+                                
+                                <!-- Sub-submenu -->
+                                <div x-show="subOpen" 
+                                     x-transition:enter="transition ease-out duration-200"
+                                     x-transition:enter-start="opacity-0 scale-95"
+                                     x-transition:enter-end="opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-150"
+                                     x-transition:leave-start="opacity-100 scale-100"
+                                     x-transition:leave-end="opacity-0 scale-95"
+                                     class="ml-6 mt-2 space-y-1">
+                                    <a href="{{ route('aprendiz.composting.create') }}" class="flex items-center space-x-3 px-4 py-2 text-sm text-soft-gray-600 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg transition-all duration-200 group">
+                                        <i class="fas fa-plus-circle w-4 text-center group-hover:text-soft-green-600"></i>
+                                        <span>Registrar Pila</span>
+                                    </a>
+                                    <a href="{{ route('aprendiz.composting.index') }}" class="flex items-center space-x-3 px-4 py-2 text-sm text-soft-gray-600 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg transition-all duration-200 group">
+                                        <i class="fas fa-eye w-4 text-center group-hover:text-soft-green-600"></i>
+                                        <span>Ver Registros</span>
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <!-- Submódulo Seguimiento -->
+                            <div class="relative" x-data="{ subOpen: false }">
+                                <button @click.stop="subOpen = !subOpen" class="w-full flex items-center space-x-3 px-4 py-2 text-sm text-soft-gray-600 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg transition-all duration-200 group">
+                                    <i class="fas fa-chart-line w-4 text-center group-hover:text-soft-green-600"></i>
+                                    <span>Seguimiento</span>
+                                    <i class="fas fa-chevron-right text-xs transition-transform duration-200 ml-auto" :class="{ 'rotate-90': subOpen }"></i>
+                                </button>
+                                
+                                <!-- Sub-submenu -->
+                                <div x-show="subOpen" 
+                                     x-transition:enter="transition ease-out duration-200"
+                                     x-transition:enter-start="opacity-0 scale-95"
+                                     x-transition:enter-end="opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-150"
+                                     x-transition:leave-start="opacity-100 scale-100"
+                                     x-transition:leave-end="opacity-0 scale-95"
+                                     class="ml-6 mt-2 space-y-1">
+                                    <a href="{{ route('aprendiz.tracking.create') }}" class="flex items-center space-x-3 px-4 py-2 text-sm text-soft-gray-600 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg transition-all duration-200 group">
+                                        <i class="fas fa-plus-circle w-4 text-center group-hover:text-soft-green-600"></i>
+                                        <span>Nuevo Seguimiento</span>
+                                    </a>
+                                    <a href="{{ route('aprendiz.tracking.index') }}" class="flex items-center space-x-3 px-4 py-2 text-sm text-soft-gray-600 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg transition-all duration-200 group">
+                                        <i class="fas fa-eye w-4 text-center group-hover:text-soft-green-600"></i>
+                                        <span>Ver Seguimientos</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     
                     <!-- Maquinaria -->
                     <a href="#" class="flex items-center space-x-3 px-4 py-3 text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-xl transition-all duration-200 group">
@@ -215,7 +285,7 @@
                                     ->where('type', 'delete_request')
                                     ->whereIn('status', ['approved', 'rejected'])
                                     ->whereNull('read_at')
-                                    ->with(['organic'])
+                                    ->with(['organic', 'composting'])
                                     ->orderBy('created_at', 'desc')
                                     ->get();
                             @endphp
@@ -231,7 +301,11 @@
                                                 Solicitud {{ $notification->status === 'approved' ? 'Aprobada' : 'Rechazada' }}
                                             </p>
                                             <p class="text-xs text-soft-gray-600 mt-1">
-                                                Registro #{{ str_pad($notification->organic_id, 3, '0', STR_PAD_LEFT) }}
+                                                @if($notification->composting_id)
+                                                    Pila de compostaje #{{ $notification->composting->formatted_pile_num ?? 'N/A' }}
+                                                @else
+                                                    Registro #{{ str_pad($notification->organic_id, 3, '0', STR_PAD_LEFT) }}
+                                                @endif
                                             </p>
                                             <p class="text-xs text-soft-gray-500 mt-1">
                                                 {{ $notification->updated_at->diffForHumans() }}
@@ -242,10 +316,17 @@
                                                     Marcar como leída
                                                 </button>
                                                 @if($notification->status === 'approved')
-                                                    <a href="{{ route('aprendiz.organic.index') }}" 
-                                                       class="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors">
-                                                        Ver registros
-                                                    </a>
+                                                    @if($notification->composting_id)
+                                                        <a href="{{ route('aprendiz.composting.index') }}" 
+                                                           class="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors">
+                                                            Ver registros
+                                                        </a>
+                                                    @else
+                                                        <a href="{{ route('aprendiz.organic.index') }}" 
+                                                           class="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors">
+                                                            Ver registros
+                                                        </a>
+                                                    @endif
                                                 @endif
                                             </div>
                                         </div>

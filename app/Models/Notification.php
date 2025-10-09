@@ -11,6 +11,7 @@ class Notification extends Model
         'user_id',
         'from_user_id', 
         'organic_id',
+        'composting_id',
         'type',
         'status',
         'message',
@@ -35,6 +36,11 @@ class Notification extends Model
     public function organic(): BelongsTo
     {
         return $this->belongsTo(Organic::class);
+    }
+
+    public function composting(): BelongsTo
+    {
+        return $this->belongsTo(Composting::class);
     }
 
     // Scopes

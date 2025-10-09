@@ -3,6 +3,10 @@
 @section('content')
 @vite(['resources/css/waste.css'])
 
+@php
+use Illuminate\Support\Facades\Storage;
+@endphp
+
 <!-- Notification Alerts -->
 @if(isset($recentNotifications) && $recentNotifications->count() > 0)
     @foreach($recentNotifications as $notification)
@@ -154,7 +158,7 @@
                             <td>
                                 @if($organic->img)
                                     @php
-                                        $imageUrl = route('storage.local', ['path' => $organic->img]);
+                                        $imageUrl = Storage::url($organic->img);
                                     @endphp
                                     <img src="{{ $imageUrl }}?v={{ $organic->updated_at->timestamp }}" 
                                          alt="Imagen del residuo" 

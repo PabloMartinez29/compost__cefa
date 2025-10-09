@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('notifications', function (Blueprint $table) {
-            $table->timestamp('read_at')->nullable()->after('updated_at');
+            $table->unsignedBigInteger('organic_id')->nullable()->change();
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('notifications', function (Blueprint $table) {
-            $table->dropColumn('read_at');
+            $table->unsignedBigInteger('organic_id')->nullable(false)->change();
         });
     }
 };

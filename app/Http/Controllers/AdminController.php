@@ -118,6 +118,32 @@ class AdminController extends Controller
             'read_at' => null // Reset read_at so apprentice sees the response
         ]);
         
+        // Crear notificación de respuesta para el aprendiz
+        if ($notification->composting_id) {
+            // Es una notificación de compostaje
+            $composting = \App\Models\Composting::find($notification->composting_id);
+            if ($composting) {
+                \App\Models\Notification::create([
+                    'user_id' => $notification->from_user_id, // El aprendiz que hizo la solicitud
+                    'from_user_id' => auth()->id(), // El administrador
+                    'composting_id' => $notification->composting_id,
+                    'type' => 'delete_request',
+                    'status' => 'approved',
+                    'message' => 'Su solicitud de eliminación ha sido APROBADA. Ahora puede eliminar la pila de compostaje #' . $composting->formatted_pile_num
+                ]);
+            }
+        } else {
+            // Es una notificación de residuos orgánicos (lógica existente)
+            \App\Models\Notification::create([
+                'user_id' => $notification->from_user_id, // El aprendiz que hizo la solicitud
+                'from_user_id' => auth()->id(), // El administrador
+                'organic_id' => $notification->organic_id,
+                'type' => 'delete_request',
+                'status' => 'approved',
+                'message' => 'Su solicitud de eliminación ha sido APROBADA. Ahora puede eliminar el registro #' . str_pad($notification->organic_id, 3, '0', STR_PAD_LEFT)
+            ]);
+        }
+        
         return response()->json(['success' => true, 'message' => 'Solicitud aprobada exitosamente']);
     }
 
@@ -131,6 +157,32 @@ class AdminController extends Controller
             'read_at' => null // Reset read_at so apprentice sees the response
         ]);
         
+        // Crear notificación de respuesta para el aprendiz
+        if ($notification->composting_id) {
+            // Es una notificación de compostaje
+            $composting = \App\Models\Composting::find($notification->composting_id);
+            if ($composting) {
+                \App\Models\Notification::create([
+                    'user_id' => $notification->from_user_id, // El aprendiz que hizo la solicitud
+                    'from_user_id' => auth()->id(), // El administrador
+                    'composting_id' => $notification->composting_id,
+                    'type' => 'delete_request',
+                    'status' => 'rejected',
+                    'message' => 'Su solicitud de eliminación ha sido RECHAZADA. No puede eliminar la pila de compostaje #' . $composting->formatted_pile_num
+                ]);
+            }
+        } else {
+            // Es una notificación de residuos orgánicos
+            \App\Models\Notification::create([
+                'user_id' => $notification->from_user_id, // El aprendiz que hizo la solicitud
+                'from_user_id' => auth()->id(), // El administrador
+                'organic_id' => $notification->organic_id,
+                'type' => 'delete_request',
+                'status' => 'rejected',
+                'message' => 'Su solicitud de eliminación ha sido RECHAZADA. No puede eliminar el registro #' . str_pad($notification->organic_id, 3, '0', STR_PAD_LEFT)
+            ]);
+        }
+        
         return response()->json(['success' => true, 'message' => 'Solicitud rechazada']);
     }
 
@@ -141,7 +193,7 @@ class AdminController extends Controller
     {
         $notifications = Notification::where('user_id', auth()->id())
             ->where('type', 'delete_request')
-            ->with(['fromUser', 'organic'])
+            ->with(['fromUser', 'organic', 'composting'])
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 

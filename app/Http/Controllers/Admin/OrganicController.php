@@ -152,6 +152,16 @@ class OrganicController extends Controller
      */
     public function destroy(Organic $organic)
     {
+        // Restar del inventario de bodega antes de eliminar
+        \App\Models\WarehouseClassification::create([
+            'date' => now()->toDateString(),
+            'type' => $organic->type,
+            'movement_type' => 'exit',
+            'weight' => $organic->weight,
+            'notes' => "Eliminación de residuo orgánico #" . str_pad($organic->id, 3, '0', STR_PAD_LEFT),
+            'processed_by' => auth()->user()->name
+        ]);
+
         // Delete image if exists
         if ($organic->img) {
             Storage::disk('public')->delete($organic->img);
@@ -159,6 +169,6 @@ class OrganicController extends Controller
         
         $organic->delete();
 
-        return redirect()->route('admin.organic.index')->with('success', '¡Registro de residuo orgánico eliminado exitosamente!');
+        return redirect()->route('admin.organic.index')->with('success', '¡Registro de residuo orgánico eliminado exitosamente! El inventario de bodega ha sido actualizado.');
     }
 }

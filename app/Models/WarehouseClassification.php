@@ -76,14 +76,18 @@ class WarehouseClassification extends Model
     // Método para calcular inventario actual por tipo
     public static function getCurrentInventory($type = null)
     {
-        $query = self::query();
+        $baseQuery = self::query();
         
         if ($type) {
-            $query->where('type', $type);
+            $baseQuery->where('type', $type);
         }
 
-        $entries = $query->where('movement_type', 'entry')->sum('weight');
-        $exits = $query->where('movement_type', 'exit')->sum('weight');
+        // Crear consultas separadas para evitar conflictos
+        $entriesQuery = clone $baseQuery;
+        $exitsQuery = clone $baseQuery;
+        
+        $entries = $entriesQuery->where('movement_type', 'entry')->sum('weight');
+        $exits = $exitsQuery->where('movement_type', 'exit')->sum('weight');
         
         return $entries - $exits;
     }
