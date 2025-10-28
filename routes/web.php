@@ -83,6 +83,43 @@ Route::middleware(['auth','role:admin'])->group(function(){
 
     // Additional tracking routes for admin
     Route::get('admin/tracking/composting/{composting}', [AdminTrackingController::class, 'getByComposting'])->name('admin.tracking.by-composting');
+    
+    // User Management Routes
+    Route::resource('admin/users', \App\Http\Controllers\Admin\UserController::class)->names([
+        'index' => 'admin.users.index',
+        'create' => 'admin.users.create',
+        'store' => 'admin.users.store',
+        'show' => 'admin.users.show',
+        'edit' => 'admin.users.edit',
+        'update' => 'admin.users.update',
+        'destroy' => 'admin.users.destroy',
+    ]);
+    
+    // Ruta específica para obtener datos de usuario en JSON
+    Route::get('admin/users/{user}/data', [\App\Http\Controllers\Admin\UserController::class, 'getUserData'])->name('admin.users.data');
+    
+    // Rutas para descargar PDFs
+    Route::get('admin/users/download/all-pdf', [\App\Http\Controllers\Admin\UserController::class, 'downloadAllUsersPDF'])->name('admin.users.download.all-pdf');
+    Route::get('admin/users/{user}/download/pdf', [\App\Http\Controllers\Admin\UserController::class, 'downloadUserPDF'])->name('admin.users.download.pdf');
+    
+    // Ruta de prueba para PDF
+    Route::get('admin/test-pdf', function() {
+        return view('admin.users.pdf.simple-test');
+    });
+    
+    // Ruta de prueba para PDF con DomPDF
+    Route::get('admin/test-dompdf', function() {
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('admin.users.pdf.simple-test')
+            ->setPaper('a4', 'portrait')
+            ->setOptions([
+                'defaultFont' => 'Arial',
+                'isRemoteEnabled' => false,
+                'isHtml5ParserEnabled' => true,
+                'isPhpEnabled' => false,
+            ]);
+        
+        return $pdf->download('test_dompdf_' . date('Y-m-d') . '.pdf');
+    });
 });
 
 

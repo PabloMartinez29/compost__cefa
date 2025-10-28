@@ -36,7 +36,7 @@
     }
     
     .waste-card {
-        @apply bg-white rounded-lg shadow-sm p-6 border-l-4 transition-all duration-300 hover:shadow-md hover:transform hover:-translate-y-1;
+        @apply bg-white rounded-lg p-6 border-l-4 transition-all duration-300 border border-gray-200;
     }
     
     .waste-card-primary {
@@ -92,7 +92,7 @@
     }
     
     .waste-table {
-        @apply w-full bg-white rounded-lg shadow-sm overflow-hidden;
+        @apply w-full bg-white rounded-lg overflow-hidden border border-gray-200;
     }
     
     .waste-table th {

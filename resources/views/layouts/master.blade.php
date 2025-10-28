@@ -117,10 +117,10 @@
                         <span class="font-medium">Dashboard</span>
                     </a>
                     
-                    <!-- Gestionar Pasantes -->
-                    <a href="#" class="flex items-center space-x-3 px-4 py-3 text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-xl transition-all duration-200 group">
+                    <!-- Gestión de Usuarios -->
+                    <a href="{{ route('admin.users.index') }}" class="flex items-center space-x-3 px-4 py-3 text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-xl transition-all duration-200 group">
                         <i class="fas fa-users w-5 text-center group-hover:text-soft-green-600"></i>
-                        <span class="font-medium">Gestionar Pasantes</span>
+                        <span class="font-medium">Gestión de Usuarios</span>
                     </a>
                     
                     <!-- Monitoreo -->

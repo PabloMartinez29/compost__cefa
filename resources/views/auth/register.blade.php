@@ -97,9 +97,9 @@
                         <!-- Register Form -->
                         <div class="space-y-6">
                             <form method="POST" action="{{ route('register') }}" class="space-y-6">
-                                @csrf
-                                
-                                <!-- Name -->
+        @csrf
+
+        <!-- Name -->
                                 <div class="bounce-in" style="animation-delay: 0.1s;">
                                     <label for="name" class="block text-sm font-medium text-soft-gray-700 mb-2">
                                         Nombre Completo
@@ -133,10 +133,28 @@
                                     @error('email')
                                         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                     @enderror
-                                </div>
+        </div>
 
-                                <!-- Password -->
-                                <div class="bounce-in" style="animation-delay: 0.3s;">
+                                <!-- Identification -->
+                                <div class="bounce-in" style="animation-delay: 0.25s;">
+                                    <label for="identification" class="block text-sm font-medium text-soft-gray-700 mb-2">
+                                        Identificación
+                                    </label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                            <i class="fas fa-id-card text-soft-gray-400"></i>
+                                        </div>
+                                        <input id="identification" name="identification" type="text" required 
+                                               class="auth-input"
+                                               placeholder="Tu número de identificación">
+                                    </div>
+                                    @error('identification')
+                                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+        </div>
+
+        <!-- Password -->
+                                <div class="bounce-in" style="animation-delay: 0.35s;">
                                     <label for="password" class="block text-sm font-medium text-soft-gray-700 mb-2">
                                         Contraseña
                                     </label>
@@ -162,10 +180,10 @@
                                     @error('password')
                                         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                                     @enderror
-                                </div>
+        </div>
 
-                                <!-- Confirm Password -->
-                                <div class="bounce-in" style="animation-delay: 0.4s;">
+        <!-- Confirm Password -->
+                                <div class="bounce-in" style="animation-delay: 0.45s;">
                                     <label for="password_confirmation" class="block text-sm font-medium text-soft-gray-700 mb-2">
                                         Confirmar Contraseña
                                     </label>
@@ -188,7 +206,7 @@
                                 </div>
 
                                 <!-- Terms and Conditions -->
-                                <div class="bounce-in" style="animation-delay: 0.5s;">
+                                <div class="bounce-in" style="animation-delay: 0.55s;">
                                     <div class="flex items-start">
                                         <input id="terms" name="terms" type="checkbox" required
                                                class="h-4 w-4 text-soft-green-600 focus:ring-soft-green-500 border-soft-gray-300 rounded mt-1">
@@ -212,10 +230,10 @@
                                             </div>
                                         </div>
                                     @endif
-                                </div>
+        </div>
 
                                 <!-- Submit Button -->
-                                <div class="bounce-in" style="animation-delay: 0.6s;">
+                                <div class="bounce-in" style="animation-delay: 0.65s;">
                                     <button type="submit" class="auth-button">
                                         <span class="absolute left-0 inset-y-0 flex items-center pl-4">
                                             <i class="fas fa-user-plus text-soft-green-300 group-hover:text-soft-green-200"></i>
@@ -284,6 +302,7 @@
             const passwordConfirmation = formData.get('password_confirmation');
             const email = formData.get('email');
             const name = formData.get('name');
+            const identification = formData.get('identification');
             const terms = formData.get('terms');
             
             // Clear previous alerts
@@ -301,6 +320,12 @@
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!email || !emailRegex.test(email)) {
                 showAlert('Por favor ingresa un email válido', 'error');
+                hasErrors = true;
+            }
+            
+            // Validate identification
+            if (!identification || identification.trim().length < 3) {
+                showAlert('La identificación debe tener al menos 3 caracteres', 'error');
                 hasErrors = true;
             }
             

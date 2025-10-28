@@ -36,13 +36,16 @@ class RegisteredUserController extends Controller
                     $fail('El campo email debe contener el símbolo @.');
                 }
             }],
+            'identification' => ['required', 'string', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
         $user = User::create([
             'name' => $request->name,
             'email' => strtolower($request->email),
+            'identification' => $request->identification,
             'password' => Hash::make($request->password),
+            'role' => 'aprendiz', // Por defecto los usuarios registrados son aprendices
         ]);
 
         event(new Registered($user));
