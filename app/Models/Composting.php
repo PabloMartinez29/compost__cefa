@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Carbon\Carbon;
 
 class Composting extends Model
 {
@@ -73,8 +74,8 @@ class Composting extends Model
             return $this->end_date->format('d/m/Y');
         }
         
-        // Si no hay end_date pero se completaron los 45 seguimientos, mostrar como completada
-        if ($this->trackings->count() >= 45) {
+        // Si han pasado 45 días desde el inicio, mostrar como completada
+        if ($this->days_elapsed >= 45) {
             return 'Completada';
         }
         
@@ -130,7 +131,19 @@ class Composting extends Model
      */
     public function getDaysElapsedAttribute(): int
     {
-        return now()->diffInDays($this->start_date);
+        $startDate = Carbon::parse($this->start_date);
+        $now = Carbon::now();
+        
+        // Si la fecha de inicio es en el futuro, devolver 0
+        if ($now->lt($startDate)) {
+            return 0;
+        }
+        
+        // Calcular días transcurridos desde la fecha de inicio
+        $days = $startDate->diffInDays($now);
+        
+        // Asegurar que siempre sea un valor positivo
+        return max(0, $days);
     }
 
     /**
@@ -146,31 +159,37 @@ class Composting extends Model
      */
     public function getDaysRemainingAttribute(): int
     {
+        // Si el estado es completada o han pasado 45 días, no hay días restantes
+        if ($this->status === 'Completada' || $this->days_elapsed >= 45) {
+            return 0;
+        }
         return max(0, 45 - $this->days_elapsed);
     }
 
     /**
-     * Obtener el porcentaje de progreso del proceso basado en seguimientos
+     * Obtener el porcentaje de progreso del proceso basado en días transcurridos
      */
     public function getProcessProgressAttribute(): float
     {
-        $totalTrackings = $this->trackings->count();
-        // El progreso se basa en los seguimientos registrados (máximo 45 seguimientos = 100%)
-        return min(($totalTrackings / 45) * 100, 100);
+        $daysElapsed = max(0, $this->days_elapsed);
+        // El progreso se basa en los días transcurridos (máximo 45 días = 100%)
+        return min(($daysElapsed / 45) * 100, 100);
     }
 
     /**
-     * Obtener la fase actual del proceso basada en seguimientos
+     * Obtener la fase actual del proceso basada en días transcurridos
      */
     public function getCurrentPhaseAttribute(): string
     {
-        $totalTrackings = $this->trackings->count();
+        $daysElapsed = max(0, $this->days_elapsed);
         
-        if ($totalTrackings <= 7) {
+        if ($daysElapsed >= 45) {
+            return 'Proceso Completado';
+        } elseif ($daysElapsed <= 7) {
             return 'Fase Inicial (Mesófila)';
-        } elseif ($totalTrackings <= 21) {
+        } elseif ($daysElapsed <= 21) {
             return 'Fase Termófila (Alta temperatura)';
-        } elseif ($totalTrackings <= 35) {
+        } elseif ($daysElapsed <= 35) {
             return 'Fase de Enfriamiento';
         } else {
             return 'Fase de Maduración';
@@ -178,12 +197,33 @@ class Composting extends Model
     }
 
     /**
-     * Obtener el progreso de seguimientos (X de 45 seguimientos)
+     * Obtener el color de la barra de progreso según la fase
+     */
+    public function getProgressBarColorAttribute(): string
+    {
+        $daysElapsed = max(0, $this->days_elapsed);
+        
+        if ($daysElapsed >= 45) {
+            return 'bg-green-600'; // Verde completo para proceso completado
+        } elseif ($daysElapsed <= 7) {
+            return 'bg-green-400'; // Verde claro para fase inicial
+        } elseif ($daysElapsed <= 21) {
+            return 'bg-orange-500'; // Naranja para fase termófila (alta temperatura)
+        } elseif ($daysElapsed <= 35) {
+            return 'bg-blue-500'; // Azul para fase de enfriamiento
+        } else {
+            return 'bg-green-700'; // Verde oscuro para fase de maduración
+        }
+    }
+
+    /**
+     * Obtener el progreso de seguimientos (X de 45 días)
      */
     public function getTrackingProgressAttribute(): string
     {
+        $daysElapsed = min(max(0, $this->days_elapsed), 45);
         $totalTrackings = $this->trackings->count();
-        return "{$totalTrackings} de 45 seguimientos";
+        return "{$daysElapsed} de 45 días ({$totalTrackings} seguimientos registrados)";
     }
 
     /**
@@ -195,6 +235,33 @@ class Composting extends Model
     }
 
     /**
+     * Obtener los días faltantes (días sin seguimiento registrado)
+     */
+    public function getMissingDaysAttribute(): array
+    {
+        $missingDays = [];
+        
+        // Si la pila está completada o han pasado 45 días, mostrar los 45 días completos
+        $daysElapsed = ($this->status === 'Completada' || $this->days_elapsed >= 45) ? 45 : min($this->days_elapsed, 45);
+        $trackedDays = $this->trackings->pluck('day')->toArray();
+        
+        $startDate = Carbon::parse($this->start_date);
+        
+        for ($day = 1; $day <= $daysElapsed; $day++) {
+            if (!in_array($day, $trackedDays)) {
+                $date = $startDate->copy()->addDays($day - 1);
+                $missingDays[] = [
+                    'day' => $day,
+                    'date' => $date->format('d/m/Y'),
+                    'date_raw' => $date->format('Y-m-d')
+                ];
+            }
+        }
+        
+        return $missingDays;
+    }
+
+    /**
      * Accessor para el estado de la pila
      */
     public function getStatusAttribute(): string
@@ -203,7 +270,12 @@ class Composting extends Model
             return 'Completada';
         }
         
-        // Si no hay end_date pero se completaron los 45 seguimientos, mostrar como completada
+        // Si han pasado 45 días desde el inicio, marcar como completada
+        if ($this->days_elapsed >= 45) {
+            return 'Completada';
+        }
+        
+        // Si hay 45 seguimientos registrados, marcar como completada
         if ($this->trackings->count() >= 45) {
             return 'Completada';
         }

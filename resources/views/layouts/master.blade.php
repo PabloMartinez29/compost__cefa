@@ -267,10 +267,45 @@
                     </div>
                     
                     <!-- Maquinaria -->
-                    <a href="#" class="flex items-center space-x-3 px-4 py-3 text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-xl transition-all duration-200 group">
+                    <div class="relative">
+                        <button onclick="toggleSubmenu('machinery-submenu', 'machinery-arrow')" class="w-full flex items-center justify-between px-4 py-3 text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-xl transition-all duration-200 group">
+                            <div class="flex items-center space-x-3">
                         <i class="fas fa-cogs w-5 text-center group-hover:text-soft-green-600"></i>
                         <span class="font-medium">Maquinaria</span>
-                    </a>
+                            </div>
+                            <i class="fas fa-chevron-down arrow-transition" id="machinery-arrow"></i>
+                        </button>
+                        
+                        <div id="machinery-submenu" class="submenu-container submenu-hidden ml-10 mt-2 space-y-2">
+                            <!-- Identificación y Especificaciones del Equipo -->
+                            <a href="{{ route('admin.machinery.index') }}" 
+                               class="submenu-item flex items-center space-x-3 px-4 py-2 text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg font-medium">
+                                <i class="fas fa-tools w-4 text-center group-hover:text-soft-green-600"></i>
+                                <span>Identificación y Especificaciones</span>
+                            </a>
+                            
+                            <!-- Datos del Proveedor -->
+                            <a href="{{ route('admin.machinery.supplier.index') }}" 
+                               class="submenu-item flex items-center space-x-3 px-4 py-2 text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg font-medium">
+                                <i class="fas fa-truck w-4 text-center group-hover:text-soft-green-600"></i>
+                                <span>Datos del Proveedor</span>
+                            </a>
+                            
+                            <!-- Control de Actividades -->
+                            <a href="{{ route('admin.machinery.maintenance.index') }}" 
+                               class="submenu-item flex items-center space-x-3 px-4 py-2 text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg font-medium">
+                                <i class="fas fa-wrench w-4 text-center group-hover:text-soft-green-600"></i>
+                                <span>Control de Actividades</span>
+                            </a>
+                            
+                            <!-- Control de Uso del Equipo -->
+                            <a href="#" 
+                               class="submenu-item flex items-center space-x-3 px-4 py-2 text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg font-medium">
+                                <i class="fas fa-clipboard-check w-4 text-center group-hover:text-soft-green-600"></i>
+                                <span>Control de Uso del Equipo</span>
+                            </a>
+                        </div>
+                    </div>
                     
                     <!-- Abono -->
                     <div class="relative">
@@ -363,7 +398,7 @@
                                                 @if($notification->composting_id)
                                                     Solicita eliminar pila de compostaje #{{ $notification->composting->formatted_pile_num ?? 'N/A' }}
                                                 @else
-                                                    Solicita eliminar registro #{{ str_pad($notification->organic_id, 3, '0', STR_PAD_LEFT) }}
+                                                Solicita eliminar registro #{{ str_pad($notification->organic_id, 3, '0', STR_PAD_LEFT) }}
                                                 @endif
                                             </p>
                                             <p class="text-xs text-soft-gray-500 mt-1">
@@ -459,7 +494,7 @@
             console.log('toggleSubmenu called with:', id, arrowId);
             const submenu = document.getElementById(id);
             const arrow = document.getElementById(arrowId);
-            
+
             if (!submenu) {
                 console.error('Submenu not found:', id);
                 return;
@@ -469,8 +504,8 @@
                 return;
             }
 
-            // Para los menús con animaciones (Abono, Organic Waste, Warehouse y Composting)
-            if (id === 'abonoSubmenu' || id === 'organicSubmenu' || id === 'warehouseSubmenu' || id === 'composting-submenu' || id === 'pile-submenu' || id === 'tracking-submenu') {
+            // Para los menús con animaciones (Abono, Organic Waste, Warehouse, Composting y Machinery)
+            if (id === 'abonoSubmenu' || id === 'organicSubmenu' || id === 'warehouseSubmenu' || id === 'composting-submenu' || id === 'pile-submenu' || id === 'tracking-submenu' || id === 'machinery-submenu') {
                 const isHidden = submenu.classList.contains('submenu-hidden');
                 const submenuItems = submenu.querySelectorAll('.submenu-item');
                 

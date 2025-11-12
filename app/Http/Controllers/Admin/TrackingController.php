@@ -157,13 +157,13 @@ class TrackingController extends Controller
 
         \Log::info('Tracking created successfully with ID: ' . $tracking->id);
 
-        // Verificar si se completaron los 45 seguimientos y marcar la pila como completada
-        $composting = Composting::with('trackings')->find($request->composting_id);
-        $totalTrackings = $composting->trackings->count();
+        // Verificar si han pasado 45 días desde el inicio y marcar la pila como completada
+        $composting = Composting::find($request->composting_id);
+        $daysElapsed = $composting->days_elapsed;
         
-        \Log::info("Total trackings after creation: {$totalTrackings}");
+        \Log::info("Days elapsed: {$daysElapsed}");
         
-        if ($totalTrackings >= 45 && !$composting->end_date) {
+        if ($daysElapsed >= 45 && !$composting->end_date) {
             \Log::info('Process completed! Updating composting pile...');
             $composting->update([
                 'end_date' => now()->toDateString()
@@ -339,6 +339,9 @@ class TrackingController extends Controller
             ->orderBy('day', 'asc')
             ->get();
 
+        // Obtener los días faltantes (días sin seguimiento registrado)
+        $missingDays = $composting->missing_days;
+
         return response()->json([
             'composting' => [
                 'id' => $composting->id,
@@ -351,9 +354,11 @@ class TrackingController extends Controller
                 'process_progress' => $composting->process_progress,
                 'current_phase' => $composting->current_phase,
                 'tracking_progress' => $composting->tracking_progress,
-                'is_process_completed_by_trackings' => $composting->is_process_completed_by_trackings
+                'is_process_completed_by_trackings' => $composting->is_process_completed_by_trackings,
+                'days_elapsed' => $composting->days_elapsed
             ],
-            'trackings' => $trackings
+            'trackings' => $trackings,
+            'missing_days' => $missingDays
         ]);
     }
 }

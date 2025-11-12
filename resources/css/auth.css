@@ -2,7 +2,14 @@
 
 /* Base Font */
 body { 
-    font-family: 'Inter', sans-serif; 
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+    position: relative;
+}
+
+html {
+    overflow-x: hidden;
+    position: relative;
 }
 
 /* Typewriter Animation */
@@ -137,7 +144,12 @@ body {
     border: 1px solid #d1d5db;
     border-radius: 0.75rem;
     background-color: white;
-    transition: all 0.2s ease-in-out;
+    transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    box-sizing: border-box;
+    font-size: 16px !important;
+    line-height: 1.5;
+    transform: scale(1);
+    transform-origin: center;
 }
 
 .auth-input:focus {
@@ -203,6 +215,15 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.5);
     overflow: hidden;
     animation: slideInRight 0.8s ease-out;
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+}
+
+.auth-container > .flex {
+    display: flex;
+    width: 100%;
+    position: relative;
 }
 
 /* Logo Styles */
@@ -230,6 +251,28 @@ body {
     position: relative;
     overflow: hidden;
     min-height: 600px;
+    flex-shrink: 0;
+}
+
+.auth-side-panel .absolute {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.auth-side-panel img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
 }
 
 @media (min-width: 1024px) {
@@ -242,6 +285,9 @@ body {
 .auth-form-panel {
     width: 100%;
     padding: 2.5rem;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    position: relative;
 }
 
 @media (min-width: 1024px) {

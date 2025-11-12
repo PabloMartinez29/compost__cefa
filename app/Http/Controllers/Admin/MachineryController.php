@@ -1,11 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\Machinery;
 use App\Models\Maintenance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
 
 class MachineryController extends Controller
 {
@@ -15,7 +17,7 @@ class MachineryController extends Controller
     public function index()
     {
         $machineries = Machinery::latest()->paginate(10);
-        return view('admin.machinery.index', compact('machineries'));
+        return view('admin.machinery.machineries.index', compact('machineries'));
     }
 
     /**
@@ -23,7 +25,7 @@ class MachineryController extends Controller
      */
     public function create()
     {
-        return view('admin.machinery.create');
+        return view('admin.machinery.machineries.create');
     }
 
     /**
@@ -39,6 +41,7 @@ class MachineryController extends Controller
             'serial' => 'required|string|max:100|unique:machineries,serial',
             'start_func' => 'required|date|before_or_equal:today',
             'maint_freq' => 'required|string|max:100',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp',
         ], [
             'name.required' => 'El nombre de la maquinaria es obligatorio.',
             'name.max' => 'El nombre no debe exceder 150 caracteres.',
@@ -56,6 +59,8 @@ class MachineryController extends Controller
             'start_func.before_or_equal' => 'La fecha de inicio no puede ser futura.',
             'maint_freq.required' => 'La frecuencia de mantenimiento es obligatoria.',
             'maint_freq.max' => 'La frecuencia de mantenimiento no debe exceder 100 caracteres.',
+            'image.image' => 'El archivo debe ser una imagen.',
+            'image.mimes' => 'La imagen debe ser de tipo: jpeg, png, jpg, gif o webp.',
         ]);
 
         if ($validator->fails()) {
@@ -65,9 +70,16 @@ class MachineryController extends Controller
         }
 
         try {
-            Machinery::create($request->all());
+            $data = $request->all();
             
-            return redirect()->route('machinery.index')
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                $data['image'] = $request->file('image')->store('machineries', 'public');
+            }
+            
+            Machinery::create($data);
+            
+            return redirect()->route('admin.machinery.index')
                 ->with('success', 'Maquinaria registrada exitosamente.');
         } catch (\Exception $e) {
             return redirect()->back()
@@ -81,7 +93,7 @@ class MachineryController extends Controller
      */
     public function show(Machinery $machinery)
     {
-        return view('admin.machinery.show', compact('machinery'));
+        return view('admin.machinery.machineries.show', compact('machinery'));
     }
 
     /**
@@ -89,7 +101,7 @@ class MachineryController extends Controller
      */
     public function edit(Machinery $machinery)
     {
-        return view('admin.machinery.edit', compact('machinery'));
+        return view('admin.machinery.machineries.edit', compact('machinery'));
     }
 
     /**
@@ -105,6 +117,7 @@ class MachineryController extends Controller
             'serial' => 'required|string|max:100|unique:machineries,serial,' . $machinery->id,
             'start_func' => 'required|date|before_or_equal:today',
             'maint_freq' => 'required|string|max:100',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp',
         ], [
             'name.required' => 'El nombre de la maquinaria es obligatorio.',
             'name.max' => 'El nombre no debe exceder 150 caracteres.',
@@ -122,6 +135,8 @@ class MachineryController extends Controller
             'start_func.before_or_equal' => 'La fecha de inicio no puede ser futura.',
             'maint_freq.required' => 'La frecuencia de mantenimiento es obligatoria.',
             'maint_freq.max' => 'La frecuencia de mantenimiento no debe exceder 100 caracteres.',
+            'image.image' => 'El archivo debe ser una imagen.',
+            'image.mimes' => 'La imagen debe ser de tipo: jpeg, png, jpg, gif o webp.',
         ]);
 
         if ($validator->fails()) {
@@ -131,9 +146,20 @@ class MachineryController extends Controller
         }
 
         try {
-            $machinery->update($request->all());
+            $data = $request->all();
             
-            return redirect()->route('machinery.index')
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                // Delete old image if exists
+                if ($machinery->image) {
+                    Storage::disk('public')->delete($machinery->image);
+                }
+                $data['image'] = $request->file('image')->store('machineries', 'public');
+            }
+            
+            $machinery->update($data);
+            
+            return redirect()->route('admin.machinery.index')
                 ->with('success', 'Maquinaria actualizada exitosamente.');
         } catch (\Exception $e) {
             return redirect()->back()
@@ -148,9 +174,14 @@ class MachineryController extends Controller
     public function destroy(Machinery $machinery)
     {
         try {
+            // Delete image if exists
+            if ($machinery->image) {
+                Storage::disk('public')->delete($machinery->image);
+            }
+            
             $machinery->delete();
             
-            return redirect()->route('machinery.index')
+            return redirect()->route('admin.machinery.index')
                 ->with('success', 'Maquinaria eliminada exitosamente.');
         } catch (\Exception $e) {
             return redirect()->back()
@@ -182,7 +213,7 @@ class MachineryController extends Controller
     public function createMaintenance()
     {
         $machineries = Machinery::orderBy('name')->get();
-        return view('admin.machinery.maintenance', compact('machineries'));
+        return view('admin.machinery.maintenances.create', compact('machineries'));
     }
 
     /**
@@ -219,7 +250,7 @@ class MachineryController extends Controller
         try {
             Maintenance::create($request->all());
             
-            return redirect()->route('machinery.maintenance.create')
+            return redirect()->route('admin.machinery.maintenance.create')
                 ->with('success', 'Registro de mantenimiento creado exitosamente.');
         } catch (\Exception $e) {
             return redirect()->back()
@@ -234,7 +265,7 @@ class MachineryController extends Controller
     public function showMaintenance(Machinery $machinery)
     {
         $maintenances = $machinery->maintenances()->orderBy('date', 'desc')->paginate(10);
-        return view('admin.machinery.maintenance-history', compact('machinery', 'maintenances'));
+        return view('admin.machinery.maintenances.show', compact('machinery', 'maintenances'));
     }
 
     /**
@@ -255,7 +286,7 @@ class MachineryController extends Controller
                 ->count()
         ];
 
-        return view('admin.machinery.maintenance-list', compact('maintenances', 'stats'));
+        return view('admin.machinery.maintenances.index', compact('maintenances', 'stats'));
     }
 }
 

@@ -217,6 +217,47 @@
         </div>
     </div>
 
+    <!-- Días Faltantes (Sin Seguimiento) -->
+    @php
+        $missingDays = $tracking->composting->missing_days;
+    @endphp
+    @if(count($missingDays) > 0)
+        <div class="bg-yellow-50 border-l-4 border-yellow-400 rounded-lg shadow-md mb-8">
+            <div class="px-6 py-4 border-b border-yellow-200">
+                <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
+                    Días Sin Seguimiento Registrado
+                </h3>
+            </div>
+            <div class="p-6">
+                <p class="text-sm text-gray-600 mb-4">
+                    Los siguientes días no tienen seguimiento registrado:
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    @foreach($missingDays as $missingDay)
+                        <div class="bg-white border border-yellow-200 rounded-lg p-3">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900">
+                                        <i class="fas fa-calendar-day text-yellow-600 mr-1"></i>
+                                        Día {{ $missingDay['day'] }}
+                                    </p>
+                                    <p class="text-xs text-gray-600 mt-1">
+                                        <i class="fas fa-clock text-gray-400 mr-1"></i>
+                                        Fecha: {{ $missingDay['date'] }}
+                                    </p>
+                                </div>
+                                <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-1 rounded-full">
+                                    Sin registro
+                                </span>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    @endif
+
 </div>
 
 @endsection

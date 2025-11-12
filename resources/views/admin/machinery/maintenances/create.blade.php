@@ -75,7 +75,7 @@
             </div>
 
             <!-- Form Body -->
-            <form action="{{ route('machinery.maintenance.store') }}" method="POST" class="p-6 space-y-6">
+            <form action="{{ route('admin.machinery.maintenance.store') }}" method="POST" class="p-6 space-y-6">
                 @csrf
 
                 <!-- Primera fila: Fecha, Maquinaria, Tipo -->

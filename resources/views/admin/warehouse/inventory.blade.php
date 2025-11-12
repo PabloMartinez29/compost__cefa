@@ -3,7 +3,7 @@
 @section('content')
 <div class="min-h-screen bg-soft-gray-50 py-8">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Header -->
+        
         <div class="mb-8">
             <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
@@ -28,7 +28,7 @@
             </div>
         </div>
 
-        <!-- Stats Cards -->
+       
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             @php
                 $entries = $movements->where('movement_type', 'entry')->sum('weight');
@@ -72,7 +72,7 @@
             </div>
         </div>
 
-        <!-- Movements Table -->
+       
         <div class="bg-white rounded-2xl shadow-lg">
             <div class="px-6 py-4 border-b border-soft-gray-200">
                 <h2 class="text-xl font-semibold text-soft-gray-900 flex items-center">

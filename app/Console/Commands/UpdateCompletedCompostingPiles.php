@@ -20,7 +20,7 @@ class UpdateCompletedCompostingPiles extends Command
      *
      * @var string
      */
-    protected $description = 'Update composting piles that have 45 or more trackings but no end_date';
+    protected $description = 'Update composting piles that have completed 45 days but no end_date';
 
     /**
      * Execute the console command.
@@ -29,12 +29,11 @@ class UpdateCompletedCompostingPiles extends Command
     {
         $this->info('Checking for completed composting piles...');
         
-        // Buscar pilas que tienen 45 o más seguimientos pero no tienen end_date
+        // Buscar pilas que han completado 45 días pero no tienen end_date
         $completedPiles = Composting::whereNull('end_date')
-            ->with('trackings')
             ->get()
             ->filter(function ($composting) {
-                return $composting->trackings->count() >= 45;
+                return $composting->days_elapsed >= 45;
             });
 
         if ($completedPiles->isEmpty()) {
@@ -45,8 +44,8 @@ class UpdateCompletedCompostingPiles extends Command
         $this->info("Found {$completedPiles->count()} completed piles to update.");
 
         foreach ($completedPiles as $composting) {
-            $trackingCount = $composting->trackings->count();
-            $this->info("Updating pile {$composting->formatted_pile_num} with {$trackingCount} trackings...");
+            $daysElapsed = $composting->days_elapsed;
+            $this->info("Updating pile {$composting->formatted_pile_num} with {$daysElapsed} days elapsed...");
             
             $composting->update([
                 'end_date' => now()->toDateString()

@@ -16,6 +16,8 @@ use App\Http\Controllers\Aprendiz\CompostingController;
 use App\Http\Controllers\Admin\CompostingController as AdminCompostingController;
 use App\Http\Controllers\Aprendiz\TrackingController;
 use App\Http\Controllers\Admin\TrackingController as AdminTrackingController;
+use App\Http\Controllers\Admin\MachineryController;
+use App\Http\Controllers\Admin\SupplierController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -133,6 +135,32 @@ Route::middleware(['auth','role:admin'])->group(function(){
         
         return $pdf->download('test_dompdf_' . date('Y-m-d') . '.pdf');
     });
+    
+    // Machinery Routes - Identificación y Especificaciones
+    Route::resource('admin/machinery/machineries', MachineryController::class)->names([
+        'index' => 'admin.machinery.index',
+        'create' => 'admin.machinery.create',
+        'store' => 'admin.machinery.store',
+        'show' => 'admin.machinery.show',
+        'edit' => 'admin.machinery.edit',
+        'update' => 'admin.machinery.update',
+        'destroy' => 'admin.machinery.destroy',
+    ]);
+    
+    // Supplier Routes - Deben ir ANTES de las rutas con parámetros {machinery} para evitar conflictos
+    Route::get('admin/machinery/supplier', [SupplierController::class, 'index'])->name('admin.machinery.supplier.index');
+    Route::get('admin/machinery/supplier/create', [SupplierController::class, 'create'])->name('admin.machinery.supplier.create');
+    Route::post('admin/machinery/supplier', [SupplierController::class, 'store'])->name('admin.machinery.supplier.store');
+    Route::get('admin/machinery/supplier/{supplier}', [SupplierController::class, 'show'])->name('admin.machinery.supplier.show');
+    Route::get('admin/machinery/supplier/{supplier}/edit', [SupplierController::class, 'edit'])->name('admin.machinery.supplier.edit');
+    Route::put('admin/machinery/supplier/{supplier}', [SupplierController::class, 'update'])->name('admin.machinery.supplier.update');
+    Route::delete('admin/machinery/supplier/{supplier}', [SupplierController::class, 'destroy'])->name('admin.machinery.supplier.destroy');
+    
+    // Maintenance Routes - Deben ir DESPUÉS de las rutas de supplier
+    Route::get('admin/machinery/maintenance', [MachineryController::class, 'indexMaintenance'])->name('admin.machinery.maintenance.index');
+    Route::get('admin/machinery/maintenance/create', [MachineryController::class, 'createMaintenance'])->name('admin.machinery.maintenance.create');
+    Route::post('admin/machinery/maintenance', [MachineryController::class, 'storeMaintenance'])->name('admin.machinery.maintenance.store');
+    Route::get('admin/machinery/{machinery}/maintenance', [MachineryController::class, 'showMaintenance'])->name('admin.machinery.maintenance.show');
 });
 
 

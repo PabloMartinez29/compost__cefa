@@ -19,6 +19,7 @@ class Machinery extends Model
         'serial',
         'start_func',
         'maint_freq',
+        'image',
     ];
 
     protected $casts = [
@@ -31,11 +32,17 @@ class Machinery extends Model
         return $this->hasMany(Maintenance::class);
     }
 
-    // Relación con controles de uso (pendiente de crear modelo UsageControl)
-    // public function usageControls()
-    // {
-    //     return $this->hasMany(UsageControl::class);
-    // }
+    // Relación con proveedores
+    public function supplier()
+    {
+        return $this->hasOne(Supplier::class);
+    }
+
+    // Relación con controles de uso
+    public function usageControls()
+    {
+        return $this->hasMany(UsageControl::class);
+    }
 
     // Accessor para obtener el estado de la maquinaria basado en mantenimiento
     public function getStatusAttribute()

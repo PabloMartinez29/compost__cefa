@@ -14,7 +14,7 @@
             <p class="text-soft-gray-600">Historial completo de mantenimientos y operaciones de maquinaria</p>
         </div>
         <div class="mt-4 md:mt-0">
-            <a href="{{ route('machinery.index') }}" 
+            <a href="{{ route('admin.machinery.index') }}" 
                class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-soft-green-600 to-soft-green-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200">
                 <i class="fas fa-plus mr-2"></i>
                 Nuevo Registro
@@ -252,7 +252,7 @@
                 </div>
                 <h3 class="text-lg font-medium text-soft-gray-900 mb-2">No hay registros de mantenimiento</h3>
                 <p class="text-soft-gray-600 mb-6">Comienza registrando el primer mantenimiento u operación.</p>
-                <a href="{{ route('machinery.index') }}" 
+                <a href="{{ route('admin.machinery.index') }}" 
                    class="inline-flex items-center px-4 py-2 bg-soft-green-600 text-white font-medium rounded-lg hover:bg-soft-green-700 transition-colors">
                     <i class="fas fa-plus mr-2"></i>
                     Registrar Primer Mantenimiento

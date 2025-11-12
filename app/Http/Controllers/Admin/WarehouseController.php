@@ -9,9 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 class WarehouseController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+   
     public function index()
     {
         $inventory = WarehouseClassification::getInventoryByType();
@@ -24,17 +22,14 @@ class WarehouseController extends Controller
     }
 
 
-    /**
-     * Display the specified resource.
-     */
+   
+    
     public function show(WarehouseClassification $warehouse)
     {
         return view('admin.warehouse.show', compact('warehouse'));
     }
 
-    /**
-     * Show inventory by type
-     */
+   
     public function inventory($type)
     {
         $inventory = WarehouseClassification::getCurrentInventory($type);
