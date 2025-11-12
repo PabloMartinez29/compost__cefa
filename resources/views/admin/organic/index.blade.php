@@ -88,10 +88,15 @@
                 <i class="fas fa-table text-green-600 mr-2"></i>
                 Registros de Residuos Orgánicos
             </h2>
-            <a href="{{ route('admin.organic.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
-                <i class="fas fa-plus mr-2"></i>
-                Nuevo Registro
-            </a>
+            <div class="flex items-center space-x-4">
+                <a href="{{ route('admin.organic.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                    <i class="fas fa-file-pdf"></i>
+                </a>
+                <a href="{{ route('admin.organic.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                    <i class="fas fa-plus mr-2"></i>
+                    Nuevo Registro
+                </a>
+            </div>
         </div>
 
         @if(session('success'))
@@ -101,33 +106,42 @@
         @endif
 
         <div class="overflow-x-auto">
-            <table class="waste-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Fecha</th>
-                        <th>Imagen</th>
-                        <th>Tipo</th>
-                        <th>Peso (Kg)</th>
-                        <th>Entregado Por</th>
-                        <th>Recibido Por</th>
-                        <th>Creado por</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($organics as $organic)
+            <!-- DataTables agregará los controles y la tabla aquí -->
+            <div id="organicsTable_wrapper" class="p-6">
+                <!-- Contenedor para controles superiores -->
+                <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
+                    <div id="dt-length-container" style="float: left;"></div>
+                    <div id="dt-filter-container" style="float: right;"></div>
+                </div>
+                <table id="organicsTable" class="waste-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Fecha</th>
+                            <th>Imagen</th>
+                            <th>Tipo</th>
+                            <th>Peso (Kg)</th>
+                            <th>Entregado Por</th>
+                            <th>Recibido Por</th>
+                            <th>Creado por</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($organics as $organic)
                         <tr>
                             <td class="font-mono">#{{ str_pad($organic->id, 3, '0', STR_PAD_LEFT) }}</td>
                             <td>{{ $organic->formatted_date }}</td>
                             <td>
                                 @if($organic->img)
-                                    <!-- Debug: {{ Storage::url($organic->img) }} -->
-                                    <img src="{{ Storage::url($organic->img) }}?v={{ $organic->updated_at->timestamp }}" 
+                                    @php
+                                        $imageUrl = asset($organic->img);
+                                    @endphp
+                                    <img src="{{ $imageUrl }}?v={{ $organic->updated_at->timestamp }}" 
                                          alt="Imagen del residuo" 
                                          class="w-12 h-12 object-cover rounded-full cursor-pointer hover:opacity-80 transition-opacity"
-                                         onclick="openImageModal('{{ Storage::url($organic->img) }}?v={{ $organic->updated_at->timestamp }}')"
-                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                         onclick="openImageModal('{{ $imageUrl }}?v={{ $organic->updated_at->timestamp }}')"
+                                         onerror="console.log('Error loading image:', this.src); this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                     <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center" style="display: none;">
                                         <i class="fas fa-image text-gray-400"></i>
                                     </div>
@@ -151,25 +165,25 @@
                             <td>{{ $organic->delivered_by }}</td>
                             <td>{{ $organic->received_by }}</td>
                             <td>
-                                <div class="flex items-center">
+                                <div class="flex flex-col">
+                                    <span class="text-sm text-gray-800 font-medium mb-1">{{ $organic->creator ? $organic->creator->name : 'Usuario no disponible' }}</span>
                                     @if($organic->creator && $organic->creator->role === 'admin')
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 mr-2">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 w-fit">
                                             <i class="fas fa-user-shield mr-1"></i>
                                             Administrador
                                         </span>
                                     @else
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2">
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 w-fit">
                                             <i class="fas fa-user-graduate mr-1"></i>
                                             Aprendiz
                                         </span>
                                     @endif
-                                    <span class="text-sm text-gray-600">{{ $organic->creator ? $organic->creator->name : 'Usuario no disponible' }}</span>
                                 </div>
                             </td>
                             <td>
                                 <div class="flex space-x-2 items-center">
                                     <button onclick="openViewModal({{ $organic->id }})" 
-                                       class="inline-flex items-center text-blue-500 hover:text-blue-700" title="Ver Detalles">
+                                       class="inline-flex items-center text-blue-400 hover:text-blue-500" title="Ver Detalles">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                     <button onclick="confirmEdit({{ $organic->id }})" 
@@ -185,32 +199,19 @@
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </form>
+                                    <a href="{{ route('admin.organic.download.pdf', $organic) }}" 
+                                       class="inline-flex items-center text-red-800 hover:text-red-900" 
+                                       title="Descargar PDF">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </a>
                                 </div>
                             </td>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="9" class="text-center py-8 text-gray-500">
-                                <i class="fas fa-inbox text-4xl mb-4 block"></i>
-                                No se encontraron registros de residuos orgánicos
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Pagination -->
-        @if($organics->hasPages())
-            <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
-                <div class="text-sm text-gray-700">
-                    Showing {{ $organics->firstItem() }} to {{ $organics->lastItem() }} of {{ $organics->total() }} results
-                </div>
-                <div class="flex space-x-2">
-                    {{ $organics->links() }}
-                </div>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
-        @endif
+        </div>
     </div>
 </div>
 
@@ -601,6 +602,141 @@
     </div>
 </div>
 
+<style>
+/* Estilos para DataTables */
+.dataTables_wrapper {
+    position: relative;
+    clear: both;
+    width: 100%;
+}
+
+/* Contenedor superior: Mostrar (izquierda) y Buscar (derecha) - MISMA LÍNEA */
+.dataTables_wrapper .dataTables_length {
+    float: left !important;
+    margin-bottom: 1rem;
+    padding: 0.5rem 0;
+    clear: none !important;
+    width: auto !important;
+}
+
+.dataTables_wrapper .dataTables_filter {
+    float: right !important;
+    margin-bottom: 1rem;
+    padding: 0.5rem 0;
+    text-align: right !important;
+    clear: none !important;
+    width: auto !important;
+}
+
+.dataTables_wrapper .dataTables_length label,
+.dataTables_wrapper .dataTables_filter label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.dataTables_wrapper .dataTables_length select {
+    margin-left: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    min-width: 60px;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    margin-left: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db !important;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    width: 250px;
+    outline: none !important;
+    transition: none;
+    background-color: white;
+}
+
+.dataTables_wrapper .dataTables_filter input:focus {
+    border-color: #d1d5db !important;
+    box-shadow: none !important;
+    outline: none !important;
+    background-color: white !important;
+}
+
+.dataTables_wrapper .dataTables_filter input:hover {
+    border-color: #9ca3af !important;
+    box-shadow: none !important;
+    background-color: white !important;
+}
+
+.dataTables_wrapper .dataTables_filter input:active {
+    border-color: #d1d5db !important;
+    outline: none !important;
+}
+
+/* Información y paginación inferior */
+.dataTables_wrapper .dataTables_info {
+    float: left;
+    padding: 0.75rem 0;
+    margin-top: 1.5rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+    float: right;
+    text-align: right;
+    padding: 0.75rem 0;
+    margin-top: 1.5rem;
+}
+
+/* Paginación más pequeña */
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 0.375rem 0.625rem;
+    margin: 0 0.125rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    background: white;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-block;
+    text-decoration: none;
+    font-size: 0.875rem;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: #f3f4f6 !important;
+    border-color: #d1d5db !important;
+    color: #374151 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: #22c55e;
+    color: white;
+    border-color: #22c55e;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Limpiar floats */
+.dataTables_wrapper::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+</style>
+
 <script>
 function openCreateModal() {
     document.getElementById('createModal').classList.remove('hidden');
@@ -894,5 +1030,106 @@ function confirmDelete(event, form) {
         }
     });
 @endif
+
+// Inicializar DataTables
+document.addEventListener('DOMContentLoaded', function() {
+    // Verificar que DataTable esté disponible
+    if (typeof DataTable === 'undefined') {
+        console.error('DataTable no está cargado. Verifica que el script de DataTables esté incluido.');
+        return;
+    }
+    
+    // Verificar que la tabla exista
+    const tableElement = document.querySelector('#organicsTable');
+    if (!tableElement) {
+        console.error('No se encontró la tabla con id #organicsTable');
+        return;
+    }
+    
+    console.log('Inicializando DataTables...');
+    
+    let table = new DataTable('#organicsTable', {
+        language: {
+            search: 'Buscar:',
+            lengthMenu: 'Mostrar _MENU_ registros',
+            info: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
+            infoEmpty: 'Mostrando 0 a 0 de 0 registros',
+            infoFiltered: '(filtrado de _MAX_ registros totales)',
+            zeroRecords: 'No se encontraron registros',
+            emptyTable: 'No hay datos disponibles',
+            paginate: {
+                first: '«',
+                previous: '<',
+                next: '>',
+                last: '»'
+            }
+        },
+        responsive: true,
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
+        order: [[1, 'desc']], // Ordenar por fecha descendente
+        processing: false,
+        serverSide: false,
+        dom: 'rtip', // Sin length y filter, los moveremos manualmente
+        initComplete: function() {
+            const wrapper = this.api().table().container();
+            
+            // Crear controles manualmente
+            const lengthContainer = document.createElement('div');
+            lengthContainer.className = 'dataTables_length';
+            lengthContainer.innerHTML = `
+                <label>
+                    Mostrar
+                    <select name="organicsTable_length" aria-controls="organicsTable" class="px-3 py-2 border border-gray-300 rounded-lg ml-2">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="-1">Todos</option>
+                    </select>
+                    registros
+                </label>
+            `;
+            
+            const filterContainer = document.createElement('div');
+            filterContainer.className = 'dataTables_filter';
+            filterContainer.innerHTML = `
+                <label>
+                    Buscar:
+                    <input type="search" class="px-3 py-2 border border-gray-300 rounded-lg ml-2" placeholder="Buscar..." aria-controls="organicsTable" style="width: 250px; outline: none; transition: none;">
+                </label>
+            `;
+            
+            // Agregar a los contenedores
+            const lengthTarget = document.getElementById('dt-length-container');
+            const filterTarget = document.getElementById('dt-filter-container');
+            
+            if (lengthTarget) {
+                lengthTarget.appendChild(lengthContainer);
+            }
+            
+            if (filterTarget) {
+                filterTarget.appendChild(filterContainer);
+            }
+            
+            // Conectar eventos
+            const lengthSelect = lengthContainer.querySelector('select');
+            const searchInput = filterContainer.querySelector('input');
+            
+            if (lengthSelect) {
+                lengthSelect.addEventListener('change', function() {
+                    table.page.len(parseInt(this.value)).draw();
+                });
+            }
+            
+            if (searchInput) {
+                searchInput.addEventListener('keyup', function() {
+                    table.search(this.value).draw();
+                });
+            }
+        }
+    });
+    
+    console.log('DataTables configurado:', table);
+});
 </script>
 @endsection

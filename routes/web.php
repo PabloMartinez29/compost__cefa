@@ -38,6 +38,11 @@ Route::middleware(['auth','role:admin'])->group(function(){
 
     Route::get('/admin/dashboard', [AdminController::class, 'index'])->name('dashboard.admin');
     
+    // Monitoring Routes
+    Route::get('admin/monitoring', [\App\Http\Controllers\Admin\MonitoringController::class, 'index'])->name('admin.monitoring.index');
+    Route::get('admin/monitoring/download/pdf', [\App\Http\Controllers\Admin\MonitoringController::class, 'downloadMonitoringPDF'])->name('admin.monitoring.download.pdf');
+    Route::get('admin/monitoring/download/excel', [\App\Http\Controllers\Admin\MonitoringController::class, 'downloadMonitoringExcel'])->name('admin.monitoring.download.excel');
+    
     // Organic Waste Management Routes
     Route::resource('admin/organic', OrganicController::class)->names([
         'index' => 'admin.organic.index',
@@ -102,6 +107,14 @@ Route::middleware(['auth','role:admin'])->group(function(){
     Route::get('admin/users/download/all-pdf', [\App\Http\Controllers\Admin\UserController::class, 'downloadAllUsersPDF'])->name('admin.users.download.all-pdf');
     Route::get('admin/users/{user}/download/pdf', [\App\Http\Controllers\Admin\UserController::class, 'downloadUserPDF'])->name('admin.users.download.pdf');
     
+    // Rutas para descargar PDFs de residuos orgánicos
+    Route::get('admin/organic/download/all-pdf', [OrganicController::class, 'downloadAllOrganicsPDF'])->name('admin.organic.download.all-pdf');
+    Route::get('admin/organic/{organic}/download/pdf', [OrganicController::class, 'downloadOrganicPDF'])->name('admin.organic.download.pdf');
+    
+    // Rutas para descargar PDFs de abonos
+    Route::get('admin/fertilizer/download/all-pdf', [\App\Http\Controllers\Admin\FertilizerController::class, 'downloadAllFertilizersPDF'])->name('admin.fertilizer.download.all-pdf');
+    Route::get('admin/fertilizer/{fertilizer}/download/pdf', [\App\Http\Controllers\Admin\FertilizerController::class, 'downloadFertilizerPDF'])->name('admin.fertilizer.download.pdf');
+    
     // Ruta de prueba para PDF
     Route::get('admin/test-pdf', function() {
         return view('admin.users.pdf.simple-test');
@@ -142,6 +155,10 @@ Route::middleware(['auth', 'role:aprendiz'])->group(function(){
     Route::post('aprendiz/organic/{organic}/request-delete', [AprendizOrganicController::class, 'requestDeletePermission'])->name('aprendiz.organic.request-delete');
     Route::post('aprendiz/organic/{organic}/request-edit', [AprendizOrganicController::class, 'requestEditPermission'])->name('aprendiz.organic.request-edit');
     
+    // Rutas para descargar PDFs de residuos orgánicos para aprendiz
+    Route::get('aprendiz/organic/download/all-pdf', [AprendizOrganicController::class, 'downloadAllOrganicsPDF'])->name('aprendiz.organic.download.all-pdf');
+    Route::get('aprendiz/organic/{organic}/download/pdf', [AprendizOrganicController::class, 'downloadOrganicPDF'])->name('aprendiz.organic.download.pdf');
+    
     // Notification routes for apprentice
     Route::get('aprendiz/notifications/history', [AprendizController::class, 'notificationsHistory'])->name('aprendiz.notifications.history');
     Route::post('aprendiz/notifications/{notification}/mark-read', [AprendizController::class, 'markNotificationAsRead'])->name('aprendiz.notifications.mark-read');
@@ -179,14 +196,33 @@ Route::middleware(['auth', 'role:aprendiz'])->group(function(){
           
           // Additional tracking routes
           Route::get('aprendiz/tracking/composting/{composting}', [TrackingController::class, 'getByComposting'])->name('aprendiz.tracking.by-composting');
+          
+          // Fertilizer Routes for Apprentices
+          Route::resource('aprendiz/fertilizer', \App\Http\Controllers\Aprendiz\FertilizerController::class)->names([
+              'index' => 'aprendiz.fertilizer.index',
+              'create' => 'aprendiz.fertilizer.create',
+              'store' => 'aprendiz.fertilizer.store',
+              'show' => 'aprendiz.fertilizer.show',
+              'edit' => 'aprendiz.fertilizer.edit',
+              'update' => 'aprendiz.fertilizer.update',
+              'destroy' => 'aprendiz.fertilizer.destroy',
+          ]);
+          
+          // Rutas para descargar PDFs de abonos para aprendiz
+          Route::get('aprendiz/fertilizer/download/all-pdf', [\App\Http\Controllers\Aprendiz\FertilizerController::class, 'downloadAllFertilizersPDF'])->name('aprendiz.fertilizer.download.all-pdf');
+          Route::get('aprendiz/fertilizer/{fertilizer}/download/pdf', [\App\Http\Controllers\Aprendiz\FertilizerController::class, 'downloadFertilizerPDF'])->name('aprendiz.fertilizer.download.pdf');
 });
 
-//rutas de abono
-
-Route::get('/admin/create', function () {
-    // Lógica para mostrar el formulario de creación de administrador
-    return view('admin.create');
-})->name('admin.create');
+//rutas de abono (fertilizer)
+Route::resource('admin/fertilizer', \App\Http\Controllers\Admin\FertilizerController::class)->names([
+    'index' => 'admin.fertilizer.index',
+    'create' => 'admin.fertilizer.create',
+    'store' => 'admin.fertilizer.store',
+    'show' => 'admin.fertilizer.show',
+    'edit' => 'admin.fertilizer.edit',
+    'update' => 'admin.fertilizer.update',
+    'destroy' => 'admin.fertilizer.destroy',
+]);
 
 require __DIR__.'/auth.php';
 

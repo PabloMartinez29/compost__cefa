@@ -7,6 +7,7 @@ use App\Models\Organic;
 use App\Models\WarehouseClassification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class OrganicController extends Controller
 {
@@ -15,7 +16,7 @@ class OrganicController extends Controller
      */
     public function index()
     {
-        $organics = Organic::with('creator')->orderBy('date', 'desc')->paginate(10);
+        $organics = Organic::with('creator')->orderBy('date', 'desc')->get();
         
         // Statistics
         $totalWeight = Organic::sum('weight');
@@ -53,7 +54,10 @@ class OrganicController extends Controller
         
         // Handle image upload
         if ($request->hasFile('img')) {
-            $data['img'] = $request->file('img')->store('organics', 'public');
+            $image = $request->file('img');
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            $image->move(public_path('organics'), $imageName);
+            $data['img'] = 'organics/' . $imageName;
         }
 
         // Agregar el ID del usuario que crea el registro
@@ -97,7 +101,7 @@ class OrganicController extends Controller
                 'received_by' => $organic->received_by,
                 'notes' => $organic->notes,
                 'img' => $organic->img,
-                'img_url' => $organic->img ? Storage::url($organic->img) : null,
+                'img_url' => $organic->img ? asset($organic->img) : null,
                 'created_at' => $organic->created_at->format('Y-m-d H:i:s'),
                 'created_at_formatted' => $organic->created_at->format('d/m/Y H:i:s'),
                 'created_by_info' => $organic->created_by_info,
@@ -136,10 +140,13 @@ class OrganicController extends Controller
         // Handle image upload
         if ($request->hasFile('img')) {
             // Delete old image
-            if ($organic->img) {
-                Storage::disk('public')->delete($organic->img);
+            if ($organic->img && file_exists(public_path($organic->img))) {
+                unlink(public_path($organic->img));
             }
-            $data['img'] = $request->file('img')->store('organics', 'public');
+            $image = $request->file('img');
+            $imageName = time() . '_' . $image->getClientOriginalName();
+            $image->move(public_path('organics'), $imageName);
+            $data['img'] = 'organics/' . $imageName;
         }
 
         $organic->update($data);
@@ -163,12 +170,60 @@ class OrganicController extends Controller
         ]);
 
         // Delete image if exists
-        if ($organic->img) {
-            Storage::disk('public')->delete($organic->img);
+        if ($organic->img && file_exists(public_path($organic->img))) {
+            unlink(public_path($organic->img));
         }
         
         $organic->delete();
 
         return redirect()->route('admin.organic.index')->with('success', '¡Registro de residuo orgánico eliminado exitosamente! El inventario de bodega ha sido actualizado.');
+    }
+
+    /**
+     * Generate PDF for all organics
+     */
+    public function downloadAllOrganicsPDF()
+    {
+        $organics = Organic::with('creator')->orderBy('date', 'desc')->get();
+        
+        $pdf = PDF::loadView('admin.organic.pdf.all-organics', compact('organics'))
+            ->setPaper('a4', 'landscape')
+            ->setOptions([
+                'defaultFont' => 'Arial',
+                'isRemoteEnabled' => false,
+                'isHtml5ParserEnabled' => true,
+                'isPhpEnabled' => false,
+            ]);
+        
+        return $pdf->download('todos_los_residuos_' . date('Y-m-d') . '.pdf');
+    }
+
+    /**
+     * Generate PDF for individual organic
+     */
+    public function downloadOrganicPDF(Organic $organic)
+    {
+        $organic->load('creator');
+        
+        // Convertir imagen a base64 si existe
+        $imageBase64 = null;
+        if ($organic->img && file_exists(public_path($organic->img))) {
+            $imagePath = public_path($organic->img);
+            $imageData = file_get_contents($imagePath);
+            $imageInfo = getimagesize($imagePath);
+            $mimeType = $imageInfo['mime'];
+            $imageBase64 = 'data:' . $mimeType . ';base64,' . base64_encode($imageData);
+        }
+        
+        $pdf = PDF::loadView('admin.organic.pdf.organic-details', compact('organic', 'imageBase64'))
+            ->setPaper('a4', 'portrait')
+            ->setOptions([
+                'defaultFont' => 'Arial',
+                'isRemoteEnabled' => false,
+                'isHtml5ParserEnabled' => true,
+                'isPhpEnabled' => false,
+            ]);
+        
+        return $pdf->download('residuo_' . str_pad($organic->id, 3, '0', STR_PAD_LEFT) . '_' . date('Y-m-d') . '.pdf');
     }
 }

@@ -17,11 +17,17 @@ class CompostingController extends Controller
      */
     public function index()
     {
-        $compostings = Composting::with(['ingredients.organic'])
+        $compostings = Composting::with(['ingredients.organic', 'creator'])
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->get();
 
-        return view('aprendiz.composting.index', compact('compostings'));
+        // Calcular estadísticas
+        $totalPiles = Composting::count();
+        $activePiles = Composting::whereNull('end_date')->count();
+        $completedPiles = Composting::whereNotNull('end_date')->count();
+        $totalIngredients = Composting::withCount('ingredients')->get()->sum('ingredients_count');
+
+        return view('aprendiz.composting.index', compact('compostings', 'totalPiles', 'activePiles', 'completedPiles', 'totalIngredients'));
     }
 
     /**

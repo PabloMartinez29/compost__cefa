@@ -28,10 +28,16 @@
             </div>
 
             <!-- Form Body -->
-            <form action="" method="POST" class="p-6 space-y-6">
+            <form action="{{ route('admin.fertilizer.store') }}" method="POST" class="p-6 space-y-6">
                 @csrf
 
-                <!-- Primera fila: Fecha, Hora, ID Compostaje -->
+                @if(session('error'))
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                        {{ session('error') }}
+                    </div>
+                @endif
+
+                <!-- Primera fila: Fecha, Hora, Pila -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <!-- Fecha -->
                     <div class="space-y-2">
@@ -61,25 +67,32 @@
                         @enderror
                     </div>
 
-                    <!-- ID Compostaje -->
+                    <!-- Pila (Compostaje) -->
                     <div class="space-y-2">
                         <label for="composting_id" class="block text-sm font-semibold text-soft-gray-700 flex items-center">
-                            <i class="fas fa-recycle mr-2 text-soft-green-600"></i>
-                            ID Compostaje
+                            <i class="fas fa-mountain mr-2 text-soft-green-600"></i>
+                            Pila *
                         </label>
                         <select name="composting_id" id="composting_id" required
                                 class="w-full px-4 py-3 border border-soft-gray-300 rounded-xl focus:ring-2 focus:ring-soft-green-500 focus:border-soft-green-500 transition-all duration-200 bg-soft-gray-50 hover:bg-white">
-                            <option value="">Seleccionar...</option>
-                            <!-- Aquí deberías cargar los IDs de compostaje disponibles -->
-                            @foreach($compostings ?? [] as $composting)
-                                <option value="{{ $composting->id }}" {{ old('composting_id') == $composting->id ? 'selected' : '' }}>
-                                    {{ $composting->id }} - {{ $composting->name ?? 'Compostaje' }}
+                            <option value="">Seleccionar pila completada...</option>
+                            @foreach($completedCompostings ?? [] as $composting)
+                                <option value="{{ $composting->id }}" 
+                                        data-total-kg="{{ $composting->total_kg }}"
+                                        {{ old('composting_id') == $composting->id ? 'selected' : '' }}>
+                                    {{ $composting->formatted_pile_num }} - {{ $composting->formatted_total_kg }} ({{ $composting->formatted_start_date }})
                                 </option>
                             @endforeach
                         </select>
                         @error('composting_id')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
+                        @if(empty($completedCompostings) || $completedCompostings->isEmpty())
+                            <p class="text-yellow-600 text-xs mt-1">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                No hay pilas completadas disponibles. Las pilas deben tener 45 seguimientos o fecha de finalización.
+                            </p>
+                        @endif
                     </div>
                 </div>
 
@@ -184,17 +197,22 @@
                     <div class="space-y-2">
                         <label for="amount" class="block text-sm font-semibold text-soft-gray-700 flex items-center">
                             <i class="fas fa-weight mr-2 text-soft-green-600"></i>
-                            Cantidad (KG/L)
+                            Cantidad (KG/L) *
                         </label>
                         <div class="relative">
-                            <input type="number" name="amount" id="amount" step="0.01" min="0" required
+                            <input type="number" name="amount" id="amount" step="0.01" min="0.01" required
                                    value="{{ old('amount') }}"
                                    placeholder="0.00"
-                                   class="w-full px-4 py-3 pr-16 border border-soft-gray-300 rounded-xl focus:ring-2 focus:ring-soft-green-500 focus:border-soft-green-500 transition-all duration-200 bg-soft-gray-50 hover:bg-white">
+                                   readonly
+                                   class="w-full px-4 py-3 pr-16 border border-soft-gray-300 rounded-xl bg-gray-100 cursor-not-allowed">
                             <div class="absolute inset-y-0 right-0 flex items-center pr-4">
-                                <span class="text-soft-gray-500 text-sm font-medium">KG/L</span>
+                                <span class="text-soft-gray-500 text-sm font-medium" id="amountUnit">Kg</span>
                             </div>
                         </div>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            La cantidad se establece automáticamente según el total de kilos de la pila seleccionada.
+                        </p>
                         @error('amount')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
@@ -240,6 +258,9 @@
     document.addEventListener('DOMContentLoaded', function() {
         const dateInput = document.getElementById('date');
         const timeInput = document.getElementById('time');
+        const compostingSelect = document.getElementById('composting_id');
+        const amountInput = document.getElementById('amount');
+        const amountUnit = document.getElementById('amountUnit');
         
         if (!dateInput.value) {
             dateInput.value = new Date().toISOString().split('T')[0];
@@ -251,6 +272,33 @@
             const minutes = String(now.getMinutes()).padStart(2, '0');
             timeInput.value = `${hours}:${minutes}`;
         }
+
+        // Actualizar cantidad cuando se selecciona una pila
+        compostingSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption.value) {
+                const totalKg = parseFloat(selectedOption.getAttribute('data-total-kg'));
+                if (totalKg && !isNaN(totalKg)) {
+                    amountInput.value = totalKg.toFixed(2);
+                } else {
+                    amountInput.value = '';
+                }
+            } else {
+                amountInput.value = '';
+            }
+        });
+
+        // Actualizar unidad según el tipo de abono
+        document.querySelectorAll('input[name="type"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'Liquid') {
+                    amountUnit.textContent = 'L';
+                } else {
+                    amountUnit.textContent = 'Kg';
+                }
+            });
+        });
     });
 </script>
 @endsection
+

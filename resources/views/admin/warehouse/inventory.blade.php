@@ -124,7 +124,7 @@
                                                    class="text-soft-green-600 hover:text-soft-green-700 text-sm font-medium">
                                                     Ver
                                                 </a>
-                                                <a href="{{ route('admin.warehouse.edit', $movement) }}" 
+                                                <a href="" 
                                                    class="text-blue-600 hover:text-blue-700 text-sm font-medium">
                                                     Editar
                                                 </a>

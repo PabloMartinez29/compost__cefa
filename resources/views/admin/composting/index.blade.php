@@ -29,7 +29,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <div class="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Pilas</div>
-                    <div class="text-3xl font-bold text-gray-800">{{ $compostings->total() }}</div>
+                    <div class="text-3xl font-bold text-gray-800">{{ $totalPiles }}</div>
                 </div>
                 <div class="text-3xl text-blue-500">
                     <i class="fas fa-mountain"></i>
@@ -42,7 +42,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <div class="text-sm font-medium text-gray-600 uppercase tracking-wide">Pilas Activas</div>
-                    <div class="text-3xl font-bold text-gray-800">{{ $compostings->whereNull('end_date')->count() }}</div>
+                    <div class="text-3xl font-bold text-gray-800">{{ $activePiles }}</div>
                 </div>
                 <div class="text-3xl text-green-500">
                     <i class="fas fa-play-circle"></i>
@@ -55,7 +55,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <div class="text-sm font-medium text-gray-600 uppercase tracking-wide">Completadas</div>
-                    <div class="text-3xl font-bold text-gray-800">{{ $compostings->whereNotNull('end_date')->count() }}</div>
+                    <div class="text-3xl font-bold text-gray-800">{{ $completedPiles }}</div>
                 </div>
                 <div class="text-3xl text-yellow-500">
                     <i class="fas fa-check-circle"></i>
@@ -68,7 +68,7 @@
             <div class="flex items-center justify-between">
                 <div>
                     <div class="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Ingredientes</div>
-                    <div class="text-3xl font-bold text-gray-800">{{ $compostings->sum(function($composting) { return $composting->ingredients->count(); }) }}</div>
+                    <div class="text-3xl font-bold text-gray-800">{{ $totalIngredients }}</div>
                 </div>
                 <div class="text-3xl text-cyan-500">
                     <i class="fas fa-leaf"></i>
@@ -103,8 +103,15 @@
         @endif
 
         <div class="overflow-x-auto">
-            <table class="w-full bg-white rounded-lg shadow-sm overflow-hidden">
-                <thead>
+            <!-- DataTables agregará los controles y la tabla aquí -->
+            <div id="compostingsTable_wrapper" class="p-6">
+                <!-- Contenedor para controles superiores -->
+                <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
+                    <div id="dt-length-container" style="float: left;"></div>
+                    <div id="dt-filter-container" style="float: right;"></div>
+                </div>
+                <table id="compostingsTable" class="w-full bg-white rounded-lg shadow-sm overflow-hidden">
+                    <thead>
                     <tr class="bg-green-50">
                         <th class="text-green-800 font-semibold py-4 px-6 text-left border-b border-green-200">Pila</th>
                         <th class="text-green-800 font-semibold py-4 px-6 text-left border-b border-green-200">Fecha Inicio</th>
@@ -113,16 +120,17 @@
                         <th class="text-green-800 font-semibold py-4 px-6 text-left border-b border-green-200">Eficiencia</th>
                         <th class="text-green-800 font-semibold py-4 px-6 text-left border-b border-green-200">Ingredientes</th>
                         <th class="text-green-800 font-semibold py-4 px-6 text-left border-b border-green-200">Estado</th>
+                        <th class="text-green-800 font-semibold py-4 px-6 text-left border-b border-green-200">Creado por</th>
                         <th class="text-green-800 font-semibold py-4 px-6 text-left border-b border-green-200">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($compostings as $composting)
+                    @foreach($compostings as $composting)
                         <tr class="hover:bg-green-50 transition-colors duration-200">
-                            <td class="py-4 px-6 border-b border-gray-100 font-mono text-lg font-semibold text-gray-800">{{ $composting->formatted_pile_num }}</td>
-                            <td class="py-4 px-6 border-b border-gray-100 text-gray-700">{{ $composting->formatted_start_date }}</td>
-                            <td class="py-4 px-6 border-b border-gray-100 text-gray-700">{{ $composting->formatted_end_date }}</td>
-                            <td class="py-4 px-6 border-b border-gray-100 font-semibold">
+                            <td class="py-4 px-6 border-b border-gray-100 font-mono text-lg font-semibold text-gray-800 whitespace-nowrap">{{ $composting->formatted_pile_num }}</td>
+                            <td class="py-4 px-6 border-b border-gray-100 text-gray-700 whitespace-nowrap">{{ $composting->formatted_start_date }}</td>
+                            <td class="py-4 px-6 border-b border-gray-100 text-gray-700 whitespace-nowrap">{{ $composting->formatted_end_date ?? 'N/A' }}</td>
+                            <td class="py-4 px-6 border-b border-gray-100 font-semibold whitespace-nowrap">
                                 @if($composting->total_kg)
                                     <span class="text-green-600">{{ $composting->formatted_total_kg }}</span>
                                 @elseif($composting->end_date)
@@ -131,14 +139,14 @@
                                     <span class="text-yellow-600 font-medium">En proceso</span>
                                 @endif
                             </td>
-                            <td class="py-4 px-6 border-b border-gray-100 text-gray-700">{{ $composting->formatted_efficiency }}</td>
-                            <td class="py-4 px-6 border-b border-gray-100">
+                            <td class="py-4 px-6 border-b border-gray-100 text-gray-700 whitespace-nowrap">{{ $composting->formatted_efficiency ?? 'N/A' }}</td>
+                            <td class="py-4 px-6 border-b border-gray-100 whitespace-nowrap">
                                 <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
                                     <i class="fas fa-list mr-2"></i>
                                     {{ $composting->ingredients->count() }} ingredientes
                                 </span>
                             </td>
-                            <td class="py-4 px-6 border-b border-gray-100">
+                            <td class="py-4 px-6 border-b border-gray-100 whitespace-nowrap">
                                 @if($composting->end_date)
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
                                         <i class="fas fa-check mr-2"></i>
@@ -151,53 +159,180 @@
                                     </span>
                                 @endif
                             </td>
-                            <td class="py-4 px-6 border-b border-gray-100">
-                                <div class="flex space-x-2 items-center">
+                            <td class="py-4 px-6 border-b border-gray-100 whitespace-nowrap">
+                                @if($composting->creator && $composting->creator->role === 'admin')
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <i class="fas fa-user-shield mr-1"></i>
+                                        Administrador
+                                    </span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                        <i class="fas fa-user-graduate mr-1"></i>
+                                        Aprendiz
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="py-4 px-6 border-b border-gray-100 whitespace-nowrap">
+                                <div class="flex space-x-3 items-center">
                                     <button onclick="openViewModal({{ $composting->id }})" 
-                                       class="inline-flex items-center justify-center w-10 h-10 text-blue-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-all duration-200" title="Ver Detalles">
+                                       class="inline-flex items-center text-blue-400 hover:text-blue-500" title="Ver Detalles">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                     
                                     <a href="{{ route('admin.composting.edit', $composting) }}" 
-                                       class="inline-flex items-center justify-center w-10 h-10 text-green-500 hover:text-green-700 hover:bg-green-50 rounded-lg transition-all duration-200" title="Editar">
+                                       class="inline-flex items-center text-green-500 hover:text-green-700" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     
                                     <button onclick="confirmDelete({{ $composting->id }})" 
-                                       class="inline-flex items-center justify-center w-10 h-10 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-200" title="Eliminar">
+                                       class="inline-flex items-center text-red-500 hover:text-red-700" title="Eliminar">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
                             </td>
                         </tr>
-                    @empty
-                        <tr>
-                            <td colspan="8" class="text-center py-12 text-gray-500">
-                                <div class="flex flex-col items-center">
-                                    <i class="fas fa-mountain text-6xl text-gray-300 mb-4"></i>
-                                    <h3 class="text-lg font-semibold text-gray-600 mb-2">No hay pilas registradas</h3>
-                                    <p class="text-gray-500">Comienza creando tu primera pila de compostaje</p>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforelse
+                    @endforeach
                 </tbody>
             </table>
-        </div>
-
-        <!-- Pagination -->
-        @if($compostings->hasPages())
-            <div class="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
-                <div class="text-sm text-gray-600">
-                    Mostrando {{ $compostings->firstItem() }} a {{ $compostings->lastItem() }} de {{ $compostings->total() }} resultados
-                </div>
-                <div class="flex space-x-2">
-                    {{ $compostings->links() }}
-                </div>
             </div>
-        @endif
+        </div>
     </div>
 </div>
+
+<style>
+/* Estilos para DataTables */
+.dataTables_wrapper {
+    position: relative;
+    clear: both;
+    width: 100%;
+}
+
+/* Contenedor superior: Mostrar (izquierda) y Buscar (derecha) - MISMA LÍNEA */
+.dataTables_wrapper .dataTables_length {
+    float: left !important;
+    margin-bottom: 1rem;
+    padding: 0.5rem 0;
+    clear: none !important;
+    width: auto !important;
+}
+
+.dataTables_wrapper .dataTables_filter {
+    float: right !important;
+    margin-bottom: 1rem;
+    padding: 0.5rem 0;
+    text-align: right !important;
+    clear: none !important;
+    width: auto !important;
+}
+
+.dataTables_wrapper .dataTables_length label,
+.dataTables_wrapper .dataTables_filter label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.dataTables_wrapper .dataTables_length select {
+    margin-left: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    min-width: 60px;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    margin-left: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db !important;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    width: 250px;
+    outline: none !important;
+    transition: none;
+    background-color: white;
+}
+
+.dataTables_wrapper .dataTables_filter input:focus {
+    border-color: #d1d5db !important;
+    box-shadow: none !important;
+    outline: none !important;
+    background-color: white !important;
+}
+
+.dataTables_wrapper .dataTables_filter input:hover {
+    border-color: #9ca3af !important;
+    box-shadow: none !important;
+    background-color: white !important;
+}
+
+.dataTables_wrapper .dataTables_filter input:active {
+    border-color: #d1d5db !important;
+    outline: none !important;
+}
+
+/* Información y paginación inferior */
+.dataTables_wrapper .dataTables_info {
+    float: left;
+    padding: 0.75rem 0;
+    margin-top: 1.5rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+    float: right;
+    text-align: right;
+    padding: 0.75rem 0;
+    margin-top: 1.5rem;
+}
+
+/* Paginación más pequeña */
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 0.375rem 0.625rem;
+    margin: 0 0.125rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    background: white;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-block;
+    text-decoration: none;
+    font-size: 0.875rem;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: #f3f4f6 !important;
+    border-color: #d1d5db !important;
+    color: #374151 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: #22c55e;
+    color: white;
+    border-color: #22c55e;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Limpiar floats */
+.dataTables_wrapper::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+</style>
 
 <!-- Modal para ver detalles -->
 <div id="viewModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
@@ -487,6 +622,111 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
         closeViewModal();
     }
+});
+
+// Inicializar DataTables
+document.addEventListener('DOMContentLoaded', function() {
+    // Verificar que DataTable esté disponible
+    if (typeof DataTable === 'undefined') {
+        console.error('DataTable no está cargado. Verifica que el script de DataTables esté incluido.');
+        return;
+    }
+    
+    // Verificar que la tabla exista
+    const tableElement = document.querySelector('#compostingsTable');
+    if (!tableElement) {
+        console.error('No se encontró la tabla con id #compostingsTable');
+        return;
+    }
+    
+    console.log('Inicializando DataTables...');
+    
+    let table = new DataTable('#compostingsTable', {
+        language: {
+            search: 'Buscar:',
+            lengthMenu: 'Mostrar _MENU_ registros',
+            info: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
+            infoEmpty: 'Mostrando 0 a 0 de 0 registros',
+            infoFiltered: '(filtrado de _MAX_ registros totales)',
+            zeroRecords: 'No se encontraron registros',
+            emptyTable: 'No hay datos disponibles',
+            paginate: {
+                first: '«',
+                previous: '<',
+                next: '>',
+                last: '»'
+            }
+        },
+        responsive: true,
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
+        order: [[1, 'desc']], // Ordenar por fecha de inicio descendente
+        processing: false,
+        serverSide: false,
+        dom: 'rtip', // Sin length y filter, los moveremos manualmente
+        columnDefs: [
+            { orderable: true, targets: [0, 1, 2, 3, 4, 5, 6] },
+            { orderable: false, targets: [7] } // Columna de acciones no ordenable
+        ],
+        initComplete: function() {
+            const wrapper = this.api().table().container();
+            
+            // Crear controles manualmente
+            const lengthContainer = document.createElement('div');
+            lengthContainer.className = 'dataTables_length';
+            lengthContainer.innerHTML = `
+                <label>
+                    Mostrar
+                    <select name="compostingsTable_length" aria-controls="compostingsTable" class="px-3 py-2 border border-gray-300 rounded-lg ml-2">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="-1">Todos</option>
+                    </select>
+                    registros
+                </label>
+            `;
+            
+            const filterContainer = document.createElement('div');
+            filterContainer.className = 'dataTables_filter';
+            filterContainer.innerHTML = `
+                <label>
+                    Buscar:
+                    <input type="search" class="px-3 py-2 border border-gray-300 rounded-lg ml-2" placeholder="Buscar..." aria-controls="compostingsTable" style="width: 250px; outline: none; transition: none;">
+                </label>
+            `;
+            
+            // Agregar a los contenedores
+            const lengthTarget = document.getElementById('dt-length-container');
+            const filterTarget = document.getElementById('dt-filter-container');
+            
+            if (lengthTarget) {
+                lengthTarget.appendChild(lengthContainer);
+            }
+            
+            if (filterTarget) {
+                filterTarget.appendChild(filterContainer);
+            }
+            
+            // Conectar eventos
+            const lengthSelect = lengthContainer.querySelector('select');
+            const searchInput = filterContainer.querySelector('input');
+            
+            if (lengthSelect) {
+                lengthSelect.addEventListener('change', function() {
+                    table.page.len(parseInt(this.value)).draw();
+                });
+            }
+            
+            if (searchInput) {
+                searchInput.addEventListener('keyup', function() {
+                    table.search(this.value).draw();
+                });
+            }
+        }
+    });
+    
+    console.log('DataTables configurado:', table);
 });
 </script>
 @endsection

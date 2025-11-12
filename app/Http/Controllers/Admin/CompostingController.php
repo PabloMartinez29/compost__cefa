@@ -20,7 +20,7 @@ class CompostingController extends Controller
     {
         $compostings = Composting::with(['ingredients.organic', 'creator'])
             ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            ->get();
 
         // Calcular estadísticas
         $totalPiles = Composting::count();

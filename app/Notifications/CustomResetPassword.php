@@ -2,13 +2,11 @@
 
 namespace App\Notifications;
 
-use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 class CustomResetPassword extends Notification
 {
-    use Queueable;
 
     /** @var string */
     protected $resetUrl;

@@ -70,7 +70,7 @@ Swal.fire({
             <div class="flex items-center justify-between">
                 <div>
                     <div class="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Usuarios</div>
-                    <div class="text-3xl font-bold text-gray-800">{{ $users->total() }}</div>
+                    <div class="text-3xl font-bold text-gray-800">{{ $users->count() }}</div>
                 </div>
                 <div class="waste-card-icon text-blue-600">
                     <i class="fas fa-users"></i>
@@ -109,35 +109,33 @@ Swal.fire({
     <!-- Users Table -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
         <!-- Table Header -->
-        <div class="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50">
-            <h2 class="text-lg font-semibold text-gray-800 flex items-center">
-                <i class="fas fa-users text-green-600 mr-2"></i>
-                Lista de Usuarios
-            </h2>
-            <div class="flex items-center space-x-4">
-                <!-- Search -->
-                <form method="GET" action="{{ route('admin.users.index') }}" class="relative">
-                    <input type="text" name="search" id="searchInput" 
-                           value="{{ request('search') }}"
-                           placeholder="Buscar por nombre, identificación o email..." 
-                           class="w-full px-6 py-2 pl-40 pr-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 w-80">
-                    <div class="absolute left-2 top-1/2 transform -translate-y-1/2">
-                        <i class="fas fa-search text-gray-400 text-sm"></i>
-                    </div>
-                </form>
-                <a href="{{ route('admin.users.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
-                    <i class="fas fa-file-pdf"></i>
-                </a>
-                <a href="{{ route('admin.users.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
-                    <i class="fas fa-plus mr-2"></i>
-                    Nuevo Usuario
-                </a>
+        <div class="p-6 border-b border-gray-200 bg-gray-50">
+            <!-- Primera fila: Título y botones -->
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-users text-green-600 mr-2"></i>
+                    Lista de Usuarios
+                </h2>
+                <div class="flex items-center space-x-4">
+                    <a href="{{ route('admin.users.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                        <i class="fas fa-file-pdf"></i>
+                    </a>
+                    <a href="{{ route('admin.users.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                        <i class="fas fa-plus mr-2"></i>
+                        Nuevo Usuario
+                    </a>
+                </div>
             </div>
         </div>
         
-
-        <div class="overflow-x-auto">
-            <table class="waste-table">
+        <!-- DataTables agregará los controles y la tabla aquí -->
+        <div id="usersTable_wrapper" class="p-6">
+            <!-- Contenedor para controles superiores -->
+            <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
+                <div id="dt-length-container" style="float: left;"></div>
+                <div id="dt-filter-container" style="float: right;"></div>
+            </div>
+            <table id="usersTable" class="waste-table">
                 <thead>
                     <tr>
                         <th>Identificación</th>
@@ -149,7 +147,7 @@ Swal.fire({
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($users as $user)
+                    @foreach($users as $user)
                     <tr>
                         <td class="font-mono">{{ $user->identification ?? 'ID' . str_pad($user->id, 6, '0', STR_PAD_LEFT) }}</td>
                         <td>
@@ -180,51 +178,36 @@ Swal.fire({
                             @endif
                         </td>
                         <td>{{ $user->created_at->format('d/m/Y') }}</td>
-                            <td>
-                                <div class="flex space-x-2 items-center">
-                                    <button onclick="openViewModal({{ $user->id }})" 
-                                            class="inline-flex items-center text-blue-500 hover:text-blue-700" 
-                                            title="Ver Detalles">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button onclick="openEditModal({{ $user->id }})" 
-                                            class="inline-flex items-center text-green-500 hover:text-green-700" 
-                                            title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    @if($user->id !== auth()->id())
-                                    <button onclick="deleteUser({{ $user->id }}, '{{ $user->name }}')" 
-                                            class="inline-flex items-center text-red-500 hover:text-red-700" 
-                                            title="Eliminar">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                    @endif
-                                    <a href="{{ route('admin.users.download.pdf', $user) }}" 
-                                       class="inline-flex items-center text-red-800 hover:text-red-900" 
-                                       title="Descargar PDF">
-                                        <i class="fas fa-file-pdf"></i>
-                                    </a>
-                                </div>
-                            </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="6" class="text-center py-8 text-gray-500">
-                            <i class="fas fa-users text-4xl mb-4 block"></i>
-                            No se encontraron usuarios registrados
+                        <td>
+                            <div class="flex space-x-2 items-center">
+                                <button onclick="openViewModal({{ $user->id }})" 
+                                       class="inline-flex items-center text-blue-400 hover:text-blue-500" title="Ver Detalles">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="openEditModal({{ $user->id }})" 
+                                        class="inline-flex items-center text-green-500 hover:text-green-700" 
+                                        title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                @if($user->id !== auth()->id())
+                                <button onclick="deleteUser({{ $user->id }}, '{{ $user->name }}')" 
+                                        class="inline-flex items-center text-red-500 hover:text-red-700" 
+                                        title="Eliminar">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                @endif
+                                <a href="{{ route('admin.users.download.pdf', $user) }}" 
+                                   class="inline-flex items-center text-red-800 hover:text-red-900" 
+                                   title="Descargar PDF">
+                                    <i class="fas fa-file-pdf"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
-                    @endforelse
+                    @endforeach
                 </tbody>
             </table>
         </div>
-
-        <!-- Pagination -->
-        @if($users->hasPages())
-        <div class="mt-10 pt-8 border-t border-gray-200 px-6 pb-6">
-            {{ $users->links() }}
-        </div>
-        @endif
     </div>
 </div>
 
@@ -647,23 +630,7 @@ document.getElementById('editModal').addEventListener('click', function(e) {
     }
 });
 
-// Search functionality
-document.getElementById('searchInput').addEventListener('input', function(e) {
-    const searchTerm = e.target.value.toLowerCase();
-    const rows = document.querySelectorAll('tbody tr');
-    
-    rows.forEach(row => {
-        const identification = row.querySelector('td:nth-child(1)').textContent.toLowerCase();
-        const name = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-        const email = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
-        
-        if (identification.includes(searchTerm) || name.includes(searchTerm) || email.includes(searchTerm)) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
-        }
-    });
-});
+// La búsqueda ahora es manejada por DataTables, no necesitamos este código
 
 </script>
 
@@ -803,33 +770,241 @@ document.getElementById('searchInput').addEventListener('input', function(e) {
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
     border: 1px solid #e5e7eb !important;
 }
+
+/* Estilos para DataTables - Layout limpio */
+.dataTables_wrapper {
+    padding: 0;
+    width: 100%;
+    position: relative;
+}
+
+/* Contenedor superior: Mostrar (izquierda) y Buscar (derecha) - MISMA LÍNEA */
+.dataTables_wrapper .dataTables_length {
+    float: left !important;
+    margin-bottom: 1rem;
+    padding: 0.5rem 0;
+    clear: none !important;
+    width: auto !important;
+}
+
+.dataTables_wrapper .dataTables_filter {
+    float: right !important;
+    margin-bottom: 1rem;
+    padding: 0.5rem 0;
+    text-align: right !important;
+    clear: none !important;
+    width: auto !important;
+}
+
+.dataTables_wrapper .dataTables_length label,
+.dataTables_wrapper .dataTables_filter label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.dataTables_wrapper .dataTables_length select {
+    margin-left: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    min-width: 60px;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    margin-left: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db !important;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    width: 250px;
+    outline: none !important;
+    transition: none;
+    background-color: white;
+}
+
+.dataTables_wrapper .dataTables_filter input:focus {
+    border-color: #d1d5db !important;
+    box-shadow: none !important;
+    outline: none !important;
+    background-color: white !important;
+}
+
+.dataTables_wrapper .dataTables_filter input:hover {
+    border-color: #9ca3af !important;
+    box-shadow: none !important;
+    background-color: white !important;
+}
+
+.dataTables_wrapper .dataTables_filter input:active {
+    border-color: #d1d5db !important;
+    outline: none !important;
+}
+
+/* Información y paginación inferior */
+.dataTables_wrapper .dataTables_info {
+    float: left;
+    padding: 0.75rem 0;
+    margin-top: 1.5rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+    float: right;
+    text-align: right;
+    padding: 0.75rem 0;
+    margin-top: 1.5rem;
+}
+
+/* Paginación más pequeña */
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 0.375rem 0.625rem;
+    margin: 0 0.125rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    background: white;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-block;
+    text-decoration: none;
+    font-size: 0.875rem;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: #f3f4f6 !important;
+    border-color: #d1d5db !important;
+    color: #374151 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: #22c55e;
+    color: white;
+    border-color: #22c55e;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Limpiar floats */
+.dataTables_wrapper::after {
+    content: "";
+    display: table;
+    clear: both;
+}
 </style>
 
 <script>
-// Búsqueda con paginación del servidor
-let searchTimeout;
-
-document.getElementById('searchInput').addEventListener('input', function() {
-    clearTimeout(searchTimeout);
-    const searchTerm = this.value.trim();
+// Inicializar DataTables
+document.addEventListener('DOMContentLoaded', function() {
+    // Verificar que DataTable esté disponible
+    if (typeof DataTable === 'undefined') {
+        console.error('DataTable no está cargado. Verifica que el script de DataTables esté incluido.');
+        return;
+    }
     
-    if (searchTerm.length >= 1) {
-        searchTimeout = setTimeout(() => {
-            // Enviar formulario de búsqueda
-            this.form.submit();
-        }, 500); // Esperar 500ms después de que el usuario deje de escribir
-    } else if (searchTerm.length === 0) {
-        // Si el campo está vacío, limpiar búsqueda
-        window.location.href = '{{ route("admin.users.index") }}';
+    // Verificar que la tabla exista
+    const tableElement = document.querySelector('#usersTable');
+    if (!tableElement) {
+        console.error('No se encontró la tabla con id #usersTable');
+        return;
     }
-});
-
-// Búsqueda al presionar Enter
-document.getElementById('searchInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        this.form.submit();
-    }
+    
+    console.log('Inicializando DataTables...');
+    
+    let table = new DataTable('#usersTable', {
+        language: {
+            search: 'Buscar:',
+            lengthMenu: 'Mostrar _MENU_ registros',
+            info: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
+            infoEmpty: 'Mostrando 0 a 0 de 0 registros',
+            infoFiltered: '(filtrado de _MAX_ registros totales)',
+            zeroRecords: 'No se encontraron registros',
+            emptyTable: 'No hay datos disponibles',
+            paginate: {
+                first: '«',
+                previous: '<',
+                next: '>',
+                last: '»'
+            }
+        },
+        responsive: true,
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
+        order: [[4, 'desc']],
+        processing: false,
+        serverSide: false,
+        dom: 'rtip', // Sin length y filter, los moveremos manualmente
+        initComplete: function() {
+            const wrapper = this.api().table().container();
+            
+            // Crear controles manualmente
+            const lengthContainer = document.createElement('div');
+            lengthContainer.className = 'dataTables_length';
+            lengthContainer.innerHTML = `
+                <label>
+                    Mostrar
+                    <select name="usersTable_length" aria-controls="usersTable" class="px-3 py-2 border border-gray-300 rounded-lg ml-2">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="-1">Todos</option>
+                    </select>
+                    registros
+                </label>
+            `;
+            
+            const filterContainer = document.createElement('div');
+            filterContainer.className = 'dataTables_filter';
+            filterContainer.innerHTML = `
+                <label>
+                    Buscar:
+                    <input type="search" class="px-3 py-2 border border-gray-300 rounded-lg ml-2" placeholder="Buscar..." aria-controls="usersTable" style="width: 250px; outline: none; transition: none;">
+                </label>
+            `;
+            
+            // Agregar a los contenedores
+            const lengthTarget = document.getElementById('dt-length-container');
+            const filterTarget = document.getElementById('dt-filter-container');
+            
+            if (lengthTarget) {
+                lengthTarget.appendChild(lengthContainer);
+            }
+            
+            if (filterTarget) {
+                filterTarget.appendChild(filterContainer);
+            }
+            
+            // Conectar eventos
+            const lengthSelect = lengthContainer.querySelector('select');
+            const searchInput = filterContainer.querySelector('input');
+            
+            if (lengthSelect) {
+                lengthSelect.addEventListener('change', function() {
+                    table.page.len(parseInt(this.value)).draw();
+                });
+            }
+            
+            if (searchInput) {
+                searchInput.addEventListener('keyup', function() {
+                    table.search(this.value).draw();
+                });
+            }
+        }
+    });
+    
+    console.log('DataTables configurado:', table);
 });
 </script>
 

@@ -94,7 +94,7 @@
                     <div class="waste-form-group">
                         <label class="waste-form-label">Current Image</label>
                         <div class="relative">
-                            <img src="{{ Storage::url($organic->img) }}" 
+                            <img src="{{ asset($organic->img) }}" 
                                  alt="Current organic waste image" 
                                  class="w-full h-32 object-cover rounded-lg border border-gray-200">
                         </div>

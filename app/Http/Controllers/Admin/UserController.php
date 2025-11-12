@@ -17,22 +17,8 @@ class UserController extends Controller
      */
     public function index(Request $request)
     {
-        $query = User::query();
-        
-        // Búsqueda por nombre, identificación o email
-        if ($request->filled('search')) {
-            $searchTerm = $request->search;
-            $query->where(function($q) use ($searchTerm) {
-                $q->where('name', 'like', "%{$searchTerm}%")
-                  ->orWhere('identification', 'like', "%{$searchTerm}%")
-                  ->orWhere('email', 'like', "%{$searchTerm}%");
-            });
-        }
-        
-        $users = $query->orderBy('created_at', 'desc')->paginate(5);
-        
-        // Mantener el término de búsqueda en los enlaces de paginación
-        $users->appends($request->query());
+        // Obtener todos los usuarios sin paginación (DataTables manejará la paginación del lado del cliente)
+        $users = User::orderBy('created_at', 'desc')->get();
         
         return view('admin.users.index', compact('users'));
     }

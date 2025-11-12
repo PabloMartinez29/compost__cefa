@@ -17,6 +17,9 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/2.3.4/css/dataTables.dataTables.min.css">
+    
     <!-- Alpine.js -->
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
@@ -66,33 +69,61 @@
         .content-transition { transition: all 0.3s ease-in-out; }
         .hover-lift { transition: transform 0.2s ease-in-out; }
         .hover-lift:hover { transform: translateY(-2px); }
+        
+        /* Estilos para el scrollbar del sidebar */
+        nav::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        nav::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        
+        nav::-webkit-scrollbar-thumb {
+            background-color: #d1d5db;
+            border-radius: 3px;
+        }
+        
+        nav::-webkit-scrollbar-thumb:hover {
+            background-color: #9ca3af;
+        }
     </style>
 </head>
 
 
 <body class="bg-soft-gray-50 font-sans">
-    <div class="flex h-screen">
+    <div class="flex h-screen overflow-hidden">
         
         <!-- Sidebar -->
-        <div class="w-64 bg-white shadow-lg sidebar-transition">
+        <div class="w-64 bg-white shadow-lg sidebar-transition flex flex-col h-screen overflow-hidden">
             <!-- Logo/Brand -->
-            <div class="h-32 flex items-center justify-center border-b border-soft-gray-200 px-4">
+            <div class="h-32 flex items-center justify-center border-b border-soft-gray-200 px-4 flex-shrink-0">
                 <img src="{{ asset('img/logo-compost-cefa.png') }}" alt="COMPOST CEFA" class="h-28 w-auto max-w-full object-contain">
             </div>
             
             <!-- Navigation -->
-            <nav class="mt-6 px-4">
+            <nav class="mt-6 px-4 flex-1 overflow-y-auto overflow-x-hidden" style="scrollbar-width: thin; scrollbar-color: #d1d5db transparent;">
                 <div class="space-y-2">
+                    @php
+                        $currentRoute = Route::currentRouteName();
+                        $isDashboard = $currentRoute === 'aprendiz.dashboard';
+                        $isOrganic = str_starts_with($currentRoute, 'aprendiz.organic');
+                        $isWarehouse = str_starts_with($currentRoute, 'aprendiz.warehouse');
+                        $isComposting = str_starts_with($currentRoute, 'aprendiz.composting');
+                        $isTracking = str_starts_with($currentRoute, 'aprendiz.tracking');
+                        $isFertilizer = str_starts_with($currentRoute, 'aprendiz.fertilizer');
+                    @endphp
+                    
                     <!-- Dashboard -->
-                    <a href="{{ route('aprendiz.dashboard') }}" class="flex items-center space-x-3 px-4 py-3 bg-green-50 text-green-700 rounded-xl transition-all duration-200 group">
-                        <i class="fas fa-globe w-5 text-center text-green-600"></i>
+                    <a href="{{ route('aprendiz.dashboard') }}" class="flex items-center space-x-3 px-4 py-3 {{ $isDashboard ? 'bg-green-50 text-green-700' : 'text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-xl transition-all duration-200 group">
+                        <i class="fas fa-globe w-5 text-center {{ $isDashboard ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
                         <span class="font-medium">Dashboard</span>
                     </a>
                     
                     <!-- Residuos Orgánicos -->
-                    <div class="relative" x-data="{ open: false }">
-                        <button @click="open = !open" class="w-full flex items-center space-x-3 px-4 py-3 text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-xl transition-all duration-200 group">
-                            <i class="fas fa-recycle w-5 text-center group-hover:text-soft-green-600"></i>
+                    <div class="relative" x-data="{ open: {{ $isOrganic ? 'true' : 'false' }} }">
+                        <button @click="open = !open" class="w-full flex items-center space-x-3 px-4 py-3 {{ $isOrganic ? 'bg-green-50 text-green-700' : 'text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-xl transition-all duration-200 group">
+                            <i class="fas fa-recycle w-5 text-center {{ $isOrganic ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
                             <span class="font-medium">Residuos</span>
                             <i class="fas fa-chevron-down text-xs transition-transform duration-200 ml-auto" :class="{ 'rotate-180': open }"></i>
                         </button>
@@ -106,21 +137,21 @@
                              x-transition:leave-start="opacity-100 scale-100"
                              x-transition:leave-end="opacity-0 scale-95"
                              class="ml-8 mt-2 space-y-1">
-                            <a href="{{ route('aprendiz.organic.index') }}" class="flex items-center space-x-3 px-4 py-2 text-sm text-soft-gray-600 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg transition-all duration-200 group">
-                                <i class="fas fa-list w-4 text-center group-hover:text-soft-green-600"></i>
-                                <span>Ver Registros</span>
+                            <a href="{{ route('aprendiz.organic.index') }}" class="flex items-center space-x-3 px-4 py-2 text-sm {{ $currentRoute === 'aprendiz.organic.index' ? 'bg-green-50 text-green-700' : 'text-soft-gray-600 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-lg transition-all duration-200 group">
+                                <i class="fas fa-list w-4 text-center {{ $currentRoute === 'aprendiz.organic.index' ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
+                                <span class="font-medium">Ver Registros</span>
                             </a>
-                            <a href="{{ route('aprendiz.organic.create') }}" class="flex items-center space-x-3 px-4 py-2 text-sm text-soft-gray-600 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg transition-all duration-200 group">
-                                <i class="fas fa-plus w-4 text-center group-hover:text-soft-green-600"></i>
-                                <span>Registrar Nuevo</span>
+                            <a href="{{ route('aprendiz.organic.create') }}" class="flex items-center space-x-3 px-4 py-2 text-sm {{ $currentRoute === 'aprendiz.organic.create' ? 'bg-green-50 text-green-700' : 'text-soft-gray-600 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-lg transition-all duration-200 group">
+                                <i class="fas fa-plus w-4 text-center {{ $currentRoute === 'aprendiz.organic.create' ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
+                                <span class="font-medium">Registrar Nuevo</span>
                             </a>
                         </div>
                     </div>
 
                     <!-- Bodega de Clasificación -->
-                    <div class="relative" x-data="{ open: false }">
-                        <button @click="open = !open" class="w-full flex items-center space-x-3 px-4 py-3 text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-xl transition-all duration-200 group">
-                            <i class="fas fa-warehouse w-5 text-center group-hover:text-soft-green-600"></i>
+                    <div class="relative" x-data="{ open: {{ $isWarehouse ? 'true' : 'false' }} }">
+                        <button @click="open = !open" class="w-full flex items-center space-x-3 px-4 py-3 {{ $isWarehouse ? 'bg-green-50 text-green-700' : 'text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-xl transition-all duration-200 group">
+                            <i class="fas fa-warehouse w-5 text-center {{ $isWarehouse ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
                             <span class="font-medium">Bodega</span>
                             <i class="fas fa-chevron-down text-xs transition-transform duration-200 ml-auto" :class="{ 'rotate-180': open }"></i>
                         </button>
@@ -134,19 +165,19 @@
                              x-transition:leave-start="opacity-100 scale-100"
                              x-transition:leave-end="opacity-0 scale-95"
                              class="ml-8 mt-2 space-y-1">
-            <a href="{{ route('aprendiz.warehouse.index') }}" class="flex items-center space-x-3 px-4 py-2 text-sm text-soft-gray-600 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg transition-all duration-200 group">
-                <i class="fas fa-boxes w-4 text-center group-hover:text-soft-green-600"></i>
-                <span>Inventario</span>
+            <a href="{{ route('aprendiz.warehouse.index') }}" class="flex items-center space-x-3 px-4 py-2 text-sm {{ $currentRoute === 'aprendiz.warehouse.index' ? 'bg-green-50 text-green-700' : 'text-soft-gray-600 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-lg transition-all duration-200 group">
+                <i class="fas fa-boxes w-4 text-center {{ $currentRoute === 'aprendiz.warehouse.index' ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
+                <span class="font-medium">Inventario</span>
             </a>
                         </div>
                     </div>
                     
                     <!-- Creación de Pilas -->
-                    <div class="relative" x-data="{ open: false }">
-                        <button @click="open = !open" class="w-full flex items-center space-x-3 px-4 py-3 text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-xl transition-all duration-200 group">
-                            <i class="fas fa-mountain w-5 text-center group-hover:text-soft-green-600"></i>
+                    <div class="relative" x-data="{ open: {{ ($isComposting || $isTracking) ? 'true' : 'false' }} }">
+                        <button @click="open = !open" class="w-full flex items-center space-x-3 px-4 py-3 {{ ($isComposting || $isTracking) ? 'bg-green-50 text-green-700' : 'text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-xl transition-all duration-200 group">
+                            <i class="fas fa-mountain w-5 text-center {{ ($isComposting || $isTracking) ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
                             <span class="font-medium">Creación de Pilas</span>
-                            <i class="fas fa-chevron-down text-xs transition-transform duration-200 ml-auto" :class="{ 'rotate-180': open }"></i>
+                            <i class="fas fa-chevron-down text-soft-gray-400 text-xs transition-transform duration-200 ml-auto" :class="{ 'rotate-180': open }"></i>
                         </button>
                         
                         <!-- Submenu -->
@@ -157,18 +188,19 @@
                              x-transition:leave="transition ease-in duration-150"
                              x-transition:leave-start="opacity-100 scale-100"
                              x-transition:leave-end="opacity-0 scale-95"
-                             class="ml-8 mt-2 space-y-1">
+                             class="ml-8 mt-2 space-y-1"
+                             x-data="{ activeSubmenu: '{{ $isComposting ? 'pile' : ($isTracking ? 'tracking' : 'null') }}' }">
                             
                             <!-- Submódulo Pila -->
-                            <div class="relative" x-data="{ subOpen: false }">
-                                <button @click.stop="subOpen = !subOpen" class="w-full flex items-center space-x-3 px-4 py-2 text-sm text-soft-gray-600 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg transition-all duration-200 group">
-                                    <i class="fas fa-leaf w-4 text-center group-hover:text-soft-green-600"></i>
-                                    <span>Pila</span>
-                                    <i class="fas fa-chevron-right text-xs transition-transform duration-200 ml-auto" :class="{ 'rotate-90': subOpen }"></i>
+                            <div class="relative">
+                                <button @click.stop="activeSubmenu = activeSubmenu === 'pile' ? null : 'pile'" class="w-full flex items-center space-x-3 px-4 py-2 {{ $isComposting ? 'bg-green-50 text-green-700' : 'text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-lg transition-all duration-200 group font-medium">
+                                    <i class="fas fa-leaf w-4 text-center {{ $isComposting ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
+                                    <span class="font-medium">Pila</span>
+                                    <i class="fas fa-chevron-right text-soft-gray-400 text-xs transition-transform duration-200 ml-auto" :class="{ 'rotate-90': activeSubmenu === 'pile' }"></i>
                                 </button>
                                 
                                 <!-- Sub-submenu -->
-                                <div x-show="subOpen" 
+                                <div x-show="activeSubmenu === 'pile'" 
                                      x-transition:enter="transition ease-out duration-200"
                                      x-transition:enter-start="opacity-0 scale-95"
                                      x-transition:enter-end="opacity-100 scale-100"
@@ -176,27 +208,27 @@
                                      x-transition:leave-start="opacity-100 scale-100"
                                      x-transition:leave-end="opacity-0 scale-95"
                                      class="ml-6 mt-2 space-y-1">
-                                    <a href="{{ route('aprendiz.composting.create') }}" class="flex items-center space-x-3 px-4 py-2 text-sm text-soft-gray-600 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg transition-all duration-200 group">
-                                        <i class="fas fa-plus-circle w-4 text-center group-hover:text-soft-green-600"></i>
-                                        <span>Registrar Pila</span>
+                                    <a href="{{ route('aprendiz.composting.create') }}" class="flex items-center space-x-3 px-4 py-2 text-sm {{ $currentRoute === 'aprendiz.composting.create' ? 'bg-green-50 text-green-700' : 'text-soft-gray-600 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-lg transition-all duration-200 group">
+                                        <i class="fas fa-plus w-4 text-center {{ $currentRoute === 'aprendiz.composting.create' ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
+                                        <span class="font-medium">Registrar Pila</span>
                                     </a>
-                                    <a href="{{ route('aprendiz.composting.index') }}" class="flex items-center space-x-3 px-4 py-2 text-sm text-soft-gray-600 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg transition-all duration-200 group">
-                                        <i class="fas fa-eye w-4 text-center group-hover:text-soft-green-600"></i>
-                                        <span>Ver Registros</span>
+                                    <a href="{{ route('aprendiz.composting.index') }}" class="flex items-center space-x-3 px-4 py-2 text-sm {{ $currentRoute === 'aprendiz.composting.index' ? 'bg-green-50 text-green-700' : 'text-soft-gray-600 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-lg transition-all duration-200 group">
+                                        <i class="fas fa-list w-4 text-center {{ $currentRoute === 'aprendiz.composting.index' ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
+                                        <span class="font-medium">Ver Registros</span>
                                     </a>
                                 </div>
                             </div>
                             
                             <!-- Submódulo Seguimiento -->
-                            <div class="relative" x-data="{ subOpen: false }">
-                                <button @click.stop="subOpen = !subOpen" class="w-full flex items-center space-x-3 px-4 py-2 text-sm text-soft-gray-600 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg transition-all duration-200 group">
-                                    <i class="fas fa-chart-line w-4 text-center group-hover:text-soft-green-600"></i>
-                                    <span>Seguimiento</span>
-                                    <i class="fas fa-chevron-right text-xs transition-transform duration-200 ml-auto" :class="{ 'rotate-90': subOpen }"></i>
+                            <div class="relative">
+                                <button @click.stop="activeSubmenu = activeSubmenu === 'tracking' ? null : 'tracking'" class="w-full flex items-center space-x-3 px-4 py-2 {{ $isTracking ? 'bg-green-50 text-green-700' : 'text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-lg transition-all duration-200 group font-medium">
+                                    <i class="fas fa-chart-line w-4 text-center {{ $isTracking ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
+                                    <span class="font-medium">Seguimiento</span>
+                                    <i class="fas fa-chevron-right text-soft-gray-400 text-xs transition-transform duration-200 ml-auto" :class="{ 'rotate-90': activeSubmenu === 'tracking' }"></i>
                                 </button>
                                 
                                 <!-- Sub-submenu -->
-                                <div x-show="subOpen" 
+                                <div x-show="activeSubmenu === 'tracking'" 
                                      x-transition:enter="transition ease-out duration-200"
                                      x-transition:enter-start="opacity-0 scale-95"
                                      x-transition:enter-end="opacity-100 scale-100"
@@ -204,13 +236,13 @@
                                      x-transition:leave-start="opacity-100 scale-100"
                                      x-transition:leave-end="opacity-0 scale-95"
                                      class="ml-6 mt-2 space-y-1">
-                                    <a href="{{ route('aprendiz.tracking.create') }}" class="flex items-center space-x-3 px-4 py-2 text-sm text-soft-gray-600 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg transition-all duration-200 group">
-                                        <i class="fas fa-plus-circle w-4 text-center group-hover:text-soft-green-600"></i>
-                                        <span>Nuevo Seguimiento</span>
+                                    <a href="{{ route('aprendiz.tracking.create') }}" class="flex items-center space-x-3 px-4 py-2 text-sm {{ $currentRoute === 'aprendiz.tracking.create' ? 'bg-green-50 text-green-700' : 'text-soft-gray-600 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-lg transition-all duration-200 group">
+                                        <i class="fas fa-plus w-4 text-center {{ $currentRoute === 'aprendiz.tracking.create' ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
+                                        <span class="font-medium">Nuevo Seguimiento</span>
                                     </a>
-                                    <a href="{{ route('aprendiz.tracking.index') }}" class="flex items-center space-x-3 px-4 py-2 text-sm text-soft-gray-600 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg transition-all duration-200 group">
-                                        <i class="fas fa-eye w-4 text-center group-hover:text-soft-green-600"></i>
-                                        <span>Ver Seguimientos</span>
+                                    <a href="{{ route('aprendiz.tracking.index') }}" class="flex items-center space-x-3 px-4 py-2 text-sm {{ $currentRoute === 'aprendiz.tracking.index' ? 'bg-green-50 text-green-700' : 'text-soft-gray-600 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-lg transition-all duration-200 group">
+                                        <i class="fas fa-list w-4 text-center {{ $currentRoute === 'aprendiz.tracking.index' ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
+                                        <span class="font-medium">Ver Seguimientos</span>
                                     </a>
                                 </div>
                             </div>
@@ -224,10 +256,36 @@
                     </a>
                     
                     <!-- Abono -->
-                    <a href="#" class="flex items-center space-x-3 px-4 py-3 text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-xl transition-all duration-200 group">
-                        <i class="fas fa-seedling w-5 text-center group-hover:text-soft-green-600"></i>
-                        <span class="font-medium">Abono</span>
-                    </a>
+                    <div class="relative" x-data="{ open: {{ $isFertilizer ? 'true' : 'false' }} }">
+                        <button @click="open = !open" class="w-full flex items-center justify-between px-4 py-3 {{ $isFertilizer ? 'bg-green-50 text-green-700' : 'text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-xl transition-all duration-200 group">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-seedling w-5 text-center {{ $isFertilizer ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
+                                <span class="font-medium">Abono</span>
+                            </div>
+                            <i class="fas fa-chevron-down text-soft-gray-400 text-xs transition-transform duration-200 ml-auto" :class="{ 'rotate-180': open }"></i>
+                        </button>
+                        
+                        <!-- Submenú con animaciones -->
+                        <div x-show="open" 
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="ml-10 mt-2 space-y-2">
+                            <a href="{{ route('aprendiz.fertilizer.create') }}" 
+                               class="flex items-center space-x-3 px-4 py-2 text-sm {{ $currentRoute === 'aprendiz.fertilizer.create' ? 'bg-green-50 text-green-700' : 'text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-lg transition-all duration-200 group font-medium">
+                                <i class="fas fa-edit w-4 text-center {{ $currentRoute === 'aprendiz.fertilizer.create' ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
+                                <span class="font-medium">Registro</span>
+                            </a>
+                            <a href="{{ route('aprendiz.fertilizer.index') }}" 
+                               class="flex items-center space-x-3 px-4 py-2 text-sm {{ $currentRoute === 'aprendiz.fertilizer.index' ? 'bg-green-50 text-green-700' : 'text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-lg transition-all duration-200 group font-medium">
+                                <i class="fas fa-list w-4 text-center {{ $currentRoute === 'aprendiz.fertilizer.index' ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
+                                <span class="font-medium">Listas</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </nav>
         </div>
@@ -347,7 +405,7 @@
                                 <i class="fas fa-user text-white text-sm"></i>
                             </div>
                             <div class="text-right">
-                                <p class="text-sm font-medium text-soft-gray-800">{{ Auth::user()->name }}</p>
+                                <p class="text-sm font-medium text-soft-gray-800">{{ Auth::user()?->name ?? 'Usuario' }}</p>
                                 <p class="text-xs text-soft-gray-500">Aprendiz</p>
                             </div>
                             <i class="fas fa-chevron-down text-soft-gray-400 text-xs transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
@@ -366,8 +424,8 @@
                             
                             <!-- User Info -->
                             <div class="px-4 py-2 border-b border-soft-gray-100">
-                                <p class="text-sm font-medium text-soft-gray-800">{{ Auth::user()->name }}</p>
-                                <p class="text-xs text-soft-gray-500">{{ Auth::user()->email }}</p>
+                                <p class="text-sm font-medium text-soft-gray-800">{{ Auth::user()?->name ?? 'Usuario' }}</p>
+                                <p class="text-xs text-soft-gray-500">{{ Auth::user()?->email ?? 'N/A' }}</p>
                             </div>
                             
                             <!-- Menu Items -->
@@ -405,6 +463,12 @@
         </div>
     </div>
 
+    <!-- jQuery (requerido por DataTables) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/2.3.4/js/dataTables.min.js"></script>
+    
     <script>
         function markAsRead(notificationId) {
             fetch(`/aprendiz/notifications/${notificationId}/mark-read`, {

@@ -98,7 +98,7 @@
                     <div class="waste-container animate-fade-in-up animate-delay-2 mb-6">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4">Imagen</h3>
                         <div class="relative">
-                            <img src="{{ Storage::url($organic->img) }}" 
+                            <img src="{{ asset($organic->img) }}" 
                                  alt="Organic waste image" 
                                  class="w-full h-48 object-cover rounded-lg border border-gray-200">
                         </div>

@@ -1,39 +1,48 @@
 <?php
 
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
+namespace App\Models;
 
-return new class extends Migration
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class Fertilizer extends Model
 {
-    /**
-     * Run the migrations.
-     */
-    public function up(): void
-    {
-        Schema::create('fertilizers', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('composting_id');
-            $table->date('date');
-            $table->time('time');
-            $table->string('requester', 150);
-            $table->string('destination', 150);
-            $table->string('received_by', 150);
-            $table->string('delivered_by', 150);
-            $table->enum('type', ["Liquid","Solid"]);
-            $table->decimal('amount', 10, 2);
-            $table->text('notes')->nullable();
-            $table->timestamps();
+    protected $fillable = [
+        'composting_id',
+        'date',
+        'time',
+        'requester',
+        'destination',
+        'received_by',
+        'delivered_by',
+        'type',
+        'amount',
+        'notes'
+    ];
 
-            $table->foreign('composting_id')->references('id')->on('compostings')->onDelete('cascade');
-        });
+    protected $casts = [
+        'date' => 'date',
+        'time' => 'string',
+        'amount' => 'decimal:2'
+    ];
+
+    public function composting(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Composting::class);
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
+    public function getFormattedDateAttribute(): string
     {
-        Schema::dropIfExists('fertilizers');
+        return $this->date->format('d/m/Y');
     }
-};
+
+    public function getTypeInSpanishAttribute(): string
+    {
+        return $this->type === 'Liquid' ? 'Líquido' : 'Sólido';
+    }
+
+    public function getFormattedAmountAttribute(): string
+    {
+        return number_format($this->amount, 2) . ' ' . ($this->type === 'Liquid' ? 'L' : 'Kg');
+    }
+}

@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\Aprendiz;
 use App\Models\Notification;
+use App\Models\Organic;
+use App\Models\Composting;
+use App\Models\Tracking;
+use App\Models\Fertilizer;
 use Illuminate\Http\Request;
 
 class AprendizController extends Controller
@@ -13,7 +17,44 @@ class AprendizController extends Controller
      */
     public function index()
     {
-        return view('aprendiz.dashboard'); //Redirigir al dashboard del aprendiz
+        $userId = auth()->id();
+        
+        // Estadísticas de residuos orgánicos creados por el aprendiz
+        $organicStats = [
+            'total_records' => Organic::where('created_by', $userId)->count(),
+            'total_weight' => Organic::where('created_by', $userId)->sum('weight'),
+            'today_records' => Organic::where('created_by', $userId)->whereDate('created_at', today())->count(),
+            'today_weight' => Organic::where('created_by', $userId)->whereDate('created_at', today())->sum('weight'),
+        ];
+        
+        // Estadísticas de pilas de compostaje creadas por el aprendiz
+        $compostingStats = [
+            'total_piles' => Composting::where('created_by', $userId)->count(),
+            'active_piles' => Composting::where('created_by', $userId)->whereNull('end_date')->count(),
+            'completed_piles' => Composting::where('created_by', $userId)->whereNotNull('end_date')->count(),
+        ];
+        
+        // Estadísticas de seguimientos registrados por el aprendiz
+        // Contar seguimientos de las pilas creadas por el aprendiz
+        $myCompostingIds = Composting::where('created_by', $userId)->pluck('id');
+        $trackingStats = [
+            'total_trackings' => Tracking::whereIn('composting_id', $myCompostingIds)->count(),
+            'today_trackings' => Tracking::whereIn('composting_id', $myCompostingIds)->whereDate('created_at', today())->count(),
+        ];
+        
+        // Estadísticas de abonos creados por el aprendiz
+        $fertilizerStats = [
+            'total_records' => Fertilizer::count(), // El aprendiz puede ver todos los abonos
+            'total_amount' => Fertilizer::sum('amount'),
+        ];
+        
+        // Notificaciones pendientes
+        $pendingNotifications = Notification::where('from_user_id', $userId)
+            ->where('type', 'delete_request')
+            ->where('status', 'pending')
+            ->count();
+        
+        return view('aprendiz.dashboard', compact('organicStats', 'compostingStats', 'trackingStats', 'fertilizerStats', 'pendingNotifications'));
     }
 
     /**

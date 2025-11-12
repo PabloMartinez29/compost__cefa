@@ -41,6 +41,14 @@ class Composting extends Model
     }
 
     /**
+     * Relación con fertilizantes (abono)
+     */
+    public function fertilizers(): HasMany
+    {
+        return $this->hasMany(\App\Models\Fertilizer::class);
+    }
+
+    /**
      * Accessor para el número de pila formateado
      */
     public function getFormattedPileNumAttribute(): string

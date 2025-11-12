@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Iniciar Sesión - Sistema de Compostaje</title>
     
@@ -56,6 +56,20 @@
     
     <!-- Custom Auth CSS -->
     @vite(['resources/css/auth.css'])
+    
+    <style>
+        /* Prevenir zoom en inputs en dispositivos móviles */
+        input[type="email"],
+        input[type="password"],
+        input[type="text"] {
+            font-size: 16px !important;
+        }
+        
+        /* Asegurar que el contenedor de alertas mantenga su altura */
+        #alerts-container {
+            min-height: 60px;
+        }
+    </style>
 </head>
 
 <body class="bg-gradient-to-br from-green-50 via-green-100 to-green-200 min-h-screen font-sans">
@@ -112,14 +126,17 @@
                                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                             <i class="fas fa-envelope text-soft-gray-400"></i>
                                         </div>
-                                        <input id="email" name="email" type="text" required 
+                                        <input id="email" name="email" type="email" required 
                                                class="auth-input"
                                                placeholder="tu@email.com"
-                                               oninput="validateEmail(this)">
+                                               onblur="validateEmail(this)"
+                                               autocomplete="email">
                                     </div>
-                                    @error('email')
-                                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
-                                    @enderror
+                                    <div id="email-error-container" class="mt-2 min-h-[20px]">
+                                        @error('email')
+                                            <p class="text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
                                 </div>
 
                                 <!-- Password -->
@@ -163,7 +180,7 @@
                                 </div>
 
                             <!-- Alerts Container -->
-                            <div id="alerts-container" class="space-y-2 mb-4">
+                            <div id="alerts-container" class="space-y-2 mb-4 min-h-[60px]">
                                 @if (session('success'))
                                     <div class="p-3 rounded-lg border bg-green-50 border-green-200 text-green-700">
                                         <div class="flex items-center">
@@ -273,8 +290,12 @@
         // Function to show alerts
         function showAlert(message, type) {
             const alertsContainer = document.getElementById('alerts-container');
+            
+            // Limpiar alertas previas pero mantener el contenedor con altura mínima
+            alertsContainer.innerHTML = '';
+            
             const alertDiv = document.createElement('div');
-            alertDiv.className = `p-3 rounded-lg border ${
+            alertDiv.className = `p-3 rounded-lg border transition-opacity duration-300 ${
                 type === 'error' 
                     ? 'bg-red-50 border-red-200 text-red-700' 
                     : 'bg-green-50 border-green-200 text-green-700'
@@ -296,13 +317,20 @@
                 </div>
             `;
             
+            // Asegurar que el contenedor tenga altura mínima antes de agregar
+            alertsContainer.style.minHeight = '60px';
             alertsContainer.appendChild(alertDiv);
             
             // Auto remove after 5 seconds for errors, 10 seconds for success
             const duration = type === 'error' ? 5000 : 10000;
             setTimeout(() => {
                 if (alertDiv.parentElement) {
-                    alertDiv.remove();
+                    alertDiv.style.opacity = '0';
+                    setTimeout(() => {
+                        if (alertDiv.parentElement) {
+                            alertDiv.remove();
+                        }
+                    }, 300);
                 }
             }, duration);
         }
@@ -311,28 +339,37 @@
         function clearAlerts() {
             const alertsContainer = document.getElementById('alerts-container');
             alertsContainer.innerHTML = '';
+            // Mantener altura mínima para evitar cambios de layout
+            alertsContainer.style.minHeight = '60px';
         }
 
         // Función para validar email personalizada
         function validateEmail(input) {
-            const email = input.value;
-            const errorElement = input.parentNode.nextElementSibling;
+            const email = input.value.trim();
+            const errorContainer = document.getElementById('email-error-container');
             
             // Limpiar errores previos
-            if (errorElement && errorElement.classList.contains('email-error')) {
-                errorElement.remove();
-            }
+            errorContainer.innerHTML = '';
             
             // Solo validar si hay contenido
             if (email.length > 0) {
+                // Validar formato de email básico
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                
                 if (!email.includes('@')) {
-                    // Crear elemento de error si no existe
-                    if (!errorElement || !errorElement.classList.contains('email-error')) {
-                        const errorDiv = document.createElement('p');
-                        errorDiv.className = 'mt-2 text-sm text-red-600 email-error';
-                        errorDiv.textContent = 'El campo email debe contener el símbolo @.';
-                        input.parentNode.parentNode.appendChild(errorDiv);
-                    }
+                    // Mostrar error solo si no tiene @
+                    const errorDiv = document.createElement('p');
+                    errorDiv.className = 'text-sm text-red-600';
+                    errorDiv.textContent = 'El campo email debe contener el símbolo @.';
+                    errorContainer.appendChild(errorDiv);
+                    input.classList.add('border-red-500');
+                    input.classList.remove('border-soft-gray-300');
+                } else if (!emailRegex.test(email)) {
+                    // Validar formato completo si tiene @ pero formato incorrecto
+                    const errorDiv = document.createElement('p');
+                    errorDiv.className = 'text-sm text-red-600';
+                    errorDiv.textContent = 'Por favor ingresa un email válido.';
+                    errorContainer.appendChild(errorDiv);
                     input.classList.add('border-red-500');
                     input.classList.remove('border-soft-gray-300');
                 } else {
