@@ -9,6 +9,8 @@ use App\Models\Ingredient;
 use App\Models\WarehouseClassification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class CompostingController extends Controller
 {
@@ -477,5 +479,55 @@ class CompostingController extends Controller
             'has_request' => false,
             'message' => 'No hay solicitudes pendientes para esta pila.'
         ]);
+    }
+
+    /**
+     * Generate PDF for all compostings
+     */
+    public function downloadAllCompostingsPDF()
+    {
+        $compostings = Composting::with(['ingredients.organic', 'creator'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        $pdf = PDF::loadView('aprendiz.composting.pdf.all-compostings', compact('compostings'))
+            ->setPaper('a4', 'landscape')
+            ->setOptions([
+                'defaultFont' => 'Arial',
+                'isRemoteEnabled' => false,
+                'isHtml5ParserEnabled' => true,
+                'isPhpEnabled' => false,
+            ]);
+        
+        return $pdf->download('todas_las_pilas_' . date('Y-m-d') . '.pdf');
+    }
+
+    /**
+     * Generate PDF for individual composting
+     */
+    public function downloadCompostingPDF(Composting $composting)
+    {
+        $composting->load(['ingredients.organic', 'creator', 'trackings']);
+        
+        // Convertir imagen a base64 si existe
+        $imageBase64 = null;
+        if ($composting->image && Storage::disk('public')->exists($composting->image)) {
+            $imagePath = Storage::disk('public')->path($composting->image);
+            $imageData = file_get_contents($imagePath);
+            $imageInfo = getimagesize($imagePath);
+            $mimeType = $imageInfo['mime'];
+            $imageBase64 = 'data:' . $mimeType . ';base64,' . base64_encode($imageData);
+        }
+        
+        $pdf = PDF::loadView('aprendiz.composting.pdf.composting-details', compact('composting', 'imageBase64'))
+            ->setPaper('a4', 'portrait')
+            ->setOptions([
+                'defaultFont' => 'Arial',
+                'isRemoteEnabled' => false,
+                'isHtml5ParserEnabled' => true,
+                'isPhpEnabled' => false,
+            ]);
+        
+        return $pdf->download('pila_' . str_replace(' ', '_', $composting->formatted_pile_num) . '_' . date('Y-m-d') . '.pdf');
     }
 }

@@ -112,6 +112,7 @@
                         $isComposting = str_starts_with($currentRoute, 'aprendiz.composting');
                         $isTracking = str_starts_with($currentRoute, 'aprendiz.tracking');
                         $isFertilizer = str_starts_with($currentRoute, 'aprendiz.fertilizer');
+                        $isMachinery = str_starts_with($currentRoute, 'aprendiz.machinery');
                     @endphp
                     
                     <!-- Dashboard -->
@@ -250,10 +251,46 @@
                     </div>
                     
                     <!-- Maquinaria -->
-                    <a href="#" class="flex items-center space-x-3 px-4 py-3 text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-xl transition-all duration-200 group">
-                        <i class="fas fa-cogs w-5 text-center group-hover:text-soft-green-600"></i>
-                        <span class="font-medium">Maquinaria</span>
-                    </a>
+                    <div class="relative" x-data="{ open: {{ $isMachinery ? 'true' : 'false' }} }">
+                        <button @click="open = !open" class="w-full flex items-center justify-between px-4 py-3 {{ $isMachinery ? 'bg-green-50 text-green-700' : 'text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-xl transition-all duration-200 group">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-cogs w-5 text-center {{ $isMachinery ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
+                                <span class="font-medium">Maquinaria</span>
+                            </div>
+                            <i class="fas fa-chevron-down text-soft-gray-400 text-xs transition-transform duration-200 ml-auto" :class="{ 'rotate-180': open }"></i>
+                        </button>
+                        
+                        <!-- Submenú con animaciones -->
+                        <div x-show="open" 
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="ml-10 mt-2 space-y-2">
+                            <a href="{{ route('aprendiz.machinery.index') }}" 
+                               class="flex items-start space-x-3 px-4 py-2 {{ $currentRoute === 'aprendiz.machinery.index' || $currentRoute === 'aprendiz.machinery.create' || $currentRoute === 'aprendiz.machinery.show' || $currentRoute === 'aprendiz.machinery.edit' ? 'bg-green-50 text-green-700' : 'text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-lg transition-all duration-200 group font-medium">
+                                <i class="fas fa-tools w-4 text-center flex-shrink-0 mt-0.5 {{ $currentRoute === 'aprendiz.machinery.index' || $currentRoute === 'aprendiz.machinery.create' || $currentRoute === 'aprendiz.machinery.show' || $currentRoute === 'aprendiz.machinery.edit' ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
+                                <span class="leading-tight flex-1 min-w-0" style="text-align: justify; text-align-last: left;">Identificación y Especificaciones</span>
+                            </a>
+                            <a href="{{ route('aprendiz.machinery.supplier.index') }}" 
+                               class="flex items-start space-x-3 px-4 py-2 {{ $currentRoute === 'aprendiz.machinery.supplier.index' || $currentRoute === 'aprendiz.machinery.supplier.create' || $currentRoute === 'aprendiz.machinery.supplier.show' || $currentRoute === 'aprendiz.machinery.supplier.edit' ? 'bg-green-50 text-green-700' : 'text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-lg transition-all duration-200 group font-medium">
+                                <i class="fas fa-truck w-4 text-center flex-shrink-0 mt-0.5 {{ $currentRoute === 'aprendiz.machinery.supplier.index' || $currentRoute === 'aprendiz.machinery.supplier.create' || $currentRoute === 'aprendiz.machinery.supplier.show' || $currentRoute === 'aprendiz.machinery.supplier.edit' ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
+                                <span class="leading-tight flex-1 min-w-0">Datos del Proveedor</span>
+                            </a>
+                            <a href="{{ route('aprendiz.machinery.maintenance.index') }}" 
+                               class="flex items-start space-x-3 px-4 py-2 {{ $currentRoute === 'aprendiz.machinery.maintenance.index' || $currentRoute === 'aprendiz.machinery.maintenance.create' || $currentRoute === 'aprendiz.machinery.maintenance.show' || $currentRoute === 'aprendiz.machinery.maintenance.edit' ? 'bg-green-50 text-green-700' : 'text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-lg transition-all duration-200 group font-medium">
+                                <i class="fas fa-wrench w-4 text-center flex-shrink-0 mt-0.5 {{ $currentRoute === 'aprendiz.machinery.maintenance.index' || $currentRoute === 'aprendiz.machinery.maintenance.create' || $currentRoute === 'aprendiz.machinery.maintenance.show' || $currentRoute === 'aprendiz.machinery.maintenance.edit' ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
+                                <span class="leading-tight flex-1 min-w-0" style="text-align: justify; text-align-last: left;">Control de Actividades</span>
+                            </a>
+                            <a href="{{ route('aprendiz.machinery.usage-control.index') }}" 
+                               class="flex items-start space-x-3 px-4 py-2 {{ $currentRoute === 'aprendiz.machinery.usage-control.index' || $currentRoute === 'aprendiz.machinery.usage-control.create' || $currentRoute === 'aprendiz.machinery.usage-control.show' || $currentRoute === 'aprendiz.machinery.usage-control.edit' ? 'bg-green-50 text-green-700' : 'text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-lg transition-all duration-200 group font-medium">
+                                <i class="fas fa-clock w-4 text-center flex-shrink-0 mt-0.5 {{ $currentRoute === 'aprendiz.machinery.usage-control.index' || $currentRoute === 'aprendiz.machinery.usage-control.create' || $currentRoute === 'aprendiz.machinery.usage-control.show' || $currentRoute === 'aprendiz.machinery.usage-control.edit' ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
+                                <span class="leading-tight flex-1 min-w-0" style="text-align: justify; text-align-last: left;">Control de Uso del Equipo</span>
+                            </a>
+                        </div>
+                    </div>
                     
                     <!-- Abono -->
                     <div class="relative" x-data="{ open: {{ $isFertilizer ? 'true' : 'false' }} }">

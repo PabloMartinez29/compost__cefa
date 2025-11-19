@@ -12,6 +12,7 @@ class Notification extends Model
         'from_user_id', 
         'organic_id',
         'composting_id',
+        'machinery_id',
         'type',
         'status',
         'message',
@@ -43,6 +44,11 @@ class Notification extends Model
         return $this->belongsTo(Composting::class);
     }
 
+    public function machinery(): BelongsTo
+    {
+        return $this->belongsTo(Machinery::class);
+    }
+
     // Scopes
     public function scopePending($query)
     {
@@ -57,7 +63,12 @@ class Notification extends Model
     // Accessors
     public function getTypeNameAttribute()
     {
-        return $this->type === 'delete_request' ? 'Solicitud de Eliminación' : 'Solicitud de Edición';
+        return match($this->type) {
+            'delete_request' => 'Solicitud de Eliminación',
+            'edit_request' => 'Solicitud de Edición',
+            'maintenance_reminder' => 'Recordatorio de Mantenimiento',
+            default => 'Desconocido'
+        };
     }
 
     public function getStatusNameAttribute()

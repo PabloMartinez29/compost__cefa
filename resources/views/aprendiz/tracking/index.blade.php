@@ -3,259 +3,48 @@
 @section('title', 'Seguimiento de Pilas')
 
 @section('content')
-<!-- SweetAlert2 para alertas de sesión -->
-@if(session('success'))
+@vite(['resources/css/waste.css'])
+
+@php
+    use Illuminate\Support\Facades\Storage;
+@endphp
+
 <script>
-    Swal.fire({
-        title: '¡Éxito!',
-        text: '{{ session('success') }}',
-        icon: 'success',
-        confirmButtonColor: '#22c55e',
-        timer: 3000,
-        showConfirmButton: false
+// Definir funciones globalmente antes de que se use el HTML
+function openImageModal(imageUrl) {
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-75 modal-backdrop-blur z-50 flex items-center justify-center p-4';
+    modal.innerHTML = `
+        <div class="relative max-w-6xl max-h-[90vh] w-full flex items-center justify-center">
+            <button onclick="this.closest('.fixed').remove(); document.body.style.overflow = 'auto';" 
+                    class="absolute top-4 right-4 z-10 bg-black bg-opacity-50 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-75 transition-all">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+            <img src="${imageUrl}" alt="Imagen de la pila" 
+                 class="max-w-4xl max-h-[80vh] w-auto h-auto object-contain rounded-lg shadow-2xl mx-auto">
+        </div>
+    `;
+    document.body.appendChild(modal);
+    document.body.style.overflow = 'hidden';
+    
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            modal.remove();
+            document.body.style.overflow = 'auto';
+        }
     });
-</script>
-@endif
+}
 
-@if(session('error'))
-<script>
-    Swal.fire({
-        title: 'Error',
-        text: '{{ session('error') }}',
-        icon: 'error',
-        confirmButtonColor: '#ef4444'
-    });
-</script>
-@endif
-
-@if(session('warning'))
-<script>
-    Swal.fire({
-        title: 'Advertencia',
-        text: '{{ session('warning') }}',
-        icon: 'warning',
-        confirmButtonColor: '#f59e0b'
-    });
-</script>
-@endif
-
-@if(session('info'))
-<script>
-    Swal.fire({
-        title: 'Información',
-        text: '{{ session('info') }}',
-        icon: 'info',
-        confirmButtonColor: '#3b82f6'
-    });
-</script>
-@endif
-
-<div class="waste-container">
-    <!-- Header -->
-    <div class="waste-header">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-800 flex items-center">
-                    <i class="fas fa-chart-line text-green-600 mr-3"></i>
-                    Seguimiento de Pilas
-                </h1>
-                <p class="text-gray-600 mt-2">Registra y monitorea el progreso de tus pilas de compostaje</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500">
-            <div class="flex items-center">
-                <div class="p-3 bg-blue-100 rounded-full">
-                    <i class="fas fa-layer-group text-blue-600 text-xl"></i>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Total Pilas</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $totalPiles }}</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-orange-500">
-            <div class="flex items-center">
-                <div class="p-3 bg-orange-100 rounded-full">
-                    <i class="fas fa-clock text-orange-600 text-xl"></i>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Pilas Activas</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $activePiles }}</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-lg shadow-md p-6 border-l-4 border-green-500">
-            <div class="flex items-center">
-                <div class="p-3 bg-green-100 rounded-full">
-                    <i class="fas fa-chart-line text-green-600 text-xl"></i>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-gray-600">Seguimientos</p>
-                    <p class="text-2xl font-bold text-gray-900">{{ $totalTrackings }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Pilas con Seguimientos -->
-    <div class="bg-white rounded-lg shadow-md">
-        <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-xl font-semibold text-gray-800">Pilas de Compostaje</h2>
-        </div>
-
-        @if($compostings->count() > 0)
-            <div class="divide-y divide-gray-200">
-                @foreach($compostings as $composting)
-                    <div class="p-6 hover:bg-gray-50 transition-colors duration-200">
-                        <div class="flex items-start justify-between">
-                            <div class="flex-1">
-                                <div class="flex items-center space-x-4">
-                                    <div class="flex-shrink-0">
-                                        <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                                            <i class="fas fa-layer-group text-green-600 text-lg"></i>
-                                        </div>
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <h3 class="text-lg font-semibold text-gray-900">
-                                            {{ $composting->formatted_pile_num }}
-                                        </h3>
-                                        <div class="flex items-center space-x-4 mt-1">
-                                            <span class="text-sm text-gray-600">
-                                                <i class="fas fa-calendar-alt mr-1"></i>
-                                                Inicio: {{ $composting->formatted_start_date }}
-                                            </span>
-                                            <span class="text-sm text-gray-600">
-                                                <i class="fas fa-weight-hanging mr-1"></i>
-                                                {{ $composting->formatted_total_kg }}
-                                            </span>
-                                            <span class="text-sm text-gray-600">
-                                                <i class="fas fa-chart-line mr-1"></i>
-                                                {{ $composting->trackings->count() }} seguimientos
-                                            </span>
-                                            <span class="text-sm text-gray-600">
-                                                <i class="fas fa-info-circle mr-1"></i>
-                                                Estado: {{ $composting->status }}
-                                            </span>
-                                        </div>
-                                        
-                                        <!-- Progreso del proceso basado en días transcurridos -->
-                                        <div class="mt-3">
-                                            <div class="flex items-center justify-between text-sm text-gray-600 mb-1">
-                                                <span>Progreso del proceso (45 días)</span>
-                                                <span>{{ $composting->tracking_progress }}</span>
-                                            </div>
-                                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                                <div class="{{ $composting->progress_bar_color }} h-2 rounded-full transition-all duration-300" 
-                                                     style="width: {{ $composting->process_progress }}%"></div>
-                                            </div>
-                                            <div class="flex items-center justify-between mt-1">
-                                                @if($composting->is_process_completed)
-                                                    <span class="text-xs text-green-600 font-medium">✅ Proceso completado (45 días)</span>
-                                                @else
-                                                    <span class="text-xs text-blue-600">{{ $composting->days_remaining }} días restantes</span>
-                                                @endif
-                                                <span class="text-xs text-gray-500">{{ $composting->current_phase }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex items-center space-x-2 mt-8">
-                                @if($composting->days_elapsed >= 1 || $composting->status === 'Completada' || $composting->days_elapsed >= 45)
-                                    <button onclick="openTrackingModal({{ $composting->id }})" 
-                                            class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition-colors duration-200 flex items-center justify-center"
-                                            title="Ver Seguimientos">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                @endif
-                                @if($composting->status !== 'Completada' && $composting->days_elapsed < 45 && $composting->days_elapsed >= 0)
-                                    <a href="{{ route('aprendiz.tracking.create', ['composting_id' => $composting->id]) }}" 
-                                       class="bg-green-600 hover:bg-green-700 text-white p-2 rounded-lg transition-colors duration-200 flex items-center justify-center"
-                                       title="Nuevo Seguimiento">
-                                        <i class="fas fa-plus"></i>
-                                    </a>
-                                @endif
-                            </div>
-                        </div>
-
-                        <!-- Seguimientos recientes -->
-                        @if($composting->trackings->count() > 0)
-                            <div class="mt-4 ml-16">
-                                <div class="flex items-center space-x-4 text-sm text-gray-600">
-                                    <span class="font-medium">Últimos seguimientos:</span>
-                                    @foreach($composting->trackings->take(3) as $tracking)
-                                        <span class="bg-gray-100 px-2 py-1 rounded">
-                                            Día {{ $tracking->day }} ({{ $tracking->formatted_date }})
-                                        </span>
-                                    @endforeach
-                                    @if($composting->trackings->count() > 3)
-                                        <span class="text-gray-500">+{{ $composting->trackings->count() - 3 }} más</span>
-                                    @endif
-                                </div>
-                            </div>
-                        @endif
-                    </div>
-                @endforeach
-            </div>
-        @else
-            <div class="p-12 text-center">
-                <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-chart-line text-gray-400 text-3xl"></i>
-                </div>
-                <h3 class="text-lg font-medium text-gray-900 mb-2">No hay pilas de compostaje</h3>
-                <p class="text-gray-600 mb-6">Primero debes crear una pila de compostaje para poder registrar seguimientos.</p>
-                <a href="{{ route('aprendiz.composting.create') }}" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors duration-200 inline-flex items-center">
-                    <i class="fas fa-plus mr-2"></i>
-                    Crear Pila de Compostaje
-                </a>
-            </div>
-        @endif
-    </div>
-</div>
-
-<!-- Modal para ver seguimientos -->
-<div id="trackingModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 transition-opacity duration-300">
-    <div class="flex items-center justify-center min-h-screen p-4">
-        <div class="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden transform transition-all duration-300 scale-95" id="modalContainer">
-            <!-- Header del Modal -->
-            <div class="bg-green-100 px-6 py-4 border-b border-green-300">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div class="bg-green-200 p-2 rounded-lg">
-                            <i class="fas fa-chart-line text-green-600 text-xl"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold text-gray-800" id="modalTitle">Seguimientos de la Pila</h3>
-                            <p class="text-gray-600 text-sm">Monitorea el progreso de tu pila de compostaje</p>
-                        </div>
-                    </div>
-                    <button onclick="closeTrackingModal()" 
-                            class="text-gray-600 hover:bg-green-200 hover:text-gray-800 p-2 rounded-lg transition-colors duration-200">
-                        <i class="fas fa-times text-xl"></i>
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Contenido del Modal -->
-            <div class="p-6 overflow-y-auto max-h-[70vh] bg-gray-50" id="modalContent">
-                <!-- Contenido se carga dinámicamente -->
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
 function openTrackingModal(compostingId) {
     const modal = document.getElementById('trackingModal');
     const modalContent = document.getElementById('modalContent');
     const modalTitle = document.getElementById('modalTitle');
     const modalContainer = document.getElementById('modalContainer');
+    
+    if (!modal || !modalContent || !modalTitle || !modalContainer) {
+        console.error('Modal elements not found');
+        return;
+    }
     
     // Mostrar loading
     modalContent.innerHTML = `
@@ -347,12 +136,6 @@ function openTrackingModal(compostingId) {
                 daysElapsed = Math.min(daysElapsed, 45);
             }
             
-            console.log('Days elapsed:', daysElapsed);
-            console.log('Trackings:', data.trackings);
-            console.log('Missing days:', data.missing_days);
-            console.log('Trackings map:', trackingsMap);
-            console.log('Missing days map:', missingDaysMap);
-            
             // Si no hay días para mostrar, mostrar mensaje
             if (daysElapsed === 0) {
                 modalContent.innerHTML = `
@@ -388,10 +171,6 @@ function openTrackingModal(compostingId) {
                 }
             }
             
-            console.log('All days:', allDays);
-            console.log('Days elapsed:', daysElapsed);
-            console.log('All days length:', allDays.length);
-            
             // Si no hay días generados, mostrar mensaje
             if (allDays.length === 0) {
                 modalContent.innerHTML = `
@@ -424,9 +203,14 @@ function openTrackingModal(compostingId) {
                                     <p class="text-sm text-gray-600">${totalTrackings} seguimiento${totalTrackings !== 1 ? 's' : ''} registrado${totalTrackings !== 1 ? 's' : ''} | ${totalMissing} día${totalMissing !== 1 ? 's' : ''} sin registro</p>
                                 </div>
                             </div>
-                            <div class="text-right">
-                                <div class="text-2xl font-bold text-green-600">${daysElapsed}/45</div>
-                                <div class="text-sm text-gray-500">Días transcurridos</div>
+                            <div class="flex items-center space-x-3">
+                                <div class="text-right mr-3">
+                                    <div class="text-2xl font-bold text-green-600">${daysElapsed}/45</div>
+                                    <div class="text-sm text-gray-500">Días transcurridos</div>
+                                </div>
+                                <a href="/aprendiz/tracking/download/all-pdf" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition-colors duration-200" title="Descargar PDF General">
+                                    <i class="fas fa-file-pdf"></i>
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -509,17 +293,23 @@ function openTrackingModal(compostingId) {
                                                     </td>
                                                     <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
                                                         <div class="flex space-x-2">
-                                                            <a href="/aprendiz/tracking/${tracking.id}" 
-                                                               class="bg-blue-100 text-blue-600 hover:bg-blue-200 p-2 rounded-lg transition-colors duration-200"
-                                                               title="Ver">
+                                                            <button type="button" 
+                                                                    onclick="(function(e){ e.preventDefault(); e.stopPropagation(); const modal = document.getElementById('trackingModal'); if(modal) modal.classList.add('hidden'); setTimeout(function(){ window.location.href='/aprendiz/tracking/${tracking.id}'; }, 100); })(event);" 
+                                                                    class="bg-blue-100 text-blue-600 hover:bg-blue-200 p-2 rounded-lg transition-colors duration-200 cursor-pointer"
+                                                                    title="Ver">
                                                                 <i class="fas fa-eye"></i>
-                                                            </a>
+                                                            </button>
                                                             <a href="/aprendiz/tracking/${tracking.id}/edit" 
                                                                class="bg-green-100 text-green-600 hover:bg-green-200 p-2 rounded-lg transition-colors duration-200"
                                                                title="Editar">
                                                                 <i class="fas fa-edit"></i>
                                                             </a>
-                                                            <button onclick="confirmDelete(${tracking.id})" 
+                                                            <a href="/aprendiz/tracking/${tracking.id}/download/pdf" 
+                                                               class="bg-red-100 text-red-600 hover:bg-red-200 p-2 rounded-lg transition-colors duration-200"
+                                                               title="Descargar PDF">
+                                                                <i class="fas fa-file-pdf"></i>
+                                                            </a>
+                                                            <button type="button" onclick="confirmDelete(${tracking.id})" 
                                                                     class="bg-red-100 text-red-600 hover:bg-red-200 p-2 rounded-lg transition-colors duration-200"
                                                                     title="Eliminar">
                                                                 <i class="fas fa-trash"></i>
@@ -592,6 +382,8 @@ function closeTrackingModal() {
     const modal = document.getElementById('trackingModal');
     const modalContainer = document.getElementById('modalContainer');
     
+    if (!modal || !modalContainer) return;
+    
     // Animar el cierre del modal
     modalContainer.classList.remove('scale-100');
     modalContainer.classList.add('scale-95');
@@ -635,4 +427,273 @@ function confirmDelete(trackingId) {
     });
 }
 </script>
+
+<!-- SweetAlert2 para alertas de sesión -->
+@if(session('success'))
+<script>
+    Swal.fire({
+        title: '¡Éxito!',
+        text: '{{ session('success') }}',
+        icon: 'success',
+        confirmButtonColor: '#22c55e',
+        timer: 3000,
+        showConfirmButton: false
+    });
+</script>
+@endif
+
+@if(session('error'))
+<script>
+    Swal.fire({
+        title: 'Error',
+        text: '{{ session('error') }}',
+        icon: 'error',
+        confirmButtonColor: '#ef4444'
+    });
+</script>
+@endif
+
+@if(session('warning'))
+<script>
+    Swal.fire({
+        title: 'Advertencia',
+        text: '{{ session('warning') }}',
+        icon: 'warning',
+        confirmButtonColor: '#f59e0b'
+    });
+</script>
+@endif
+
+@if(session('info'))
+<script>
+    Swal.fire({
+        title: 'Información',
+        text: '{{ session('info') }}',
+        icon: 'info',
+        confirmButtonColor: '#3b82f6'
+    });
+</script>
+@endif
+
+<div class="waste-container">
+    <!-- Header -->
+    <div class="waste-header animate-fade-in-up">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="waste-title">
+                    <i class="fas fa-chart-line waste-icon"></i>
+                    Seguimiento de Pilas
+                </h1>
+                <p class="waste-subtitle">
+                    <i class="fas fa-user-graduate text-green-400 mr-2"></i>
+                    {{ Auth::user()->name }} - Panel de Aprendiz
+                </p>
+            </div>
+            <div class="text-right">
+                <div class="text-green-400 font-bold text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="waste-card waste-card-primary animate-fade-in-up animate-delay-1">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Pilas</div>
+                    <div class="text-3xl font-bold text-gray-800">{{ $totalPiles }}</div>
+                </div>
+                <div class="waste-card-icon text-blue-600">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="waste-card waste-card-warning animate-fade-in-up animate-delay-2">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-sm font-medium text-gray-600 uppercase tracking-wide">Pilas Activas</div>
+                    <div class="text-3xl font-bold text-gray-800">{{ $activePiles }}</div>
+                </div>
+                <div class="waste-card-icon text-yellow-600">
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="waste-card waste-card-success animate-fade-in-up animate-delay-3">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-sm font-medium text-gray-600 uppercase tracking-wide">Seguimientos</div>
+                    <div class="text-3xl font-bold text-gray-800">{{ $totalTrackings }}</div>
+                </div>
+                <div class="waste-card-icon text-green-600">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pilas con Seguimientos -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <!-- Table Header -->
+        <div class="p-6 border-b border-gray-200 bg-gray-50">
+            <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+                <i class="fas fa-chart-line text-green-600 mr-2"></i>
+                Pilas de Compostaje
+            </h2>
+        </div>
+
+        @if($compostings->count() > 0)
+            <div class="divide-y divide-gray-200">
+                @foreach($compostings as $composting)
+                    <div class="p-6 hover:bg-gray-50 transition-colors duration-200">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-4">
+                                    <div class="flex-shrink-0">
+                                        @if($composting->image)
+                                            <img src="{{ Storage::url($composting->image) }}" 
+                                                 alt="{{ $composting->formatted_pile_num }}" 
+                                                 class="w-16 h-16 object-cover rounded-lg border-2 border-green-200 shadow-sm cursor-pointer hover:opacity-80 transition-opacity"
+                                                 onclick="openImageModal('{{ Storage::url($composting->image) }}')"
+                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center border-2 border-green-200" style="display: none;">
+                                                <i class="fas fa-layer-group text-green-600 text-lg"></i>
+                                            </div>
+                                        @else
+                                            <div class="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center border-2 border-green-200">
+                                                <i class="fas fa-layer-group text-green-600 text-lg"></i>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <h3 class="text-lg font-semibold text-gray-900">
+                                            {{ $composting->formatted_pile_num }}
+                                        </h3>
+                                        <div class="flex items-center space-x-4 mt-1">
+                                            <span class="text-sm text-gray-600">
+                                                <i class="fas fa-calendar-alt mr-1"></i>
+                                                Inicio: {{ $composting->formatted_start_date }}
+                                            </span>
+                                            <span class="text-sm text-gray-600">
+                                                <i class="fas fa-weight-hanging mr-1"></i>
+                                                {{ $composting->formatted_total_kg }}
+                                            </span>
+                                            <span class="text-sm text-gray-600">
+                                                <i class="fas fa-chart-line mr-1"></i>
+                                                {{ $composting->trackings->count() }} seguimientos
+                                            </span>
+                                            <span class="text-sm text-gray-600">
+                                                <i class="fas fa-info-circle mr-1"></i>
+                                                Estado: {{ $composting->status }}
+                                            </span>
+                                        </div>
+                                        
+                                        <!-- Progreso del proceso basado en días transcurridos -->
+                                        <div class="mt-3">
+                                            <div class="flex items-center justify-between text-sm text-gray-600 mb-1">
+                                                <span>Progreso del proceso (45 días)</span>
+                                                <span>{{ $composting->tracking_progress }}</span>
+                                            </div>
+                                            <div class="w-full bg-gray-200 rounded-full h-2">
+                                                <div class="{{ $composting->progress_bar_color }} h-2 rounded-full transition-all duration-300" 
+                                                     style="width: {{ $composting->process_progress }}%"></div>
+                                            </div>
+                                            <div class="flex items-center justify-between mt-1">
+                                                @if($composting->is_process_completed)
+                                                    <span class="text-xs text-green-600 font-medium">✅ Proceso completado (45 días)</span>
+                                                @else
+                                                    <span class="text-xs text-blue-600">{{ $composting->days_remaining }} días restantes</span>
+                                                @endif
+                                                <span class="text-xs text-gray-500">{{ $composting->current_phase }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2 mt-8">
+                                @if($composting->days_elapsed >= 1 || $composting->status === 'Completada' || $composting->days_elapsed >= 45)
+                                    <button onclick="openTrackingModal({{ $composting->id }})" 
+                                            class="inline-flex items-center text-blue-400 hover:text-blue-500"
+                                            title="Ver Seguimientos">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                @endif
+                                @if($composting->status !== 'Completada' && $composting->days_elapsed < 45 && $composting->days_elapsed >= 0)
+                                    <a href="{{ route('aprendiz.tracking.create', ['composting_id' => $composting->id]) }}" 
+                                       class="inline-flex items-center text-green-500 hover:text-green-700"
+                                       title="Nuevo Seguimiento">
+                                        <i class="fas fa-plus"></i>
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Seguimientos recientes -->
+                        @if($composting->trackings->count() > 0)
+                            <div class="mt-4 ml-16">
+                                <div class="flex items-center space-x-4 text-sm text-gray-600">
+                                    <span class="font-medium">Últimos seguimientos:</span>
+                                    @foreach($composting->trackings->take(3) as $tracking)
+                                        <span class="bg-gray-100 px-2 py-1 rounded">
+                                            Día {{ $tracking->day }} ({{ $tracking->formatted_date }})
+                                        </span>
+                                    @endforeach
+                                    @if($composting->trackings->count() > 3)
+                                        <span class="text-gray-500">+{{ $composting->trackings->count() - 3 }} más</span>
+                                    @endif
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <div class="p-12 text-center">
+                <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-chart-line text-gray-400 text-3xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No hay pilas de compostaje</h3>
+                <p class="text-gray-600 mb-6">Primero debes crear una pila de compostaje para poder registrar seguimientos.</p>
+                <a href="{{ route('aprendiz.composting.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                    <i class="fas fa-plus mr-2"></i>
+                    Crear Pila de Compostaje
+                </a>
+            </div>
+        @endif
+    </div>
+</div>
+
+<!-- Modal para ver seguimientos -->
+<div id="trackingModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 transition-opacity duration-300" onclick="if(event.target === this) closeTrackingModal();">
+    <div class="flex items-center justify-center min-h-screen p-4" onclick="event.stopPropagation();">
+        <div class="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden transform transition-all duration-300 scale-95" id="modalContainer" onclick="event.stopPropagation();">
+            <!-- Header del Modal -->
+            <div class="bg-green-100 px-6 py-4 border-b border-green-300">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-green-200 p-2 rounded-lg">
+                            <i class="fas fa-chart-line text-green-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800" id="modalTitle">Seguimientos de la Pila</h3>
+                            <p class="text-gray-600 text-sm">Monitorea el progreso de tu pila de compostaje</p>
+                        </div>
+                    </div>
+                    <button onclick="closeTrackingModal()" 
+                            class="text-gray-600 hover:bg-green-200 hover:text-gray-800 p-2 rounded-lg transition-colors duration-200">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Contenido del Modal -->
+            <div class="p-6 overflow-y-auto max-h-[70vh] bg-gray-50" id="modalContent">
+                <!-- Contenido se carga dinámicamente -->
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection

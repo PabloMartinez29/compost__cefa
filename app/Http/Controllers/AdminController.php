@@ -192,8 +192,8 @@ class AdminController extends Controller
     public function notificationsHistory()
     {
         $notifications = Notification::where('user_id', auth()->id())
-            ->where('type', 'delete_request')
-            ->with(['fromUser', 'organic', 'composting'])
+            ->whereIn('type', ['delete_request', 'maintenance_reminder'])
+            ->with(['fromUser', 'organic', 'composting', 'machinery'])
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 

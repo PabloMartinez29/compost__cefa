@@ -3,6 +3,10 @@
 @section('content')
 @vite(['resources/css/waste.css'])
 
+@php
+    use Illuminate\Support\Facades\Storage;
+@endphp
+
 <div class="container mx-auto px-6 py-8">
     <!-- Header -->
     <div class="waste-header animate-fade-in-up">
@@ -32,6 +36,15 @@
 
     <!-- Main Content -->
     <div class="waste-container animate-fade-in-up animate-delay-2">
+        <!-- Imagen de la Pila -->
+        @if($composting->image)
+            <div class="mb-8 text-center">
+                <img src="{{ Storage::url($composting->image) }}" 
+                     alt="Pila {{ $composting->formatted_pile_num }}" 
+                     class="max-w-full h-64 object-cover rounded-lg shadow-md mx-auto">
+            </div>
+        @endif
+        
         <!-- Información General -->
         <div class="mb-8">
             <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
@@ -195,8 +208,8 @@
                     Seguimientos ({{ $composting->trackings->count() }})
                 </h2>
                 
-                <div class="overflow-x-auto">
-                    <table class="waste-table">
+                <div>
+                    <table class="waste-table w-full">
                         <thead>
                             <tr>
                                 <th>Día</th>
@@ -235,6 +248,10 @@
             <a href="{{ route('admin.composting.index') }}" class="waste-btn-secondary">
                 <i class="fas fa-arrow-left mr-2"></i>
                 Volver a la Lista
+            </a>
+            <a href="{{ route('admin.composting.download.pdf', $composting) }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                <i class="fas fa-file-pdf mr-2"></i>
+                Descargar PDF
             </a>
             <a href="{{ route('admin.composting.edit', $composting) }}" class="waste-btn">
                 <i class="fas fa-edit mr-2"></i>

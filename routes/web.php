@@ -18,6 +18,12 @@ use App\Http\Controllers\Aprendiz\TrackingController;
 use App\Http\Controllers\Admin\TrackingController as AdminTrackingController;
 use App\Http\Controllers\Admin\MachineryController;
 use App\Http\Controllers\Admin\SupplierController;
+use App\Http\Controllers\Admin\MaintenanceController;
+use App\Http\Controllers\Admin\UsageControlController;
+use App\Http\Controllers\Aprendiz\MachineryController as AprendizMachineryController;
+use App\Http\Controllers\Aprendiz\SupplierController as AprendizSupplierController;
+use App\Http\Controllers\Aprendiz\MaintenanceController as AprendizMaintenanceController;
+use App\Http\Controllers\Aprendiz\UsageControlController as AprendizUsageControlController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -65,6 +71,7 @@ Route::middleware(['auth','role:admin'])->group(function(){
     Route::get('admin/notifications/history', [AdminController::class, 'notificationsHistory'])->name('admin.notifications.history');
     Route::post('admin/notifications/{notification}/approve', [AdminController::class, 'approveNotification'])->name('admin.notifications.approve');
     Route::post('admin/notifications/{notification}/reject', [AdminController::class, 'rejectNotification'])->name('admin.notifications.reject');
+    Route::post('admin/notifications/{notification}/mark-read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('admin.notifications.mark-read');
     
     // Composting Routes for Admin
     Route::resource('admin/composting', AdminCompostingController::class)->names([
@@ -76,6 +83,10 @@ Route::middleware(['auth','role:admin'])->group(function(){
         'update' => 'admin.composting.update',
         'destroy' => 'admin.composting.destroy',
     ]);
+    
+    // PDF Routes for Composting (Admin)
+    Route::get('admin/composting/download/all-pdf', [AdminCompostingController::class, 'downloadAllCompostingsPDF'])->name('admin.composting.download.all-pdf');
+    Route::get('admin/composting/{composting}/download/pdf', [AdminCompostingController::class, 'downloadCompostingPDF'])->name('admin.composting.download.pdf');
 
     // Tracking Routes for Admin
     Route::resource('admin/tracking', AdminTrackingController::class)->names([
@@ -90,6 +101,10 @@ Route::middleware(['auth','role:admin'])->group(function(){
 
     // Additional tracking routes for admin
     Route::get('admin/tracking/composting/{composting}', [AdminTrackingController::class, 'getByComposting'])->name('admin.tracking.by-composting');
+    
+    // PDF Routes for Tracking (Admin)
+    Route::get('admin/tracking/download/all-pdf', [AdminTrackingController::class, 'downloadAllTrackingsPDF'])->name('admin.tracking.download.all-pdf');
+    Route::get('admin/tracking/{tracking}/download/pdf', [AdminTrackingController::class, 'downloadTrackingPDF'])->name('admin.tracking.download.pdf');
     
     // User Management Routes
     Route::resource('admin/users', \App\Http\Controllers\Admin\UserController::class)->names([
@@ -147,6 +162,10 @@ Route::middleware(['auth','role:admin'])->group(function(){
         'destroy' => 'admin.machinery.destroy',
     ]);
     
+    // PDF Routes for Machinery
+    Route::get('admin/machinery/machineries/download/all-pdf', [MachineryController::class, 'downloadAllMachineriesPDF'])->name('admin.machinery.download.all-pdf');
+    Route::get('admin/machinery/machineries/{machinery}/download/pdf', [MachineryController::class, 'downloadMachineryPDF'])->name('admin.machinery.download.pdf');
+    
     // Supplier Routes - Deben ir ANTES de las rutas con parámetros {machinery} para evitar conflictos
     Route::get('admin/machinery/supplier', [SupplierController::class, 'index'])->name('admin.machinery.supplier.index');
     Route::get('admin/machinery/supplier/create', [SupplierController::class, 'create'])->name('admin.machinery.supplier.create');
@@ -156,11 +175,35 @@ Route::middleware(['auth','role:admin'])->group(function(){
     Route::put('admin/machinery/supplier/{supplier}', [SupplierController::class, 'update'])->name('admin.machinery.supplier.update');
     Route::delete('admin/machinery/supplier/{supplier}', [SupplierController::class, 'destroy'])->name('admin.machinery.supplier.destroy');
     
+    // PDF Routes for Suppliers
+    Route::get('admin/machinery/supplier/download/all-pdf', [SupplierController::class, 'downloadAllSuppliersPDF'])->name('admin.machinery.supplier.download.all-pdf');
+    Route::get('admin/machinery/supplier/{supplier}/download/pdf', [SupplierController::class, 'downloadSupplierPDF'])->name('admin.machinery.supplier.download.pdf');
+    
     // Maintenance Routes - Deben ir DESPUÉS de las rutas de supplier
-    Route::get('admin/machinery/maintenance', [MachineryController::class, 'indexMaintenance'])->name('admin.machinery.maintenance.index');
-    Route::get('admin/machinery/maintenance/create', [MachineryController::class, 'createMaintenance'])->name('admin.machinery.maintenance.create');
-    Route::post('admin/machinery/maintenance', [MachineryController::class, 'storeMaintenance'])->name('admin.machinery.maintenance.store');
-    Route::get('admin/machinery/{machinery}/maintenance', [MachineryController::class, 'showMaintenance'])->name('admin.machinery.maintenance.show');
+    Route::get('admin/machinery/maintenance', [MaintenanceController::class, 'index'])->name('admin.machinery.maintenance.index');
+    Route::get('admin/machinery/maintenance/create', [MaintenanceController::class, 'create'])->name('admin.machinery.maintenance.create');
+    Route::post('admin/machinery/maintenance', [MaintenanceController::class, 'store'])->name('admin.machinery.maintenance.store');
+    Route::get('admin/machinery/maintenance/{maintenance}', [MaintenanceController::class, 'show'])->name('admin.machinery.maintenance.show');
+    Route::get('admin/machinery/maintenance/{maintenance}/edit', [MaintenanceController::class, 'edit'])->name('admin.machinery.maintenance.edit');
+    Route::put('admin/machinery/maintenance/{maintenance}', [MaintenanceController::class, 'update'])->name('admin.machinery.maintenance.update');
+    Route::delete('admin/machinery/maintenance/{maintenance}', [MaintenanceController::class, 'destroy'])->name('admin.machinery.maintenance.destroy');
+    
+    // PDF Routes for Maintenances
+    Route::get('admin/machinery/maintenance/download/all-pdf', [MaintenanceController::class, 'downloadAllMaintenancesPDF'])->name('admin.machinery.maintenance.download.all-pdf');
+    Route::get('admin/machinery/maintenance/{maintenance}/download/pdf', [MaintenanceController::class, 'downloadMaintenancePDF'])->name('admin.machinery.maintenance.download.pdf');
+    
+    // Usage Control Routes
+    Route::get('admin/machinery/usage-control', [UsageControlController::class, 'index'])->name('admin.machinery.usage-control.index');
+    Route::get('admin/machinery/usage-control/create', [UsageControlController::class, 'create'])->name('admin.machinery.usage-control.create');
+    Route::post('admin/machinery/usage-control', [UsageControlController::class, 'store'])->name('admin.machinery.usage-control.store');
+    Route::get('admin/machinery/usage-control/{usageControl}', [UsageControlController::class, 'show'])->name('admin.machinery.usage-control.show');
+    Route::get('admin/machinery/usage-control/{usageControl}/edit', [UsageControlController::class, 'edit'])->name('admin.machinery.usage-control.edit');
+    Route::put('admin/machinery/usage-control/{usageControl}', [UsageControlController::class, 'update'])->name('admin.machinery.usage-control.update');
+    Route::delete('admin/machinery/usage-control/{usageControl}', [UsageControlController::class, 'destroy'])->name('admin.machinery.usage-control.destroy');
+    
+    // PDF Routes for Usage Controls
+    Route::get('admin/machinery/usage-control/download/all-pdf', [UsageControlController::class, 'downloadAllUsageControlsPDF'])->name('admin.machinery.usage-control.download.all-pdf');
+    Route::get('admin/machinery/usage-control/{usageControl}/download/pdf', [UsageControlController::class, 'downloadUsageControlPDF'])->name('admin.machinery.usage-control.download.pdf');
 });
 
 
@@ -211,6 +254,10 @@ Route::middleware(['auth', 'role:aprendiz'])->group(function(){
           Route::post('aprendiz/composting/{composting}/request-delete', [CompostingController::class, 'requestDeletePermission'])->name('aprendiz.composting.request-delete');
           Route::get('aprendiz/composting/{composting}/check-delete-status', [CompostingController::class, 'checkDeletePermissionStatus'])->name('aprendiz.composting.check-delete-status');
           
+          // PDF Routes for Composting (Apprentices)
+          Route::get('aprendiz/composting/download/all-pdf', [CompostingController::class, 'downloadAllCompostingsPDF'])->name('aprendiz.composting.download.all-pdf');
+          Route::get('aprendiz/composting/{composting}/download/pdf', [CompostingController::class, 'downloadCompostingPDF'])->name('aprendiz.composting.download.pdf');
+          
           // Tracking Routes for Apprentices
           Route::resource('aprendiz/tracking', TrackingController::class)->names([
               'index' => 'aprendiz.tracking.index',
@@ -224,6 +271,10 @@ Route::middleware(['auth', 'role:aprendiz'])->group(function(){
           
           // Additional tracking routes
           Route::get('aprendiz/tracking/composting/{composting}', [TrackingController::class, 'getByComposting'])->name('aprendiz.tracking.by-composting');
+          
+          // PDF Routes for Tracking (Apprentices)
+          Route::get('aprendiz/tracking/download/all-pdf', [TrackingController::class, 'downloadAllTrackingsPDF'])->name('aprendiz.tracking.download.all-pdf');
+          Route::get('aprendiz/tracking/{tracking}/download/pdf', [TrackingController::class, 'downloadTrackingPDF'])->name('aprendiz.tracking.download.pdf');
           
           // Fertilizer Routes for Apprentices
           Route::resource('aprendiz/fertilizer', \App\Http\Controllers\Aprendiz\FertilizerController::class)->names([
@@ -239,6 +290,60 @@ Route::middleware(['auth', 'role:aprendiz'])->group(function(){
           // Rutas para descargar PDFs de abonos para aprendiz
           Route::get('aprendiz/fertilizer/download/all-pdf', [\App\Http\Controllers\Aprendiz\FertilizerController::class, 'downloadAllFertilizersPDF'])->name('aprendiz.fertilizer.download.all-pdf');
           Route::get('aprendiz/fertilizer/{fertilizer}/download/pdf', [\App\Http\Controllers\Aprendiz\FertilizerController::class, 'downloadFertilizerPDF'])->name('aprendiz.fertilizer.download.pdf');
+          
+          // Machinery Routes for Apprentices - Identificación y Especificaciones
+          Route::resource('aprendiz/machinery/machineries', AprendizMachineryController::class)->names([
+              'index' => 'aprendiz.machinery.index',
+              'create' => 'aprendiz.machinery.create',
+              'store' => 'aprendiz.machinery.store',
+              'show' => 'aprendiz.machinery.show',
+              'edit' => 'aprendiz.machinery.edit',
+              'update' => 'aprendiz.machinery.update',
+              'destroy' => 'aprendiz.machinery.destroy',
+          ]);
+          
+          // PDF Routes for Machinery (Apprentices)
+          Route::get('aprendiz/machinery/machineries/download/all-pdf', [AprendizMachineryController::class, 'downloadAllMachineriesPDF'])->name('aprendiz.machinery.download.all-pdf');
+          Route::get('aprendiz/machinery/machineries/{machinery}/download/pdf', [AprendizMachineryController::class, 'downloadMachineryPDF'])->name('aprendiz.machinery.download.pdf');
+          
+          // Supplier Routes for Apprentices
+          Route::get('aprendiz/machinery/supplier', [AprendizSupplierController::class, 'index'])->name('aprendiz.machinery.supplier.index');
+          Route::get('aprendiz/machinery/supplier/create', [AprendizSupplierController::class, 'create'])->name('aprendiz.machinery.supplier.create');
+          Route::post('aprendiz/machinery/supplier', [AprendizSupplierController::class, 'store'])->name('aprendiz.machinery.supplier.store');
+          Route::get('aprendiz/machinery/supplier/{supplier}', [AprendizSupplierController::class, 'show'])->name('aprendiz.machinery.supplier.show');
+          Route::get('aprendiz/machinery/supplier/{supplier}/edit', [AprendizSupplierController::class, 'edit'])->name('aprendiz.machinery.supplier.edit');
+          Route::put('aprendiz/machinery/supplier/{supplier}', [AprendizSupplierController::class, 'update'])->name('aprendiz.machinery.supplier.update');
+          Route::delete('aprendiz/machinery/supplier/{supplier}', [AprendizSupplierController::class, 'destroy'])->name('aprendiz.machinery.supplier.destroy');
+          
+          // PDF Routes for Suppliers (Apprentices)
+          Route::get('aprendiz/machinery/supplier/download/all-pdf', [AprendizSupplierController::class, 'downloadAllSuppliersPDF'])->name('aprendiz.machinery.supplier.download.all-pdf');
+          Route::get('aprendiz/machinery/supplier/{supplier}/download/pdf', [AprendizSupplierController::class, 'downloadSupplierPDF'])->name('aprendiz.machinery.supplier.download.pdf');
+          
+          // Maintenance Routes for Apprentices
+          Route::get('aprendiz/machinery/maintenance', [AprendizMaintenanceController::class, 'index'])->name('aprendiz.machinery.maintenance.index');
+          Route::get('aprendiz/machinery/maintenance/create', [AprendizMaintenanceController::class, 'create'])->name('aprendiz.machinery.maintenance.create');
+          Route::post('aprendiz/machinery/maintenance', [AprendizMaintenanceController::class, 'store'])->name('aprendiz.machinery.maintenance.store');
+          Route::get('aprendiz/machinery/maintenance/{maintenance}', [AprendizMaintenanceController::class, 'show'])->name('aprendiz.machinery.maintenance.show');
+          Route::get('aprendiz/machinery/maintenance/{maintenance}/edit', [AprendizMaintenanceController::class, 'edit'])->name('aprendiz.machinery.maintenance.edit');
+          Route::put('aprendiz/machinery/maintenance/{maintenance}', [AprendizMaintenanceController::class, 'update'])->name('aprendiz.machinery.maintenance.update');
+          Route::delete('aprendiz/machinery/maintenance/{maintenance}', [AprendizMaintenanceController::class, 'destroy'])->name('aprendiz.machinery.maintenance.destroy');
+          
+          // PDF Routes for Maintenances (Apprentices)
+          Route::get('aprendiz/machinery/maintenance/download/all-pdf', [AprendizMaintenanceController::class, 'downloadAllMaintenancesPDF'])->name('aprendiz.machinery.maintenance.download.all-pdf');
+          Route::get('aprendiz/machinery/maintenance/{maintenance}/download/pdf', [AprendizMaintenanceController::class, 'downloadMaintenancePDF'])->name('aprendiz.machinery.maintenance.download.pdf');
+          
+          // Usage Control Routes for Apprentices
+          Route::get('aprendiz/machinery/usage-control', [AprendizUsageControlController::class, 'index'])->name('aprendiz.machinery.usage-control.index');
+          Route::get('aprendiz/machinery/usage-control/create', [AprendizUsageControlController::class, 'create'])->name('aprendiz.machinery.usage-control.create');
+          Route::post('aprendiz/machinery/usage-control', [AprendizUsageControlController::class, 'store'])->name('aprendiz.machinery.usage-control.store');
+          Route::get('aprendiz/machinery/usage-control/{usageControl}', [AprendizUsageControlController::class, 'show'])->name('aprendiz.machinery.usage-control.show');
+          Route::get('aprendiz/machinery/usage-control/{usageControl}/edit', [AprendizUsageControlController::class, 'edit'])->name('aprendiz.machinery.usage-control.edit');
+          Route::put('aprendiz/machinery/usage-control/{usageControl}', [AprendizUsageControlController::class, 'update'])->name('aprendiz.machinery.usage-control.update');
+          Route::delete('aprendiz/machinery/usage-control/{usageControl}', [AprendizUsageControlController::class, 'destroy'])->name('aprendiz.machinery.usage-control.destroy');
+          
+          // PDF Routes for Usage Controls (Apprentices)
+          Route::get('aprendiz/machinery/usage-control/download/all-pdf', [AprendizUsageControlController::class, 'downloadAllUsageControlsPDF'])->name('aprendiz.machinery.usage-control.download.all-pdf');
+          Route::get('aprendiz/machinery/usage-control/{usageControl}/download/pdf', [AprendizUsageControlController::class, 'downloadUsageControlPDF'])->name('aprendiz.machinery.usage-control.download.pdf');
 });
 
 //rutas de abono (fertilizer)

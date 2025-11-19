@@ -7,6 +7,8 @@ use App\Models\Supplier;
 use App\Models\Machinery;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class SupplierController extends Controller
 {
@@ -16,7 +18,7 @@ class SupplierController extends Controller
     public function index()
     {
         // Cargar la relación con maquinaria para mostrar la imagen
-        $suppliers = Supplier::with('machinery')->latest()->paginate(10);
+        $suppliers = Supplier::with('machinery')->latest()->get();
         
         // Statistics
         $totalSuppliers = Supplier::count();
@@ -194,5 +196,53 @@ class SupplierController extends Controller
             return redirect()->back()
                 ->with('error', 'Error al eliminar el proveedor: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Generate PDF for all suppliers
+     */
+    public function downloadAllSuppliersPDF()
+    {
+        $suppliers = Supplier::with('machinery')->latest()->get();
+        
+        $pdf = PDF::loadView('admin.machinery.suppliers.pdf.all-suppliers', compact('suppliers'))
+            ->setPaper('a4', 'landscape')
+            ->setOptions([
+                'defaultFont' => 'Arial',
+                'isRemoteEnabled' => false,
+                'isHtml5ParserEnabled' => true,
+                'isPhpEnabled' => false,
+            ]);
+        
+        return $pdf->download('todos_los_proveedores_' . date('Y-m-d') . '.pdf');
+    }
+
+    /**
+     * Generate PDF for individual supplier
+     */
+    public function downloadSupplierPDF(Supplier $supplier)
+    {
+        $supplier->load('machinery');
+        
+        // Convertir imagen a base64 si existe
+        $imageBase64 = null;
+        if ($supplier->machinery && $supplier->machinery->image && Storage::disk('public')->exists($supplier->machinery->image)) {
+            $imagePath = Storage::disk('public')->path($supplier->machinery->image);
+            $imageData = file_get_contents($imagePath);
+            $imageInfo = getimagesize($imagePath);
+            $mimeType = $imageInfo['mime'];
+            $imageBase64 = 'data:' . $mimeType . ';base64,' . base64_encode($imageData);
+        }
+        
+        $pdf = PDF::loadView('admin.machinery.suppliers.pdf.supplier-details', compact('supplier', 'imageBase64'))
+            ->setPaper('a4', 'portrait')
+            ->setOptions([
+                'defaultFont' => 'Arial',
+                'isRemoteEnabled' => false,
+                'isHtml5ParserEnabled' => true,
+                'isPhpEnabled' => false,
+            ]);
+        
+        return $pdf->download('proveedor_' . str_replace(' ', '_', $supplier->supplier) . '_' . date('Y-m-d') . '.pdf');
     }
 }

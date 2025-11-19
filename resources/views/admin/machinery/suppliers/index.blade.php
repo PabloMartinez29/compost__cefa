@@ -92,10 +92,15 @@
                 <i class="fas fa-table text-green-600 mr-2"></i>
                 Registros de Proveedores
             </h2>
-            <a href="{{ route('admin.machinery.supplier.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
-                <i class="fas fa-plus mr-2"></i>
-                Nuevo Registro
-            </a>
+            <div class="flex items-center space-x-4">
+                <a href="{{ route('admin.machinery.supplier.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                    <i class="fas fa-file-pdf"></i>
+                </a>
+                <a href="{{ route('admin.machinery.supplier.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                    <i class="fas fa-plus mr-2"></i>
+                    Nuevo Registro
+                </a>
+            </div>
         </div>
 
         @if(session('success'))
@@ -105,99 +110,100 @@
         @endif
 
         <div class="overflow-x-auto">
-            <table class="waste-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Imagen</th>
-                        <th>Maquinaria</th>
-                        <th>Fabricante</th>
-                        <th>Proveedor</th>
-                        <th>Origen</th>
-                        <th>Fecha de Compra</th>
-                        <th>Contacto</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($suppliers as $supplier)
+            <!-- DataTables agregará los controles y la tabla aquí -->
+            <div id="suppliersTable_wrapper" class="p-6">
+                <!-- Contenedor para controles superiores -->
+                <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
+                    <div id="dt-length-container" style="float: left;"></div>
+                    <div id="dt-filter-container" style="float: right;"></div>
+                </div>
+                <table id="suppliersTable" class="waste-table">
+                    <thead>
                         <tr>
-                            <td class="font-mono">#{{ str_pad($supplier->id, 3, '0', STR_PAD_LEFT) }}</td>
-                            <td>
-                                @if($supplier->machinery && $supplier->machinery->image)
-                                    <img src="{{ Storage::url($supplier->machinery->image) }}?v={{ $supplier->machinery->updated_at->timestamp }}" 
-                                         alt="Imagen de maquinaria" 
-                                         class="w-12 h-12 object-cover rounded-full cursor-pointer hover:opacity-80 transition-opacity"
-                                         onclick="openImageModal('{{ Storage::url($supplier->machinery->image) }}?v={{ $supplier->machinery->updated_at->timestamp }}')"
-                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                    <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center" style="display: none;">
-                                        <i class="fas fa-image text-gray-400"></i>
+                            <th>ID</th>
+                            <th>Imagen</th>
+                            <th>Maquinaria</th>
+                            <th>Fabricante</th>
+                            <th>Proveedor</th>
+                            <th>Origen</th>
+                            <th>Fecha de Compra</th>
+                            <th>Contacto</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($suppliers as $supplier)
+                            <tr>
+                                <td class="font-mono">#{{ str_pad($supplier->id, 3, '0', STR_PAD_LEFT) }}</td>
+                                <td>
+                                    @if($supplier->machinery && $supplier->machinery->image)
+                                        <img src="{{ Storage::url($supplier->machinery->image) }}?v={{ $supplier->machinery->updated_at->timestamp }}" 
+                                             alt="Imagen de maquinaria" 
+                                             class="w-12 h-12 object-cover rounded-full cursor-pointer hover:opacity-80 transition-opacity"
+                                             onclick="openImageModal('{{ Storage::url($supplier->machinery->image) }}?v={{ $supplier->machinery->updated_at->timestamp }}')"
+                                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center" style="display: none;">
+                                            <i class="fas fa-image text-gray-400"></i>
+                                        </div>
+                                    @else
+                                        <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-cogs text-gray-400"></i>
+                                        </div>
+                                    @endif
+                                </td>
+                                <td>
+                                    <div class="font-semibold">{{ $supplier->machinery->name ?? 'N/A' }}</div>
+                                    <div class="text-xs text-gray-500">{{ $supplier->machinery->brand ?? '' }} {{ $supplier->machinery->model ?? '' }}</div>
+                                </td>
+                                <td>{{ $supplier->maker }}</td>
+                                <td>{{ $supplier->supplier }}</td>
+                                <td>{{ $supplier->origin }}</td>
+                                <td>{{ $supplier->purchase_date->format('d/m/Y') }}</td>
+                                <td>
+                                    <div class="text-sm">
+                                        <div><i class="fas fa-phone text-green-600 mr-1"></i>{{ $supplier->phone }}</div>
+                                        <div class="text-xs text-gray-500 truncate"><i class="fas fa-envelope text-green-600 mr-1"></i>{{ $supplier->email }}</div>
                                     </div>
-                                @else
-                                    <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                                        <i class="fas fa-cogs text-gray-400"></i>
-                                    </div>
-                                @endif
-                            </td>
-                            <td>
-                                <div class="font-semibold">{{ $supplier->machinery->name ?? 'N/A' }}</div>
-                                <div class="text-xs text-gray-500">{{ $supplier->machinery->brand ?? '' }} {{ $supplier->machinery->model ?? '' }}</div>
-                            </td>
-                            <td>{{ $supplier->maker }}</td>
-                            <td>{{ $supplier->supplier }}</td>
-                            <td>{{ $supplier->origin }}</td>
-                            <td>{{ $supplier->purchase_date->format('d/m/Y') }}</td>
-                            <td>
-                                <div class="text-sm">
-                                    <div><i class="fas fa-phone text-green-600 mr-1"></i>{{ $supplier->phone }}</div>
-                                    <div class="text-xs text-gray-500 truncate"><i class="fas fa-envelope text-green-600 mr-1"></i>{{ $supplier->email }}</div>
-                                </div>
-                            </td>
-                            <td>
-                                <div class="flex space-x-2 items-center">
-                                    <button onclick="openViewModal({{ $supplier->id }})" 
-                                       class="inline-flex items-center text-blue-500 hover:text-blue-700" title="Ver Detalles">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <button onclick="confirmEdit({{ $supplier->id }})" 
-                                       class="inline-flex items-center text-green-500 hover:text-green-700" title="Editar">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <form action="{{ route('admin.machinery.supplier.destroy', $supplier) }}" 
-                                          method="POST" class="inline" 
-                                          onsubmit="return confirmDelete(event, this)">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="inline-flex items-center text-red-500 hover:text-red-700" title="Eliminar">
-                                            <i class="fas fa-trash"></i>
+                                </td>
+                                <td>
+                                    <div class="flex space-x-2 items-center">
+                                        <button onclick="openViewModal({{ $supplier->id }})" 
+                                           class="inline-flex items-center text-blue-500 hover:text-blue-700" title="Ver Detalles">
+                                            <i class="fas fa-eye"></i>
                                         </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="9" class="text-center py-8 text-gray-500">
-                                <i class="fas fa-inbox text-4xl mb-4 block"></i>
-                                No se encontraron registros de proveedores
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Pagination -->
-        @if($suppliers->hasPages())
-            <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
-                <div class="text-sm text-gray-700">
-                    Showing {{ $suppliers->firstItem() }} to {{ $suppliers->lastItem() }} of {{ $suppliers->total() }} results
-                </div>
-                <div class="flex space-x-2">
-                    {{ $suppliers->links() }}
-                </div>
+                                        <button onclick="confirmEdit({{ $supplier->id }})" 
+                                           class="inline-flex items-center text-green-500 hover:text-green-700" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <a href="{{ route('admin.machinery.supplier.download.pdf', $supplier) }}" 
+                                           class="inline-flex items-center text-red-500 hover:text-red-700" 
+                                           title="Descargar PDF">
+                                            <i class="fas fa-file-pdf"></i>
+                                        </a>
+                                        <form action="{{ route('admin.machinery.supplier.destroy', $supplier) }}" 
+                                              method="POST" class="inline" 
+                                              onsubmit="return confirmDelete(event, this)">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="inline-flex items-center text-red-500 hover:text-red-700" title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="9" class="text-center py-8 text-gray-500">
+                                    <i class="fas fa-inbox text-4xl mb-4 block"></i>
+                                    No se encontraron registros de proveedores
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
             </div>
-        @endif
+        </div>
     </div>
 </div>
 
@@ -458,5 +464,216 @@ function confirmDelete(event, form) {
         }
     });
 @endif
+
+// Inicializar DataTables
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof DataTable === 'undefined') {
+        console.error('DataTable no está cargado. Verifica que el script de DataTables esté incluido.');
+        return;
+    }
+    
+    const tableElement = document.querySelector('#suppliersTable');
+    if (!tableElement) {
+        console.error('No se encontró la tabla con id #suppliersTable');
+        return;
+    }
+    
+    let table = new DataTable('#suppliersTable', {
+        language: {
+            search: 'Buscar:',
+            lengthMenu: 'Mostrar _MENU_ registros',
+            info: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
+            infoEmpty: 'Mostrando 0 a 0 de 0 registros',
+            infoFiltered: '(filtrado de _MAX_ registros totales)',
+            zeroRecords: 'No se encontraron registros',
+            emptyTable: 'No hay datos disponibles',
+            paginate: {
+                first: '«',
+                previous: '<',
+                next: '>',
+                last: '»'
+            }
+        },
+        responsive: true,
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
+        order: [[0, 'desc']], // Ordenar por ID descendente
+        processing: false,
+        serverSide: false,
+        dom: 'rtip',
+        initComplete: function() {
+            const lengthContainer = document.createElement('div');
+            lengthContainer.className = 'dataTables_length';
+            lengthContainer.innerHTML = `
+                <label>
+                    Mostrar
+                    <select name="suppliersTable_length" aria-controls="suppliersTable" class="px-3 py-2 border border-gray-300 rounded-lg ml-2">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="-1">Todos</option>
+                    </select>
+                    registros
+                </label>
+            `;
+            
+            const filterContainer = document.createElement('div');
+            filterContainer.className = 'dataTables_filter';
+            filterContainer.innerHTML = `
+                <label>
+                    Buscar:
+                    <input type="search" class="px-3 py-2 border border-gray-300 rounded-lg ml-2" placeholder="Buscar..." aria-controls="suppliersTable" style="width: 250px; outline: none; transition: none;">
+                </label>
+            `;
+            
+            const lengthTarget = document.getElementById('dt-length-container');
+            const filterTarget = document.getElementById('dt-filter-container');
+            
+            if (lengthTarget) lengthTarget.appendChild(lengthContainer);
+            if (filterTarget) filterTarget.appendChild(filterContainer);
+            
+            const lengthSelect = lengthContainer.querySelector('select');
+            const searchInput = filterContainer.querySelector('input');
+            
+            if (lengthSelect) {
+                lengthSelect.addEventListener('change', function() {
+                    table.page.len(parseInt(this.value)).draw();
+                });
+            }
+            
+            if (searchInput) {
+                searchInput.addEventListener('keyup', function() {
+                    table.search(this.value).draw();
+                });
+            }
+        }
+    });
+});
 </script>
+
+<style>
+/* Estilos para DataTables */
+.dataTables_wrapper {
+    position: relative;
+    clear: both;
+    width: 100%;
+}
+
+.dataTables_wrapper .dataTables_length {
+    float: left !important;
+    margin-bottom: 1rem;
+    padding: 0.5rem 0;
+    clear: none !important;
+    width: auto !important;
+}
+
+.dataTables_wrapper .dataTables_filter {
+    float: right !important;
+    margin-bottom: 1rem;
+    padding: 0.5rem 0;
+    text-align: right !important;
+    clear: none !important;
+    width: auto !important;
+}
+
+.dataTables_wrapper .dataTables_length label,
+.dataTables_wrapper .dataTables_filter label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.dataTables_wrapper .dataTables_length select {
+    margin-left: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    min-width: 60px;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    margin-left: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db !important;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    width: 250px;
+    outline: none !important;
+    transition: none;
+    background-color: white;
+}
+
+.dataTables_wrapper .dataTables_filter input:focus {
+    border-color: #d1d5db !important;
+    box-shadow: none !important;
+    outline: none !important;
+    background-color: white !important;
+}
+
+.dataTables_wrapper .dataTables_filter input:hover {
+    border-color: #9ca3af !important;
+    box-shadow: none !important;
+    background-color: white !important;
+}
+
+.dataTables_wrapper .dataTables_info {
+    float: left;
+    padding: 0.75rem 0;
+    margin-top: 1.5rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+    float: right;
+    text-align: right;
+    padding: 0.75rem 0;
+    margin-top: 1.5rem;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 0.375rem 0.625rem;
+    margin: 0 0.125rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    background: white;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-block;
+    text-decoration: none;
+    font-size: 0.875rem;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: #f3f4f6 !important;
+    border-color: #d1d5db !important;
+    color: #374151 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: #22c55e;
+    color: white;
+    border-color: #22c55e;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.dataTables_wrapper::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+</style>
 @endsection

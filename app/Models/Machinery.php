@@ -47,27 +47,60 @@ class Machinery extends Model
     // Accessor para obtener el estado de la maquinaria basado en mantenimiento
     public function getStatusAttribute()
     {
-        $lastMaintenance = $this->maintenances()->where('type', 'M')->latest('date')->first();
+        // Verificar si hay registros de mantenimiento para esta maquinaria
+        $hasMaintenances = $this->maintenances()->exists();
         
+        // Si no hay registros de mantenimiento, retornar "Sin actividad"
+        if (!$hasMaintenances) {
+            return 'Sin actividad';
+        }
+        
+        // Verificar si hay un mantenimiento activo (tipo 'M' sin fecha de fin)
+        $activeMaintenance = $this->maintenances()
+            ->where('type', 'M')
+            ->whereNull('end_date')
+            ->latest('date')
+            ->first();
+        
+        if ($activeMaintenance) {
+            return 'En mantenimiento';
+        }
+        
+        // Buscar el último mantenimiento completado (tipo 'M' con fecha de fin)
+        $lastMaintenance = $this->maintenances()
+            ->where('type', 'M')
+            ->whereNotNull('end_date')
+            ->latest('end_date')
+            ->first();
+        
+        // Si no hay mantenimientos completados, buscar cualquier mantenimiento tipo 'M'
         if (!$lastMaintenance) {
-            // Si no hay mantenimientos registrados, verificar tiempo desde inicio
-            $daysSinceStart = now()->diffInDays($this->start_func);
-            $maintenanceFreqDays = $this->getMaintenanceFrequencyInDays();
-            
-            if ($daysSinceStart >= $maintenanceFreqDays) {
-                return 'Mantenimiento requerido';
+            $lastMaintenance = $this->maintenances()
+                ->where('type', 'M')
+                ->latest('date')
+                ->first();
+        }
+        
+        // Si no hay mantenimientos tipo 'M' pero hay registros (solo tipo 'O'), retornar "Operación"
+        if (!$lastMaintenance) {
+            // Verificar si hay registros de tipo 'O' (Operación)
+            $hasOperations = $this->maintenances()->where('type', 'O')->exists();
+            if ($hasOperations) {
+                return 'Operación';
             }
-            return 'Sin mantenimiento registrado';
+            return 'Sin actividad';
         }
 
-        $daysSinceLastMaintenance = now()->diffInDays($lastMaintenance->date);
+        // Si el último mantenimiento tiene fecha de fin, usar esa fecha para calcular
+        $referenceDate = $lastMaintenance->end_date ?? $lastMaintenance->date;
+        $daysSinceLastMaintenance = now()->diffInDays($referenceDate);
         $maintenanceFreqDays = $this->getMaintenanceFrequencyInDays();
 
         if ($daysSinceLastMaintenance >= $maintenanceFreqDays) {
             return 'Mantenimiento requerido';
         }
 
-        return 'Operativa';
+        return 'Operación';
     }
 
     // Helper para convertir frecuencia de mantenimiento a días

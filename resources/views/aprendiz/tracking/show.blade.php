@@ -61,11 +61,14 @@
                 </h1>
                 <p class="text-gray-600 mt-2">Información completa del seguimiento de la pila {{ $tracking->composting->formatted_pile_num }}</p>
             </div>
-            <div class="flex items-center space-x-3">
-                <a href="{{ route('aprendiz.tracking.edit', $tracking) }}" class="bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-lg transition-colors duration-200" title="Editar">
+            <div class="flex items-center space-x-2">
+                <a href="{{ route('aprendiz.tracking.download.pdf', $tracking) }}" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition-colors duration-200" title="Descargar PDF">
+                    <i class="fas fa-file-pdf"></i>
+                </a>
+                <a href="{{ route('aprendiz.tracking.edit', $tracking) }}" class="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-lg transition-colors duration-200" title="Editar">
                     <i class="fas fa-edit"></i>
                 </a>
-                <a href="{{ route('aprendiz.tracking.index') }}" class="bg-gray-600 hover:bg-gray-700 text-white p-3 rounded-lg transition-colors duration-200" title="Volver">
+                <a href="{{ route('aprendiz.tracking.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white p-2 rounded-lg transition-colors duration-200" title="Volver">
                     <i class="fas fa-arrow-left"></i>
                 </a>
             </div>

@@ -14,6 +14,7 @@ class Maintenance extends Model
     protected $fillable = [
         'machinery_id',
         'date',
+        'end_date',
         'type',
         'description',
         'responsible',
@@ -21,6 +22,7 @@ class Maintenance extends Model
 
     protected $casts = [
         'date' => 'date',
+        'end_date' => 'date',
     ];
 
     // Relación con maquinaria

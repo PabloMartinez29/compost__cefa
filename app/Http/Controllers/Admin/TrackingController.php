@@ -8,6 +8,8 @@ use App\Models\Tracking;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class TrackingController extends Controller
 {
@@ -360,5 +362,55 @@ class TrackingController extends Controller
             'trackings' => $trackings,
             'missing_days' => $missingDays
         ]);
+    }
+
+    /**
+     * Generate PDF for all trackings
+     */
+    public function downloadAllTrackingsPDF()
+    {
+        $trackings = Tracking::with('composting')
+            ->orderBy('date', 'desc')
+            ->get();
+        
+        $pdf = PDF::loadView('admin.tracking.pdf.all-trackings', compact('trackings'))
+            ->setPaper('a4', 'landscape')
+            ->setOptions([
+                'defaultFont' => 'Arial',
+                'isRemoteEnabled' => false,
+                'isHtml5ParserEnabled' => true,
+                'isPhpEnabled' => false,
+            ]);
+        
+        return $pdf->download('todos_los_seguimientos_' . date('Y-m-d') . '.pdf');
+    }
+
+    /**
+     * Generate PDF for individual tracking
+     */
+    public function downloadTrackingPDF(Tracking $tracking)
+    {
+        $tracking->load('composting');
+        
+        // Convertir imagen de la pila a base64 si existe
+        $imageBase64 = null;
+        if ($tracking->composting && $tracking->composting->image && Storage::disk('public')->exists($tracking->composting->image)) {
+            $imagePath = Storage::disk('public')->path($tracking->composting->image);
+            $imageData = file_get_contents($imagePath);
+            $imageInfo = getimagesize($imagePath);
+            $mimeType = $imageInfo['mime'];
+            $imageBase64 = 'data:' . $mimeType . ';base64,' . base64_encode($imageData);
+        }
+        
+        $pdf = PDF::loadView('admin.tracking.pdf.tracking-details', compact('tracking', 'imageBase64'))
+            ->setPaper('a4', 'portrait')
+            ->setOptions([
+                'defaultFont' => 'Arial',
+                'isRemoteEnabled' => false,
+                'isHtml5ParserEnabled' => true,
+                'isPhpEnabled' => false,
+            ]);
+        
+        return $pdf->download('seguimiento_dia_' . $tracking->day . '_pila_' . str_replace(' ', '_', $tracking->composting->formatted_pile_num) . '_' . date('Y-m-d') . '.pdf');
     }
 }

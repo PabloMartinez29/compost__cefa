@@ -1,23 +1,28 @@
 @extends('layouts.master')
 
 @section('content')
+@vite(['resources/css/waste.css'])
+
+@php
+    use Illuminate\Support\Facades\Storage;
+@endphp
 
 <div class="container mx-auto px-6 py-8">
     <!-- Header -->
-    <div class="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-6 border border-green-200 shadow-sm mb-8">
+    <div class="waste-header animate-fade-in-up">
         <div class="flex items-center justify-between">
             <div>
-                <h1 class="text-3xl font-bold text-gray-800 mb-2 flex items-center">
-                    <i class="fas fa-mountain text-green-500 mr-3"></i>
+                <h1 class="waste-title">
+                    <i class="fas fa-mountain waste-icon"></i>
                     Registro de Pilas de Compostaje
                 </h1>
-                <p class="text-gray-600 text-lg flex items-center">
-                    <i class="fas fa-user-shield text-green-500 mr-2"></i>
-                    {{ Auth::user()->name }} - Gestión de Pilas
+                <p class="waste-subtitle">
+                    <i class="fas fa-user-shield text-green-400 mr-2"></i>
+                    {{ Auth::user()->name }} - Panel de Administración
                 </p>
             </div>
             <div class="text-right">
-                <div class="text-green-600 font-bold text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
+                <div class="text-green-400 font-bold text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
             </div>
         </div>
     </div>
@@ -25,52 +30,52 @@
     <!-- Statistics Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <!-- Total Pilas -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-blue-400 hover:shadow-md transition-all duration-300">
+        <div class="waste-card waste-card-primary animate-fade-in-up animate-delay-1">
             <div class="flex items-center justify-between">
                 <div>
                     <div class="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Pilas</div>
                     <div class="text-3xl font-bold text-gray-800">{{ $totalPiles }}</div>
                 </div>
-                <div class="text-3xl text-blue-500">
+                <div class="waste-card-icon text-blue-600">
                     <i class="fas fa-mountain"></i>
                 </div>
             </div>
         </div>
 
         <!-- Pilas Activas -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-green-400 hover:shadow-md transition-all duration-300">
+        <div class="waste-card waste-card-success animate-fade-in-up animate-delay-2">
             <div class="flex items-center justify-between">
                 <div>
                     <div class="text-sm font-medium text-gray-600 uppercase tracking-wide">Pilas Activas</div>
                     <div class="text-3xl font-bold text-gray-800">{{ $activePiles }}</div>
                 </div>
-                <div class="text-3xl text-green-500">
+                <div class="waste-card-icon text-green-600">
                     <i class="fas fa-play-circle"></i>
                 </div>
             </div>
         </div>
 
         <!-- Pilas Completadas -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-yellow-400 hover:shadow-md transition-all duration-300">
+        <div class="waste-card waste-card-warning animate-fade-in-up animate-delay-3">
             <div class="flex items-center justify-between">
                 <div>
                     <div class="text-sm font-medium text-gray-600 uppercase tracking-wide">Completadas</div>
                     <div class="text-3xl font-bold text-gray-800">{{ $completedPiles }}</div>
                 </div>
-                <div class="text-3xl text-yellow-500">
+                <div class="waste-card-icon text-yellow-600">
                     <i class="fas fa-check-circle"></i>
                 </div>
             </div>
         </div>
 
         <!-- Total Ingredientes -->
-        <div class="bg-white rounded-xl shadow-sm p-6 border-l-4 border-cyan-400 hover:shadow-md transition-all duration-300">
+        <div class="waste-card waste-card-info animate-fade-in-up animate-delay-4">
             <div class="flex items-center justify-between">
                 <div>
                     <div class="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Ingredientes</div>
                     <div class="text-3xl font-bold text-gray-800">{{ $totalIngredients }}</div>
                 </div>
-                <div class="text-3xl text-cyan-500">
+                <div class="waste-card-icon text-cyan-600">
                     <i class="fas fa-leaf"></i>
                 </div>
             </div>
@@ -78,16 +83,25 @@
     </div>
 
     <!-- Main Content -->
-    <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-2xl font-bold text-gray-800 flex items-center">
-                <i class="fas fa-table text-green-500 mr-3"></i>
-                Pilas de Compostaje Registradas
-            </h2>
-            <a href="{{ route('admin.composting.create') }}" class="bg-gradient-to-r from-green-500 to-green-600 text-white px-6 py-3 rounded-lg transition-all duration-200 flex items-center shadow-lg hover:shadow-xl hover:from-green-600 hover:to-green-700">
-                <i class="fas fa-plus mr-2"></i>
-                Nueva Pila
-            </a>
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <!-- Table Header -->
+        <div class="p-6 border-b border-gray-200 bg-gray-50">
+            <!-- Primera fila: Título y botones -->
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-mountain text-green-600 mr-2"></i>
+                    Pilas de Compostaje Registradas
+                </h2>
+                <div class="flex items-center space-x-4">
+                    <a href="{{ route('admin.composting.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                        <i class="fas fa-file-pdf"></i>
+                    </a>
+                    <a href="{{ route('admin.composting.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                        <i class="fas fa-plus mr-2"></i>
+                        Nueva Pila
+                    </a>
+                </div>
+            </div>
         </div>
 
         @if(session('success'))
@@ -102,35 +116,51 @@
             </div>
         @endif
 
-        <div class="overflow-x-auto">
-            <!-- DataTables agregará los controles y la tabla aquí -->
-            <div id="compostingsTable_wrapper" class="p-6">
-                <!-- Contenedor para controles superiores -->
-                <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
-                    <div id="dt-length-container" style="float: left;"></div>
-                    <div id="dt-filter-container" style="float: right;"></div>
-                </div>
-                <table id="compostingsTable" class="w-full bg-white rounded-lg shadow-sm overflow-hidden">
+        <!-- DataTables agregará los controles y la tabla aquí -->
+        <div id="compostingsTable_wrapper" class="p-6">
+            <!-- Contenedor para controles superiores -->
+            <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
+                <div id="dt-length-container" style="float: left;"></div>
+                <div id="dt-filter-container" style="float: right;"></div>
+            </div>
+            <table id="compostingsTable" class="waste-table">
                     <thead>
-                    <tr class="bg-green-50">
-                        <th class="text-green-800 font-semibold py-4 px-6 text-left border-b border-green-200">Pila</th>
-                        <th class="text-green-800 font-semibold py-4 px-6 text-left border-b border-green-200">Fecha Inicio</th>
-                        <th class="text-green-800 font-semibold py-4 px-6 text-left border-b border-green-200">Fecha Fin</th>
-                        <th class="text-green-800 font-semibold py-4 px-6 text-left border-b border-green-200">Kilogramos Beneficiados</th>
-                        <th class="text-green-800 font-semibold py-4 px-6 text-left border-b border-green-200">Eficiencia</th>
-                        <th class="text-green-800 font-semibold py-4 px-6 text-left border-b border-green-200">Ingredientes</th>
-                        <th class="text-green-800 font-semibold py-4 px-6 text-left border-b border-green-200">Estado</th>
-                        <th class="text-green-800 font-semibold py-4 px-6 text-left border-b border-green-200">Creado por</th>
-                        <th class="text-green-800 font-semibold py-4 px-6 text-left border-b border-green-200">Acciones</th>
+                    <tr>
+                        <th>Imagen</th>
+                        <th>Pila</th>
+                        <th>Fecha Inicio</th>
+                        <th>Fecha Fin</th>
+                        <th>Kg Beneficiados</th>
+                        <th>Eficiencia</th>
+                        <th>Ingredientes</th>
+                        <th>Estado</th>
+                        <th>Creado por</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($compostings as $composting)
-                        <tr class="hover:bg-green-50 transition-colors duration-200">
-                            <td class="py-4 px-6 border-b border-gray-100 font-mono text-lg font-semibold text-gray-800 whitespace-nowrap">{{ $composting->formatted_pile_num }}</td>
-                            <td class="py-4 px-6 border-b border-gray-100 text-gray-700 whitespace-nowrap">{{ $composting->formatted_start_date }}</td>
-                            <td class="py-4 px-6 border-b border-gray-100 text-gray-700 whitespace-nowrap">{{ $composting->formatted_end_date ?? 'N/A' }}</td>
-                            <td class="py-4 px-6 border-b border-gray-100 font-semibold whitespace-nowrap">
+                        <tr>
+                            <td class="text-center">
+                                @if($composting->image)
+                                    <img src="{{ Storage::url($composting->image) }}" 
+                                         alt="{{ $composting->formatted_pile_num }}" 
+                                         class="w-12 h-12 object-cover rounded-full cursor-pointer hover:opacity-80 transition-opacity"
+                                         onclick="openImageModal('{{ Storage::url($composting->image) }}')"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center" style="display: none;">
+                                        <i class="fas fa-image text-gray-400"></i>
+                                    </div>
+                                @else
+                                    <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center mx-auto">
+                                        <i class="fas fa-mountain text-gray-400"></i>
+                                    </div>
+                                @endif
+                            </td>
+                            <td class="font-mono">{{ $composting->formatted_pile_num }}</td>
+                            <td>{{ $composting->formatted_start_date }}</td>
+                            <td>{{ $composting->formatted_end_date ?? 'N/A' }}</td>
+                            <td>
                                 @if($composting->total_kg)
                                     <span class="text-green-600">{{ $composting->formatted_total_kg }}</span>
                                 @elseif($composting->end_date)
@@ -139,53 +169,58 @@
                                     <span class="text-yellow-600 font-medium">En proceso</span>
                                 @endif
                             </td>
-                            <td class="py-4 px-6 border-b border-gray-100 text-gray-700 whitespace-nowrap">{{ $composting->formatted_efficiency ?? 'N/A' }}</td>
-                            <td class="py-4 px-6 border-b border-gray-100 whitespace-nowrap">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                                    <i class="fas fa-list mr-2"></i>
+                            <td>{{ $composting->formatted_efficiency ?? 'N/A' }}</td>
+                            <td>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    <i class="fas fa-list mr-1"></i>
                                     {{ $composting->ingredients->count() }} ingredientes
                                 </span>
                             </td>
-                            <td class="py-4 px-6 border-b border-gray-100 whitespace-nowrap">
+                            <td>
                                 @if($composting->end_date)
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-                                        <i class="fas fa-check mr-2"></i>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                        <i class="fas fa-check mr-1"></i>
                                         Completada
                                     </span>
                                 @else
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
-                                        <i class="fas fa-clock mr-2"></i>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        <i class="fas fa-clock mr-1"></i>
                                         En Proceso
                                     </span>
                                 @endif
                             </td>
-                            <td class="py-4 px-6 border-b border-gray-100 whitespace-nowrap">
+                            <td>
                                 @if($composting->creator && $composting->creator->role === 'admin')
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                        <i class="fas fa-user-shield mr-1"></i>
-                                        Administrador
-                                    </span>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <i class="fas fa-user-shield mr-1"></i>
+                                    Administrador
+                                </span>
                                 @else
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                        <i class="fas fa-user-graduate mr-1"></i>
-                                        Aprendiz
-                                    </span>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                    <i class="fas fa-user-graduate mr-1"></i>
+                                    Aprendiz
+                                </span>
                                 @endif
                             </td>
-                            <td class="py-4 px-6 border-b border-gray-100 whitespace-nowrap">
-                                <div class="flex space-x-3 items-center">
+                            <td>
+                                <div class="flex space-x-2 items-center">
                                     <button onclick="openViewModal({{ $composting->id }})" 
                                        class="inline-flex items-center text-blue-400 hover:text-blue-500" title="Ver Detalles">
                                         <i class="fas fa-eye"></i>
                                     </button>
-                                    
                                     <a href="{{ route('admin.composting.edit', $composting) }}" 
-                                       class="inline-flex items-center text-green-500 hover:text-green-700" title="Editar">
+                                        class="inline-flex items-center text-green-500 hover:text-green-700" 
+                                        title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    
+                                    <a href="{{ route('admin.composting.download.pdf', $composting) }}" 
+                                       class="inline-flex items-center text-red-800 hover:text-red-900" 
+                                       title="Descargar PDF">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </a>
                                     <button onclick="confirmDelete({{ $composting->id }})" 
-                                       class="inline-flex items-center text-red-500 hover:text-red-700" title="Eliminar">
+                                        class="inline-flex items-center text-red-500 hover:text-red-700" 
+                                        title="Eliminar">
                                         <i class="fas fa-trash"></i>
                                     </button>
                                 </div>
@@ -194,6 +229,7 @@
                     @endforeach
                 </tbody>
             </table>
+                </div>
             </div>
         </div>
     </div>
@@ -205,6 +241,73 @@
     position: relative;
     clear: both;
     width: 100%;
+    overflow: visible !important;
+}
+
+#compostingsTable_wrapper {
+    width: 100% !important;
+    overflow: visible !important;
+}
+
+#compostingsTable {
+    width: 100% !important;
+    table-layout: fixed !important;
+}
+
+#compostingsTable th,
+#compostingsTable td {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    white-space: normal !important;
+    padding: 0.5rem 0.5rem !important;
+}
+
+#compostingsTable th:nth-child(1),
+#compostingsTable td:nth-child(1) {
+    width: 7% !important;
+}
+
+#compostingsTable th:nth-child(2),
+#compostingsTable td:nth-child(2) {
+    width: 8% !important;
+}
+
+#compostingsTable th:nth-child(3),
+#compostingsTable td:nth-child(3),
+#compostingsTable th:nth-child(4),
+#compostingsTable td:nth-child(4) {
+    width: 9% !important;
+}
+
+#compostingsTable th:nth-child(5),
+#compostingsTable td:nth-child(5) {
+    width: 10% !important;
+}
+
+#compostingsTable th:nth-child(6),
+#compostingsTable td:nth-child(6) {
+    width: 8% !important;
+}
+
+#compostingsTable th:nth-child(7),
+#compostingsTable td:nth-child(7) {
+    width: 10% !important;
+}
+
+#compostingsTable th:nth-child(8),
+#compostingsTable td:nth-child(8) {
+    width: 10% !important;
+}
+
+#compostingsTable th:nth-child(9),
+#compostingsTable td:nth-child(9) {
+    width: 10% !important;
+}
+
+#compostingsTable th:nth-child(10),
+#compostingsTable td:nth-child(10) {
+    width: 10% !important;
+    text-align: center !important;
 }
 
 /* Contenedor superior: Mostrar (izquierda) y Buscar (derecha) - MISMA LÍNEA */
@@ -334,9 +437,23 @@
 }
 </style>
 
+<!-- Modal para visualizar imagen -->
+<div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 modal-backdrop-blur hidden z-50 flex items-center justify-center p-4">
+    <div class="relative max-w-6xl max-h-[90vh] w-full flex items-center justify-center">
+        <!-- Botón de cerrar -->
+        <button onclick="closeImageModal()" class="absolute top-4 right-4 z-10 bg-black bg-opacity-50 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-75 transition-all">
+            <i class="fas fa-times text-xl"></i>
+        </button>
+        
+        <!-- Imagen -->
+        <img id="modalImage" src="" alt="Imagen de la pila" 
+             class="max-w-4xl max-h-[80vh] w-auto h-auto object-contain rounded-lg shadow-2xl mx-auto">
+    </div>
+</div>
+
 <!-- Modal para ver detalles -->
 <div id="viewModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+    <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full">
         <!-- Modal Header -->
         <div class="bg-gradient-to-r from-green-50 to-green-100 rounded-t-xl p-6 border-b border-green-200">
             <div class="text-center">
@@ -575,6 +692,24 @@ function closeViewModal() {
     document.body.style.overflow = 'auto';
 }
 
+function openImageModal(imageUrl) {
+    document.getElementById('modalImage').src = imageUrl;
+    document.getElementById('imageModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeImageModal() {
+    document.getElementById('imageModal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+// Cerrar modal de imagen al hacer clic fuera
+document.getElementById('imageModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeImageModal();
+    }
+});
+
 function confirmDelete(compostingId) {
     Swal.fire({
         title: '¿Eliminar pila?',
@@ -660,13 +795,13 @@ document.addEventListener('DOMContentLoaded', function() {
         responsive: true,
         pageLength: 10,
         lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
-        order: [[1, 'desc']], // Ordenar por fecha de inicio descendente
+        order: [[2, 'desc']], // Ordenar por fecha de inicio descendente
         processing: false,
         serverSide: false,
         dom: 'rtip', // Sin length y filter, los moveremos manualmente
         columnDefs: [
-            { orderable: true, targets: [0, 1, 2, 3, 4, 5, 6] },
-            { orderable: false, targets: [7] } // Columna de acciones no ordenable
+            { orderable: true, targets: [1, 2, 3, 4, 5, 6, 7] },
+            { orderable: false, targets: [0, 8, 9] } // Columna de imagen, creado por y acciones no ordenables
         ],
         initComplete: function() {
             const wrapper = this.api().table().container();

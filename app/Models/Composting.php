@@ -15,6 +15,7 @@ class Composting extends Model
         'end_date',
         'total_kg',
         'efficiency',
+        'image',
         'created_by'
     ];
 

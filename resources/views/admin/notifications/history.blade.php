@@ -11,7 +11,7 @@
                     Historial de Notificaciones
                 </h1>
                 <p class="text-soft-gray-600 mt-1">
-                    Todas las solicitudes de permisos recibidas
+                    Todas las notificaciones del sistema
                 </p>
             </div>
             <div class="text-right">
@@ -86,8 +86,8 @@
                 <thead class="bg-soft-gray-50">
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-soft-gray-500 uppercase tracking-wider">Fecha</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-soft-gray-500 uppercase tracking-wider">Aprendiz</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-soft-gray-500 uppercase tracking-wider">Registro</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-soft-gray-500 uppercase tracking-wider">Tipo</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-soft-gray-500 uppercase tracking-wider">Información</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-soft-gray-500 uppercase tracking-wider">Estado</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-soft-gray-500 uppercase tracking-wider">Procesado</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-soft-gray-500 uppercase tracking-wider">Acciones</th>
@@ -100,23 +100,55 @@
                                 {{ $notification->created_at->format('d/m/Y H:i') }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="flex items-center">
-                                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
-                                        <i class="fas fa-user-graduate text-blue-600 text-sm"></i>
+                                @if($notification->type === 'maintenance_reminder')
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center mr-3">
+                                            <i class="fas fa-tools text-orange-600 text-sm"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-medium text-soft-gray-900">Mantenimiento</div>
+                                            <div class="text-xs text-soft-gray-500">Recordatorio</div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <div class="text-sm font-medium text-soft-gray-900">{{ $notification->fromUser->name }}</div>
-                                        <div class="text-sm text-soft-gray-500">{{ $notification->fromUser->email }}</div>
+                                @else
+                                    <div class="flex items-center">
+                                        <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
+                                            <i class="fas fa-trash text-yellow-600 text-sm"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-medium text-soft-gray-900">Solicitud</div>
+                                            <div class="text-xs text-soft-gray-500">Eliminación</div>
+                                        </div>
                                     </div>
-                                </div>
+                                @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="text-sm text-soft-gray-900">
-                                    #{{ str_pad($notification->organic_id, 3, '0', STR_PAD_LEFT) }}
-                                </div>
-                                @if($notification->organic)
-                                    <div class="text-sm text-soft-gray-500">
-                                        {{ $notification->organic->type_in_spanish }} - {{ $notification->organic->formatted_weight }}
+                            <td class="px-6 py-4">
+                                @if($notification->type === 'maintenance_reminder')
+                                    <div class="text-sm font-medium text-soft-gray-900">
+                                        {{ $notification->machinery->name ?? 'Maquinaria no encontrada' }}
+                                    </div>
+                                    <div class="text-sm text-soft-gray-500 mt-1">
+                                        {{ $notification->message }}
+                                    </div>
+                                @else
+                                    <div class="flex items-center mb-2">
+                                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                                            <i class="fas fa-user-graduate text-blue-600 text-sm"></i>
+                                        </div>
+                                        <div>
+                                            <div class="text-sm font-medium text-soft-gray-900">{{ $notification->fromUser->name ?? 'Sistema' }}</div>
+                                            <div class="text-xs text-soft-gray-500">{{ $notification->fromUser->email ?? '' }}</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-sm text-soft-gray-900">
+                                        @if($notification->composting_id)
+                                            Pila de compostaje #{{ $notification->composting->formatted_pile_num ?? 'N/A' }}
+                                        @elseif($notification->organic_id)
+                                            Registro #{{ str_pad($notification->organic_id, 3, '0', STR_PAD_LEFT) }}
+                                            @if($notification->organic)
+                                                - {{ $notification->organic->type_in_spanish }} - {{ $notification->organic->formatted_weight }}
+                                            @endif
+                                        @endif
                                     </div>
                                 @endif
                             </td>
@@ -131,29 +163,47 @@
                                         <i class="fas fa-check mr-1"></i>
                                         Aprobada
                                     </span>
-                                @else
+                                @elseif($notification->status === 'rejected')
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
                                         <i class="fas fa-times mr-1"></i>
                                         Rechazada
                                     </span>
+                                @else
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                        <i class="fas fa-check-circle mr-1"></i>
+                                        Procesada
+                                    </span>
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-soft-gray-500">
-                                @if($notification->status !== 'pending')
+                                @if($notification->read_at)
+                                    {{ $notification->read_at->diffForHumans() }}
+                                @elseif($notification->status !== 'pending')
                                     {{ $notification->updated_at->diffForHumans() }}
                                 @else
                                     -
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                @if($notification->status === 'pending')
+                                @if($notification->type === 'maintenance_reminder' && $notification->status === 'pending')
+                                    <div class="flex space-x-2">
+                                        <a href="{{ route('admin.machinery.maintenance.create') }}" 
+                                           class="text-green-600 hover:text-green-900" title="Registrar Mantenimiento">
+                                            <i class="fas fa-tools"></i>
+                                        </a>
+                                        <button onclick="markNotificationAsRead({{ $notification->id }})" 
+                                            class="text-gray-600 hover:text-gray-900" title="Marcar como leída">
+                                            <i class="fas fa-check-circle"></i>
+                                        </button>
+                                    </div>
+                                @elseif($notification->type === 'delete_request' && $notification->status === 'pending')
                                     <div class="flex space-x-2">
                                         <button onclick="approveDeleteRequest({{ $notification->id }})" 
-                                            class="text-green-600 hover:text-green-900">
+                                            class="text-green-600 hover:text-green-900" title="Aprobar">
                                             <i class="fas fa-check"></i>
                                         </button>
                                         <button onclick="rejectDeleteRequest({{ $notification->id }})" 
-                                            class="text-red-600 hover:text-red-900">
+                                            class="text-red-600 hover:text-red-900" title="Rechazar">
                                             <i class="fas fa-times"></i>
                                         </button>
                                     </div>
@@ -168,7 +218,7 @@
                                 <div class="flex flex-col items-center">
                                     <i class="fas fa-bell-slash text-soft-gray-400 text-4xl mb-4"></i>
                                     <h3 class="text-lg font-medium text-soft-gray-900 mb-2">No hay notificaciones</h3>
-                                    <p class="text-soft-gray-500">Aún no has recibido solicitudes de permisos.</p>
+                                    <p class="text-soft-gray-500">Aún no has recibido notificaciones.</p>
                                 </div>
                             </td>
                         </tr>
@@ -187,6 +237,30 @@
 </div>
 
 <script>
+    function markNotificationAsRead(notificationId) {
+        fetch(`/admin/notifications/${notificationId}/mark-read`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                title: 'Error',
+                text: 'Ocurrió un error al marcar la notificación como leída',
+                icon: 'error'
+            });
+        });
+    }
+
     function approveDeleteRequest(notificationId) {
         fetch(`/admin/notifications/${notificationId}/approve`, {
             method: 'POST',

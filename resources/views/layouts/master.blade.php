@@ -80,15 +80,25 @@
         }
         
         .submenu-visible {
-            max-height: 200px;
+            max-height: 300px;
             opacity: 1;
             transform: translateY(0);
         }
         
         .submenu-item {
             transition: all 0.2s ease-in-out;
+        }
+        
+        .submenu-container.submenu-hidden .submenu-item {
             transform: translateX(-10px);
             opacity: 0;
+            display: none;
+        }
+        
+        .submenu-container.submenu-visible .submenu-item {
+            transform: translateX(0);
+            opacity: 1;
+            display: block;
         }
         
         .submenu-item.animate-in {
@@ -142,6 +152,7 @@
                         $isComposting = str_starts_with($currentRoute, 'admin.composting');
                         $isTracking = str_starts_with($currentRoute, 'admin.tracking');
                         $isFertilizer = str_starts_with($currentRoute, 'admin.fertilizer');
+                        $isMachinery = str_starts_with($currentRoute, 'admin.machinery');
                     @endphp
                     
                     <!-- Dashboard -->
@@ -268,41 +279,41 @@
                     
                     <!-- Maquinaria -->
                     <div class="relative">
-                        <button onclick="toggleSubmenu('machinery-submenu', 'machinery-arrow')" class="w-full flex items-center justify-between px-4 py-3 text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-xl transition-all duration-200 group">
+                        <button onclick="toggleSubmenu('machinery-submenu', 'machinery-arrow')" class="w-full flex items-center justify-between px-4 py-3 {{ $isMachinery ? 'bg-green-50 text-green-700' : 'text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-xl transition-all duration-200 group">
                             <div class="flex items-center space-x-3">
-                        <i class="fas fa-cogs w-5 text-center group-hover:text-soft-green-600"></i>
+                        <i class="fas fa-cogs w-5 text-center {{ $isMachinery ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
                         <span class="font-medium">Maquinaria</span>
                             </div>
-                            <i class="fas fa-chevron-down arrow-transition" id="machinery-arrow"></i>
+                            <i class="fas fa-chevron-down text-soft-gray-400 text-xs arrow-transition {{ $isMachinery ? 'rotate-180' : '' }}" id="machinery-arrow"></i>
                         </button>
                         
-                        <div id="machinery-submenu" class="submenu-container submenu-hidden ml-10 mt-2 space-y-2">
+                        <div id="machinery-submenu" class="submenu-container {{ $isMachinery ? 'submenu-visible' : 'submenu-hidden' }} ml-10 mt-2 space-y-2">
                             <!-- Identificación y Especificaciones del Equipo -->
                             <a href="{{ route('admin.machinery.index') }}" 
-                               class="submenu-item flex items-center space-x-3 px-4 py-2 text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg font-medium">
-                                <i class="fas fa-tools w-4 text-center group-hover:text-soft-green-600"></i>
-                                <span>Identificación y Especificaciones</span>
+                               class="submenu-item {{ $isMachinery ? 'animate-in' : '' }} flex items-start space-x-3 px-4 py-2 {{ $currentRoute === 'admin.machinery.index' || $currentRoute === 'admin.machinery.create' || $currentRoute === 'admin.machinery.show' || $currentRoute === 'admin.machinery.edit' ? 'bg-green-50 text-green-700' : 'text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-lg transition-all duration-200 group font-medium">
+                                <i class="fas fa-tools w-4 text-center flex-shrink-0 mt-0.5 {{ $currentRoute === 'admin.machinery.index' || $currentRoute === 'admin.machinery.create' || $currentRoute === 'admin.machinery.show' || $currentRoute === 'admin.machinery.edit' ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
+                                <span class="leading-tight flex-1 min-w-0" style="text-align: justify; text-align-last: left;">Identificación y Especificaciones</span>
                             </a>
                             
                             <!-- Datos del Proveedor -->
                             <a href="{{ route('admin.machinery.supplier.index') }}" 
-                               class="submenu-item flex items-center space-x-3 px-4 py-2 text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg font-medium">
-                                <i class="fas fa-truck w-4 text-center group-hover:text-soft-green-600"></i>
-                                <span>Datos del Proveedor</span>
+                               class="submenu-item {{ $isMachinery ? 'animate-in' : '' }} flex items-start space-x-3 px-4 py-2 {{ str_starts_with($currentRoute, 'admin.machinery.supplier') ? 'bg-green-50 text-green-700' : 'text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-lg transition-all duration-200 group font-medium">
+                                <i class="fas fa-truck w-4 text-center flex-shrink-0 mt-0.5 {{ str_starts_with($currentRoute, 'admin.machinery.supplier') ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
+                                <span class="leading-tight flex-1 min-w-0">Datos del Proveedor</span>
                             </a>
                             
                             <!-- Control de Actividades -->
                             <a href="{{ route('admin.machinery.maintenance.index') }}" 
-                               class="submenu-item flex items-center space-x-3 px-4 py-2 text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg font-medium">
-                                <i class="fas fa-wrench w-4 text-center group-hover:text-soft-green-600"></i>
-                                <span>Control de Actividades</span>
+                               class="submenu-item {{ $isMachinery ? 'animate-in' : '' }} flex items-start space-x-3 px-4 py-2 {{ str_starts_with($currentRoute, 'admin.machinery.maintenance') ? 'bg-green-50 text-green-700' : 'text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-lg transition-all duration-200 group font-medium">
+                                <i class="fas fa-wrench w-4 text-center flex-shrink-0 mt-0.5 {{ str_starts_with($currentRoute, 'admin.machinery.maintenance') ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
+                                <span class="leading-tight flex-1 min-w-0" style="text-align: justify; text-align-last: left;">Control de Actividades</span>
                             </a>
                             
                             <!-- Control de Uso del Equipo -->
-                            <a href="#" 
-                               class="submenu-item flex items-center space-x-3 px-4 py-2 text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 rounded-lg font-medium">
-                                <i class="fas fa-clipboard-check w-4 text-center group-hover:text-soft-green-600"></i>
-                                <span>Control de Uso del Equipo</span>
+                            <a href="{{ route('admin.machinery.usage-control.index') }}" 
+                               class="submenu-item {{ $isMachinery ? 'animate-in' : '' }} flex items-start space-x-3 px-4 py-2 {{ str_starts_with($currentRoute, 'admin.machinery.usage-control') ? 'bg-green-50 text-green-700' : 'text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700' }} rounded-lg transition-all duration-200 group font-medium">
+                                <i class="fas fa-clipboard-check w-4 text-center flex-shrink-0 mt-0.5 {{ str_starts_with($currentRoute, 'admin.machinery.usage-control') ? 'text-green-600' : 'group-hover:text-soft-green-600' }}"></i>
+                                <span class="leading-tight flex-1 min-w-0" style="text-align: justify; text-align-last: left;">Control de Uso del Equipo</span>
                             </a>
                         </div>
                     </div>
@@ -354,8 +365,9 @@
                             <!-- Notification Badge -->
                             @php
                                 $pendingNotifications = \App\Models\Notification::where('user_id', auth()->id())
-                                    ->where('type', 'delete_request')
+                                    ->whereIn('type', ['delete_request', 'maintenance_reminder'])
                                     ->where('status', 'pending')
+                                    ->whereNull('read_at')
                                     ->count();
                             @endphp
                             @if($pendingNotifications > 0)
@@ -368,7 +380,7 @@
                         <!-- Notifications Dropdown -->
                         <div id="notificationsMenu" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-soft-gray-200 py-2 z-50 max-h-96 overflow-y-auto">
                             <div class="px-4 py-2 border-b border-soft-gray-100 flex items-center justify-between">
-                                <h3 class="text-sm font-semibold text-soft-gray-800">Solicitudes de Permisos</h3>
+                                <h3 class="text-sm font-semibold text-soft-gray-800">Notificaciones</h3>
                                 <a href="{{ route('admin.notifications.history') }}" 
                                    class="text-xs text-soft-green-600 hover:text-soft-green-700 font-medium">
                                     Ver historial
@@ -377,50 +389,87 @@
                             
                             @php
                                 $notifications = \App\Models\Notification::where('user_id', auth()->id())
-                                    ->where('type', 'delete_request')
+                                    ->whereIn('type', ['delete_request', 'maintenance_reminder'])
                                     ->where('status', 'pending')
-                                    ->with(['fromUser', 'organic', 'composting'])
+                                    ->whereNull('read_at')
+                                    ->with(['fromUser', 'organic', 'composting', 'machinery'])
                                     ->orderBy('created_at', 'desc')
                                     ->get();
                             @endphp
                             
                             @forelse($notifications as $notification)
-                                <div class="px-4 py-3 hover:bg-soft-gray-50 border-b border-soft-gray-100 last:border-b-0">
-                                    <div class="flex items-start space-x-3">
-                                        <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                            <i class="fas fa-trash text-yellow-600 text-sm"></i>
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-medium text-soft-gray-800">
-                                                {{ $notification->fromUser->name }}
-                                            </p>
-                                            <p class="text-xs text-soft-gray-600 mt-1">
-                                                @if($notification->composting_id)
-                                                    Solicita eliminar pila de compostaje #{{ $notification->composting->formatted_pile_num ?? 'N/A' }}
-                                                @else
-                                                Solicita eliminar registro #{{ str_pad($notification->organic_id, 3, '0', STR_PAD_LEFT) }}
-                                                @endif
-                                            </p>
-                                            <p class="text-xs text-soft-gray-500 mt-1">
-                                                {{ $notification->created_at->diffForHumans() }}
-                                            </p>
-                                            <div class="flex space-x-2 mt-2">
-                                                <button onclick="approveDeleteRequest({{ $notification->id }})" 
-                                                    class="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors">
-                                                    Aprobar
-                                                </button>
-                                                <button onclick="rejectDeleteRequest({{ $notification->id }})" 
-                                                    class="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors">
-                                                    Rechazar
-                                                </button>
+                                @if($notification->type === 'maintenance_reminder')
+                                    <!-- Notificación de Mantenimiento -->
+                                    <div class="px-4 py-3 hover:bg-soft-gray-50 border-b border-soft-gray-100 last:border-b-0">
+                                        <div class="flex items-start space-x-3">
+                                            <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                <i class="fas fa-tools text-orange-600 text-sm"></i>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-medium text-soft-gray-800">
+                                                    Recordatorio de Mantenimiento
+                                                </p>
+                                                <p class="text-xs text-soft-gray-600 mt-1">
+                                                    {{ $notification->machinery->name ?? 'Maquinaria no encontrada' }}
+                                                </p>
+                                                <p class="text-xs text-soft-gray-500 mt-1">
+                                                    {{ $notification->message }}
+                                                </p>
+                                                <p class="text-xs text-soft-gray-500 mt-1">
+                                                    {{ $notification->created_at->diffForHumans() }}
+                                                </p>
+                                                <div class="flex space-x-2 mt-2">
+                                                    <a href="{{ route('admin.machinery.maintenance.create') }}" 
+                                                       class="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors">
+                                                        Registrar Mantenimiento
+                                                    </a>
+                                                    <button onclick="markNotificationAsRead({{ $notification->id }})" 
+                                                        class="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600 transition-colors">
+                                                        Marcar como leída
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
+                                @else
+                                    <!-- Notificación de Solicitud de Eliminación -->
+                                    <div class="px-4 py-3 hover:bg-soft-gray-50 border-b border-soft-gray-100 last:border-b-0">
+                                        <div class="flex items-start space-x-3">
+                                            <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                <i class="fas fa-trash text-yellow-600 text-sm"></i>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-medium text-soft-gray-800">
+                                                    {{ $notification->fromUser->name }}
+                                                </p>
+                                                <p class="text-xs text-soft-gray-600 mt-1">
+                                                    @if($notification->composting_id)
+                                                        Solicita eliminar pila de compostaje #{{ $notification->composting->formatted_pile_num ?? 'N/A' }}
+                                                    @else
+                                                    Solicita eliminar registro #{{ str_pad($notification->organic_id, 3, '0', STR_PAD_LEFT) }}
+                                                    @endif
+                                                </p>
+                                                <p class="text-xs text-soft-gray-500 mt-1">
+                                                    {{ $notification->created_at->diffForHumans() }}
+                                                </p>
+                                                <div class="flex space-x-2 mt-2">
+                                                    <button onclick="approveDeleteRequest({{ $notification->id }})" 
+                                                        class="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors">
+                                                        Aprobar
+                                                    </button>
+                                                    <button onclick="rejectDeleteRequest({{ $notification->id }})" 
+                                                        class="px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors">
+                                                        Rechazar
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
                             @empty
                                 <div class="px-4 py-6 text-center">
                                     <i class="fas fa-bell-slash text-soft-gray-400 text-2xl mb-2"></i>
-                                    <p class="text-sm text-soft-gray-500">No hay solicitudes pendientes</p>
+                                    <p class="text-sm text-soft-gray-500">No hay notificaciones pendientes</p>
                                 </div>
                             @endforelse
                         </div>
@@ -505,7 +554,7 @@
             }
 
             // Para los menús con animaciones (Abono, Organic Waste, Warehouse, Composting y Machinery)
-            if (id === 'abonoSubmenu' || id === 'organicSubmenu' || id === 'warehouseSubmenu' || id === 'composting-submenu' || id === 'pile-submenu' || id === 'tracking-submenu' || id === 'machinery-submenu') {
+            if (id === 'abonoSubmenu' || id === 'organicSubmenu' || id === 'warehouseSubmenu' || id === 'composting-submenu' || id === 'pile-submenu' || id === 'tracking-submenu' || id === 'machinery-submenu' || id === 'machinery-submenu') {
                 const isHidden = submenu.classList.contains('submenu-hidden');
                 const submenuItems = submenu.querySelectorAll('.submenu-item');
                 
@@ -591,6 +640,10 @@
             @if($isFertilizer)
                 toggleSubmenu('abonoSubmenu', 'abonoArrow');
             @endif
+            
+            @if($isMachinery)
+                toggleSubmenu('machinery-submenu', 'machinery-arrow');
+            @endif
         });
 
         // Notifications functions
@@ -632,6 +685,30 @@
                 Swal.fire({
                     title: 'Error',
                     text: 'Ocurrió un error al procesar la solicitud',
+                    icon: 'error'
+                });
+            });
+        }
+
+        function markNotificationAsRead(notificationId) {
+            fetch(`/admin/notifications/${notificationId}/mark-read`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Ocurrió un error al marcar la notificación como leída',
                     icon: 'error'
                 });
             });

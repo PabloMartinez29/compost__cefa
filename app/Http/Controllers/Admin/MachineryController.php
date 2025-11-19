@@ -8,6 +8,7 @@ use App\Models\Maintenance;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class MachineryController extends Controller
 {
@@ -16,7 +17,7 @@ class MachineryController extends Controller
      */
     public function index()
     {
-        $machineries = Machinery::latest()->paginate(10);
+        $machineries = Machinery::latest()->get();
         return view('admin.machinery.machineries.index', compact('machineries'));
     }
 
@@ -205,6 +206,52 @@ class MachineryController extends Controller
             'operational' => $operational,
             'needs_maintenance' => $needsMaintenance
         ];
+    }
+
+    /**
+     * Generate PDF for all machineries
+     */
+    public function downloadAllMachineriesPDF()
+    {
+        $machineries = Machinery::latest()->get();
+        
+        $pdf = PDF::loadView('admin.machinery.machineries.pdf.all-machineries', compact('machineries'))
+            ->setPaper('a4', 'landscape')
+            ->setOptions([
+                'defaultFont' => 'Arial',
+                'isRemoteEnabled' => false,
+                'isHtml5ParserEnabled' => true,
+                'isPhpEnabled' => false,
+            ]);
+        
+        return $pdf->download('todas_las_maquinarias_' . date('Y-m-d') . '.pdf');
+    }
+
+    /**
+     * Generate PDF for individual machinery
+     */
+    public function downloadMachineryPDF(Machinery $machinery)
+    {
+        // Convertir imagen a base64 si existe
+        $imageBase64 = null;
+        if ($machinery->image && Storage::disk('public')->exists($machinery->image)) {
+            $imagePath = Storage::disk('public')->path($machinery->image);
+            $imageData = file_get_contents($imagePath);
+            $imageInfo = getimagesize($imagePath);
+            $mimeType = $imageInfo['mime'];
+            $imageBase64 = 'data:' . $mimeType . ';base64,' . base64_encode($imageData);
+        }
+        
+        $pdf = PDF::loadView('admin.machinery.machineries.pdf.machinery-details', compact('machinery', 'imageBase64'))
+            ->setPaper('a4', 'portrait')
+            ->setOptions([
+                'defaultFont' => 'Arial',
+                'isRemoteEnabled' => false,
+                'isHtml5ParserEnabled' => true,
+                'isPhpEnabled' => false,
+            ]);
+        
+        return $pdf->download('maquinaria_' . str_replace(' ', '_', $machinery->name) . '_' . date('Y-m-d') . '.pdf');
     }
 
     /**

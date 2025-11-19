@@ -1,320 +1,667 @@
 @extends('layouts.master')
 
-@section('title', 'Lista de Mantenimientos')
-
 @section('content')
-<div class="container mx-auto px-4 py-6">
+@vite(['resources/css/waste.css'])
+
+@php
+    use Illuminate\Support\Facades\Storage;
+@endphp
+
+<!-- SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<div class="container mx-auto px-6 py-8">
     <!-- Header -->
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+    <div class="waste-header animate-fade-in-up">
+        <div class="flex items-center justify-between">
         <div>
-            <h1 class="text-3xl font-bold text-soft-gray-800 mb-2">
-                <i class="fas fa-wrench text-soft-green-600 mr-3"></i>
-                Registros de Mantenimiento
+                <h1 class="waste-title">
+                    <i class="fas fa-wrench waste-icon"></i>
+                    Control de Actividades
             </h1>
-            <p class="text-soft-gray-600">Historial completo de mantenimientos y operaciones de maquinaria</p>
-        </div>
-        <div class="mt-4 md:mt-0">
-            <a href="{{ route('admin.machinery.index') }}" 
-               class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-soft-green-600 to-soft-green-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200">
-                <i class="fas fa-plus mr-2"></i>
-                Nuevo Registro
-            </a>
+                <p class="waste-subtitle">
+                    <i class="fas fa-user-shield text-green-400 mr-2"></i>
+                    {{ Auth::user()->name }} - Admin Panel
+                </p>
+            </div>
+            <div class="text-right">
+                <div class="text-green-400 font-bold text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
+            </div>
         </div>
     </div>
 
-    <!-- Mensajes de estado -->
-    @if(session('success'))
-        <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6 rounded-lg">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <i class="fas fa-check-circle text-green-400"></i>
+    <!-- Statistics Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Total Registros -->
+        <div class="waste-card waste-card-primary animate-fade-in-up animate-delay-1">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-sm font-medium text-gray-600 uppercase tracking-wide">Total Registros</div>
+                    <div class="text-3xl font-bold text-gray-800">{{ $totalMaintenances }}</div>
                 </div>
-                <div class="ml-3">
-                    <p class="text-green-700">{{ session('success') }}</p>
-                </div>
-            </div>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6 rounded-lg">
-            <div class="flex">
-                <div class="flex-shrink-0">
-                    <i class="fas fa-exclamation-circle text-red-400"></i>
-                </div>
-                <div class="ml-3">
-                    <p class="text-red-700">{{ session('error') }}</p>
-                </div>
-            </div>
-        </div>
-    @endif
-
-    <!-- Estadísticas rápidas -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white rounded-xl shadow-lg p-6 border border-soft-gray-100">
-            <div class="flex items-center">
-                <div class="p-3 rounded-full bg-blue-100 text-blue-600">
-                    <i class="fas fa-clipboard-list text-xl"></i>
-                </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-soft-gray-600">Total Registros</p>
-                    <p class="text-2xl font-bold text-soft-gray-900">{{ $stats['total'] }}</p>
+                <div class="waste-card-icon text-blue-600">
+                    <i class="fas fa-clipboard-list"></i>
                 </div>
             </div>
         </div>
         
-        <div class="bg-white rounded-xl shadow-lg p-6 border border-soft-gray-100">
-            <div class="flex items-center">
-                <div class="p-3 rounded-full bg-red-100 text-red-600">
-                    <i class="fas fa-wrench text-xl"></i>
+        <!-- Mantenimientos -->
+        <div class="waste-card waste-card-success animate-fade-in-up animate-delay-2">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-sm font-medium text-gray-600 uppercase tracking-wide">Mantenimientos</div>
+                    <div class="text-3xl font-bold text-gray-800">{{ $maintenanceCount }}</div>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-soft-gray-600">Mantenimientos</p>
-                    <p class="text-2xl font-bold text-soft-gray-900">{{ $stats['maintenance'] }}</p>
+                <div class="waste-card-icon text-green-600">
+                    <i class="fas fa-wrench"></i>
                 </div>
             </div>
         </div>
         
-        <div class="bg-white rounded-xl shadow-lg p-6 border border-soft-gray-100">
-            <div class="flex items-center">
-                <div class="p-3 rounded-full bg-green-100 text-green-600">
-                    <i class="fas fa-play text-xl"></i>
+        <!-- Operaciones -->
+        <div class="waste-card waste-card-warning animate-fade-in-up animate-delay-3">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-sm font-medium text-gray-600 uppercase tracking-wide">Operaciones</div>
+                    <div class="text-3xl font-bold text-gray-800">{{ $operationsCount }}</div>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-soft-gray-600">Operaciones</p>
-                    <p class="text-2xl font-bold text-soft-gray-900">{{ $stats['operations'] }}</p>
+                <div class="waste-card-icon text-yellow-600">
+                    <i class="fas fa-play"></i>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-lg p-6 border border-soft-gray-100">
-            <div class="flex items-center">
-                <div class="p-3 rounded-full bg-purple-100 text-purple-600">
-                    <i class="fas fa-calendar-alt text-xl"></i>
+        <!-- Este Mes -->
+        <div class="waste-card waste-card-info animate-fade-in-up animate-delay-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="text-sm font-medium text-gray-600 uppercase tracking-wide">Este Mes</div>
+                    <div class="text-3xl font-bold text-gray-800">{{ $thisMonthMaintenances }}</div>
                 </div>
-                <div class="ml-4">
-                    <p class="text-sm font-medium text-soft-gray-600">Este Mes</p>
-                    <p class="text-2xl font-bold text-soft-gray-900">{{ $stats['this_month'] }}</p>
+                <div class="waste-card-icon text-cyan-600">
+                    <i class="fas fa-calendar-day"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Filtros rápidos -->
-    <div class="bg-white rounded-xl shadow-lg p-4 mb-6 border border-soft-gray-100">
-        <div class="flex flex-wrap gap-3 items-center">
-            <span class="text-sm font-medium text-soft-gray-700">Filtrar por:</span>
-            <button onclick="filterByType('all')" 
-                    class="filter-btn active px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
-                    data-type="all">
-                <i class="fas fa-list mr-1"></i> Todos
-            </button>
-            <button onclick="filterByType('M')" 
-                    class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
-                    data-type="M">
-                <i class="fas fa-wrench mr-1"></i> Mantenimientos
-            </button>
-            <button onclick="filterByType('O')" 
-                    class="filter-btn px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200"
-                    data-type="O">
-                <i class="fas fa-play mr-1"></i> Operaciones
-            </button>
-        </div>
-    </div>
-
-    <!-- Tabla de mantenimientos -->
-    <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-soft-gray-100">
-        @if($maintenances->count() > 0)
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-soft-gray-200">
-                    <thead class="bg-soft-gray-50">
-                        <tr>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-soft-gray-600 uppercase tracking-wider">
-                                Fecha
-                            </th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-soft-gray-600 uppercase tracking-wider">
-                                Maquinaria
-                            </th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-soft-gray-600 uppercase tracking-wider">
-                                Tipo
-                            </th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-soft-gray-600 uppercase tracking-wider">
-                                Responsable
-                            </th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-soft-gray-600 uppercase tracking-wider">
-                                Descripción
-                            </th>
-                            <th class="px-6 py-4 text-left text-xs font-semibold text-soft-gray-600 uppercase tracking-wider">
-                                Registro
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-soft-gray-200">
-                        @foreach($maintenances as $maintenance)
-                            <tr class="hover:bg-soft-gray-50 transition-colors duration-150 maintenance-row" 
-                                data-type="{{ $maintenance->type }}">
-                                <!-- Fecha -->
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="flex items-center">
-                                        <div class="p-2 bg-soft-blue-100 rounded-lg mr-3">
-                                            <i class="fas fa-calendar text-soft-blue-600"></i>
-                                        </div>
-                                        <div>
-                                            <div class="text-sm font-medium text-soft-gray-900">
-                                                {{ $maintenance->date->format('d/m/Y') }}
-                                            </div>
-                                            <div class="text-sm text-soft-gray-500">
-                                                {{ $maintenance->date->diffForHumans() }}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </td>
-
-                                <!-- Maquinaria -->
-                                <td class="px-6 py-4">
-                                    <div>
-                                        <div class="text-sm font-medium text-soft-gray-900">
-                                            {{ $maintenance->machinery->name }}
-                                        </div>
-                                        <div class="text-sm text-soft-gray-500">
-                                            {{ $maintenance->machinery->brand }} {{ $maintenance->machinery->model }}
-                                        </div>
-                                    </div>
-                                </td>
-
-                                <!-- Tipo -->
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    @php
-                                        $typeConfig = match($maintenance->type) {
-                                            'M' => [
-                                                'class' => 'bg-red-100 text-red-800',
-                                                'icon' => 'fas fa-wrench',
-                                                'name' => 'Mantenimiento'
-                                            ],
-                                            'O' => [
-                                                'class' => 'bg-green-100 text-green-800',
-                                                'icon' => 'fas fa-play',
-                                                'name' => 'Operación'
-                                            ],
-                                            default => [
-                                                'class' => 'bg-gray-100 text-gray-800',
-                                                'icon' => 'fas fa-question',
-                                                'name' => 'Desconocido'
-                                            ]
-                                        };
-                                    @endphp
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $typeConfig['class'] }}">
-                                        <i class="{{ $typeConfig['icon'] }} mr-1"></i>
-                                        {{ $typeConfig['name'] }}
-                                    </span>
-                                </td>
-
-                                <!-- Responsable -->
-                                <td class="px-6 py-4">
-                                    <div class="text-sm text-soft-gray-900 flex items-center">
-                                        <i class="fas fa-user text-soft-gray-400 mr-2"></i>
-                                        {{ $maintenance->responsible }}
-                                    </div>
-                                </td>
-
-                                <!-- Descripción -->
-                                <td class="px-6 py-4">
-                                    <div class="text-sm text-soft-gray-900 max-w-xs">
-                                        <p class="truncate" title="{{ $maintenance->description }}">
-                                            {{ Str::limit($maintenance->description, 60) }}
-                                        </p>
-                                    </div>
-                                </td>
-
-                                <!-- Registro -->
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-xs text-soft-gray-500">
-                                        {{ $maintenance->created_at->format('d/m/Y H:i') }}
-                                    </div>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Paginación -->
-            @if($maintenances->hasPages())
-                <div class="px-6 py-4 border-t border-soft-gray-200">
-                    {{ $maintenances->links() }}
-                </div>
-            @endif
-        @else
-            <!-- Estado vacío -->
-            <div class="text-center py-12">
-                <div class="inline-flex items-center justify-center w-16 h-16 bg-soft-gray-100 rounded-full mb-4">
-                    <i class="fas fa-wrench text-2xl text-soft-gray-400"></i>
-                </div>
-                <h3 class="text-lg font-medium text-soft-gray-900 mb-2">No hay registros de mantenimiento</h3>
-                <p class="text-soft-gray-600 mb-6">Comienza registrando el primer mantenimiento u operación.</p>
-                <a href="{{ route('admin.machinery.index') }}" 
-                   class="inline-flex items-center px-4 py-2 bg-soft-green-600 text-white font-medium rounded-lg hover:bg-soft-green-700 transition-colors">
+    <!-- Main Content -->
+    <div class="waste-container animate-fade-in-up animate-delay-2">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-bold text-gray-800 flex items-center">
+                <i class="fas fa-table text-green-600 mr-2"></i>
+                Registros de Actividades
+            </h2>
+            <div class="flex items-center space-x-4">
+                <a href="{{ route('admin.machinery.maintenance.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                    <i class="fas fa-file-pdf"></i>
+                </a>
+                <a href="{{ route('admin.machinery.maintenance.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
                     <i class="fas fa-plus mr-2"></i>
-                    Registrar Primer Mantenimiento
+                    Nuevo Registro
                 </a>
             </div>
-        @endif
+        </div>
+
+            <div class="overflow-x-auto">
+                <!-- DataTables agregará los controles y la tabla aquí -->
+                <div id="maintenancesTable_wrapper" class="p-6">
+                    <!-- Contenedor para controles superiores -->
+                    <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
+                        <div id="dt-length-container" style="float: left;"></div>
+                        <div id="dt-filter-container" style="float: right;"></div>
+                    </div>
+                    <table id="maintenancesTable" class="waste-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Imagen</th>
+                                <th>Fecha</th>
+                                <th>Maquinaria</th>
+                                <th>Tipo</th>
+                                <th>Descripción</th>
+                                <th>Responsable</th>
+                                <th>Acciones</th>
+                        </tr>
+                    </thead>
+                        <tbody>
+                            @forelse($maintenances as $maintenance)
+                                <tr>
+                                    <td class="font-mono">#{{ str_pad($maintenance->id, 3, '0', STR_PAD_LEFT) }}</td>
+                                    <td>
+                                        @if($maintenance->machinery && $maintenance->machinery->image)
+                                            <img src="{{ Storage::url($maintenance->machinery->image) }}?v={{ $maintenance->machinery->updated_at->timestamp }}" 
+                                                 alt="Imagen de maquinaria" 
+                                                 class="w-12 h-12 object-cover rounded-full cursor-pointer hover:opacity-80 transition-opacity"
+                                                 onclick="openImageModal('{{ Storage::url($maintenance->machinery->image) }}?v={{ $maintenance->machinery->updated_at->timestamp }}')"
+                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center" style="display: none;">
+                                                <i class="fas fa-image text-gray-400"></i>
+                                            </div>
+                                        @else
+                                            <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                                                <i class="fas fa-cogs text-gray-400"></i>
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td>{{ $maintenance->date->format('d/m/Y') }}</td>
+                                    <td>
+                                        <div class="font-semibold">{{ $maintenance->machinery->name ?? 'N/A' }}</div>
+                                        <div class="text-xs text-gray-500">{{ $maintenance->machinery->brand ?? '' }} {{ $maintenance->machinery->model ?? '' }}</div>
+                                    </td>
+                                    <td>
+                                        <span class="waste-badge 
+                                            @if($maintenance->type == 'M') waste-badge-danger
+                                            @else waste-badge-success
+                                            @endif">
+                                            {{ $maintenance->type_name }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="max-w-xs truncate" title="{{ $maintenance->description }}">
+                                            {{ Str::limit($maintenance->description, 50) }}
+                                    </div>
+                                </td>
+                                    <td>{{ $maintenance->responsible }}</td>
+                                <td>
+                                    <div class="flex space-x-2 items-center">
+                                            <button onclick="openViewModal({{ $maintenance->id }})" 
+                                               class="inline-flex items-center text-blue-500 hover:text-blue-700" title="Ver Detalles">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button onclick="confirmEdit({{ $maintenance->id }})" 
+                                               class="inline-flex items-center text-green-500 hover:text-green-700" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <a href="{{ route('admin.machinery.maintenance.download.pdf', $maintenance) }}" 
+                                               class="inline-flex items-center text-red-500 hover:text-red-700" 
+                                               title="Descargar PDF">
+                                                <i class="fas fa-file-pdf"></i>
+                                            </a>
+                                            <form action="{{ route('admin.machinery.maintenance.destroy', $maintenance) }}" 
+                                                  method="POST" class="inline" 
+                                                  onsubmit="return confirmDelete(event, this)">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="inline-flex items-center text-red-500 hover:text-red-700" title="Eliminar">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                    </div>
+                                </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="8" class="text-center py-8 text-gray-500">
+                                        <i class="fas fa-inbox text-4xl mb-4 block"></i>
+                                        No se encontraron registros de actividades
+                                </td>
+                            </tr>
+                            @endforelse
+                    </tbody>
+                </table>
+                </div>
+            </div>
     </div>
 </div>
 
-<style>
-.filter-btn {
-    background-color: #f3f4f6;
-    color: #6b7280;
-    border: 1px solid #e5e7eb;
-}
+<!-- Modal para ver detalles del mantenimiento -->
+<div id="viewModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop-blur hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <!-- Modal Header -->
+        <div class="waste-header">
+            <div class="text-center">
+                <h3 class="waste-title text-xl justify-center">
+                    <i class="fas fa-eye waste-icon"></i>
+                    Detalles del Registro
+                </h3>
+                <p class="waste-subtitle">
+                    <i class="fas fa-user-shield text-green-400 mr-2"></i>
+                    <span id="viewUserInfo">{{ Auth::user()->name }} - Registro #<span id="viewRecordId"></span></span>
+                </p>
+            </div>
+        </div>
 
-.filter-btn:hover {
-    background-color: #e5e7eb;
-    color: #374151;
-}
+        <!-- Modal Body -->
+        <div class="p-6">
+            <div class="space-y-6">
+                <!-- Información del registro -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="waste-form-group">
+                        <label class="waste-form-label">Maquinaria</label>
+                        <div class="waste-form-input bg-gray-50" id="viewMachinery"></div>
+                    </div>
 
-.filter-btn.active {
-    background-color: #10b981;
-    color: white;
-    border-color: #10b981;
-}
-</style>
+                    <div class="waste-form-group">
+                        <label class="waste-form-label">Fecha</label>
+                        <div class="waste-form-input bg-gray-50" id="viewDate"></div>
+                    </div>
+
+                    <div class="waste-form-group">
+                        <label class="waste-form-label">Tipo</label>
+                        <div class="waste-form-input bg-gray-50" id="viewType"></div>
+                    </div>
+
+                    <div class="waste-form-group">
+                        <label class="waste-form-label">Responsable</label>
+                        <div class="waste-form-input bg-gray-50" id="viewResponsible"></div>
+                    </div>
+
+                    <div class="waste-form-group md:col-span-2">
+                        <label class="waste-form-label">Descripción</label>
+                        <div class="waste-form-textarea bg-gray-50" id="viewDescription" style="min-height: 100px;"></div>
+            </div>
+
+                    <div class="waste-form-group">
+                        <label class="waste-form-label">Fecha de Creación</label>
+                        <div class="waste-form-input bg-gray-50" id="viewCreatedAt"></div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex justify-end pt-6 border-t border-gray-200">
+                    <button onclick="closeViewModal()" class="waste-btn-secondary">
+                        <i class="fas fa-times mr-2"></i>
+                        Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para visualizar imagen -->
+<div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 modal-backdrop-blur hidden z-50 flex items-center justify-center p-4">
+    <div class="relative max-w-6xl max-h-[90vh] w-full flex items-center justify-center">
+        <!-- Botón de cerrar -->
+        <button onclick="closeImageModal()" class="absolute top-4 right-4 z-10 bg-black bg-opacity-50 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-75 transition-all">
+            <i class="fas fa-times text-xl"></i>
+        </button>
+        
+        <!-- Imagen -->
+        <img id="modalImage" src="" alt="Imagen de maquinaria" 
+             class="max-w-4xl max-h-[80vh] w-auto h-auto object-contain rounded-lg shadow-2xl mx-auto">
+    </div>
+</div>
 
 <script>
-function filterByType(type) {
-    const rows = document.querySelectorAll('.maintenance-row');
-    const buttons = document.querySelectorAll('.filter-btn');
-    
-    // Actualizar botones
-    buttons.forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.dataset.type === type) {
-            btn.classList.add('active');
+// Funciones para el modal de imagen
+function openImageModal(imageSrc) {
+    document.getElementById('modalImage').src = imageSrc;
+    document.getElementById('imageModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeImageModal() {
+    document.getElementById('imageModal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+// Cerrar modal de imagen al hacer clic fuera
+document.getElementById('imageModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeImageModal();
+    }
+});
+
+// Cerrar modal de imagen con tecla ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeImageModal();
+    }
+});
+
+// Funciones para el modal de vista
+function openViewModal(maintenanceId) {
+    fetch(`/admin/machinery/maintenance/${maintenanceId}`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
         }
-    });
-    
-    // Filtrar filas
-    rows.forEach(row => {
-        if (type === 'all' || row.dataset.type === type) {
-            row.style.display = '';
-        } else {
-            row.style.display = 'none';
+    })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('viewRecordId').textContent = data.id.toString().padStart(3, '0');
+            document.getElementById('viewMachinery').textContent = `${data.machinery_name} - ${data.machinery_brand} ${data.machinery_model}`;
+            document.getElementById('viewDate').textContent = data.date_formatted || data.date;
+            document.getElementById('viewType').innerHTML = `<span class="waste-badge ${data.type === 'M' ? 'waste-badge-danger' : 'waste-badge-success'}">${data.type_name}</span>`;
+            document.getElementById('viewResponsible').textContent = data.responsible || 'N/A';
+            document.getElementById('viewDescription').textContent = data.description || 'N/A';
+            document.getElementById('viewCreatedAt').textContent = data.created_at_formatted || data.created_at;
+            
+            // Mostrar modal
+            document.getElementById('viewModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cargar los datos del registro');
+        });
+}
+
+function closeViewModal() {
+    document.getElementById('viewModal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+// Cerrar modal de vista al hacer clic fuera
+document.getElementById('viewModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeViewModal();
+    }
+});
+
+// Cerrar modal de vista con tecla ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeViewModal();
+    }
+});
+
+// Confirmación antes de editar
+function confirmEdit(maintenanceId) {
+    Swal.fire({
+        title: 'Confirmar edición',
+        text: '¿Está seguro de que desea editar este registro?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#16a34a',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Sí, editar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = `/admin/machinery/maintenance/${maintenanceId}/edit`;
         }
     });
 }
 
-// Inicializar tooltips para descripciones largas
+// Función para confirmar eliminación con SweetAlert2
+function confirmDelete(event, form) {
+    event.preventDefault();
+    
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: '¿Quieres eliminar este registro de actividad?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true,
+        customClass: {
+            popup: 'rounded-lg',
+            title: 'text-lg font-semibold',
+            content: 'text-sm text-gray-600',
+            confirmButton: 'px-4 py-2 rounded-lg font-medium',
+            cancelButton: 'px-4 py-2 rounded-lg font-medium'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Mostrar loading
+            Swal.fire({
+                title: 'Eliminando...',
+                text: 'Por favor espera',
+                icon: 'info',
+                allowOutsideClick: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // Enviar formulario
+            form.submit();
+        }
+    });
+    
+    return false;
+}
+
+// Mostrar mensaje de éxito si existe
+@if(session('success'))
+    Swal.fire({
+        title: '¡Éxito!',
+        text: '{{ session('success') }}',
+        icon: 'success',
+        confirmButtonColor: '#22c55e',
+        confirmButtonText: 'Entendido',
+        customClass: {
+            popup: 'rounded-lg',
+            title: 'text-lg font-semibold text-green-600',
+            content: 'text-sm text-gray-600',
+            confirmButton: 'px-4 py-2 rounded-lg font-medium'
+        }
+    });
+@endif
+
+// Mostrar mensaje de error si existe
+@if(session('error'))
+    Swal.fire({
+        title: '¡Error!',
+        text: '{{ session('error') }}',
+        icon: 'error',
+        confirmButtonColor: '#ef4444',
+        confirmButtonText: 'Entendido',
+        customClass: {
+            popup: 'rounded-lg',
+            title: 'text-lg font-semibold text-red-600',
+            content: 'text-sm text-gray-600',
+            confirmButton: 'px-4 py-2 rounded-lg font-medium'
+        }
+    });
+@endif
+
+// Inicializar DataTables
 document.addEventListener('DOMContentLoaded', function() {
-    const truncatedElements = document.querySelectorAll('[title]');
-    truncatedElements.forEach(element => {
-        element.addEventListener('mouseenter', function() {
-            // Aquí podrías agregar un tooltip más elaborado si lo deseas
-        });
+    if (typeof DataTable === 'undefined') {
+        console.error('DataTable no está cargado. Verifica que el script de DataTables esté incluido.');
+        return;
+    }
+    
+    const tableElement = document.querySelector('#maintenancesTable');
+    if (!tableElement) {
+        console.error('No se encontró la tabla con id #maintenancesTable');
+        return;
+    }
+    
+    let table = new DataTable('#maintenancesTable', {
+        language: {
+            search: 'Buscar:',
+            lengthMenu: 'Mostrar _MENU_ registros',
+            info: 'Mostrando _START_ a _END_ de _TOTAL_ registros',
+            infoEmpty: 'Mostrando 0 a 0 de 0 registros',
+            infoFiltered: '(filtrado de _MAX_ registros totales)',
+            zeroRecords: 'No se encontraron registros',
+            emptyTable: 'No hay datos disponibles',
+            paginate: {
+                first: '«',
+                previous: '<',
+                next: '>',
+                last: '»'
+            }
+        },
+        responsive: true,
+        pageLength: 10,
+        lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Todos"]],
+        order: [[2, 'desc']], // Ordenar por fecha descendente
+        processing: false,
+        serverSide: false,
+        dom: 'rtip',
+        initComplete: function() {
+            const lengthContainer = document.createElement('div');
+            lengthContainer.className = 'dataTables_length';
+            lengthContainer.innerHTML = `
+                <label>
+                    Mostrar
+                    <select name="maintenancesTable_length" aria-controls="maintenancesTable" class="px-3 py-2 border border-gray-300 rounded-lg ml-2">
+                        <option value="10">10</option>
+                        <option value="25">25</option>
+                        <option value="50">50</option>
+                        <option value="-1">Todos</option>
+                    </select>
+                    registros
+                </label>
+            `;
+            
+            const filterContainer = document.createElement('div');
+            filterContainer.className = 'dataTables_filter';
+            filterContainer.innerHTML = `
+                <label>
+                    Buscar:
+                    <input type="search" class="px-3 py-2 border border-gray-300 rounded-lg ml-2" placeholder="Buscar..." aria-controls="maintenancesTable" style="width: 250px; outline: none; transition: none;">
+                </label>
+            `;
+            
+            const lengthTarget = document.getElementById('dt-length-container');
+            const filterTarget = document.getElementById('dt-filter-container');
+            
+            if (lengthTarget) lengthTarget.appendChild(lengthContainer);
+            if (filterTarget) filterTarget.appendChild(filterContainer);
+            
+            const lengthSelect = lengthContainer.querySelector('select');
+            const searchInput = filterContainer.querySelector('input');
+            
+            if (lengthSelect) {
+                lengthSelect.addEventListener('change', function() {
+                    table.page.len(parseInt(this.value)).draw();
+                });
+            }
+            
+            if (searchInput) {
+                searchInput.addEventListener('keyup', function() {
+                    table.search(this.value).draw();
+                });
+            }
+        }
     });
 });
 </script>
+
+<style>
+/* Estilos para DataTables */
+.dataTables_wrapper {
+    position: relative;
+    clear: both;
+    width: 100%;
+}
+
+.dataTables_wrapper .dataTables_length {
+    float: left !important;
+    margin-bottom: 1rem;
+    padding: 0.5rem 0;
+    clear: none !important;
+    width: auto !important;
+}
+
+.dataTables_wrapper .dataTables_filter {
+    float: right !important;
+    margin-bottom: 1rem;
+    padding: 0.5rem 0;
+    text-align: right !important;
+    clear: none !important;
+    width: auto !important;
+}
+
+.dataTables_wrapper .dataTables_length label,
+.dataTables_wrapper .dataTables_filter label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.dataTables_wrapper .dataTables_length select {
+    margin-left: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    min-width: 60px;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    margin-left: 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db !important;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    width: 250px;
+    outline: none !important;
+    transition: none;
+    background-color: white;
+}
+
+.dataTables_wrapper .dataTables_filter input:focus {
+    border-color: #d1d5db !important;
+    box-shadow: none !important;
+    outline: none !important;
+    background-color: white !important;
+}
+
+.dataTables_wrapper .dataTables_filter input:hover {
+    border-color: #9ca3af !important;
+    box-shadow: none !important;
+    background-color: white !important;
+}
+
+.dataTables_wrapper .dataTables_info {
+    float: left;
+    padding: 0.75rem 0;
+    margin-top: 1.5rem;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+    float: right;
+    text-align: right;
+    padding: 0.75rem 0;
+    margin-top: 1.5rem;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 0.375rem 0.625rem;
+    margin: 0 0.125rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    background: white;
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-block;
+    text-decoration: none;
+    font-size: 0.875rem;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background: #f3f4f6 !important;
+    border-color: #d1d5db !important;
+    color: #374151 !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: #22c55e;
+    color: white;
+    border-color: #22c55e;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.dataTables_wrapper::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+</style>
 @endsection
-
-
-

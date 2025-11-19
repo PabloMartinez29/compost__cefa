@@ -95,10 +95,8 @@ class NotificationController extends Controller
     /**
      * Marcar notificación como leída
      */
-    public function markAsRead(Request $request)
+    public function markAsRead(Notification $notification)
     {
-        $notification = Notification::findOrFail($request->notification_id);
-        
         if ($notification->user_id !== auth()->id()) {
             return response()->json(['error' => 'No autorizado'], 403);
         }

@@ -10,6 +10,8 @@ use App\Models\WarehouseClassification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class CompostingController extends Controller
 {
@@ -84,6 +86,12 @@ class CompostingController extends Controller
 
         DB::beginTransaction();
         try {
+            // Handle image upload
+            $imagePath = null;
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('compostings', 'public');
+            }
+            
             // Crear el compostaje
             $composting = Composting::create([
                 'pile_num' => $request->pile_num,
@@ -91,6 +99,7 @@ class CompostingController extends Controller
                 'end_date' => $request->end_date,
                 'total_kg' => $request->total_kg,
                 'efficiency' => $request->efficiency,
+                'image' => $imagePath,
                 'created_by' => auth()->id()
             ]);
 
@@ -256,14 +265,33 @@ class CompostingController extends Controller
 
         DB::beginTransaction();
         try {
-            // Actualizar el compostaje
-            $composting->update([
+            // Handle image upload
+            $data = [
                 'pile_num' => $request->pile_num,
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date,
                 'total_kg' => $request->total_kg,
                 'efficiency' => $request->efficiency
-            ]);
+            ];
+            
+            if ($request->hasFile('image')) {
+                // Eliminar imagen anterior si existe
+                if ($composting->image && Storage::disk('public')->exists($composting->image)) {
+                    Storage::disk('public')->delete($composting->image);
+                }
+                $data['image'] = $request->file('image')->store('compostings', 'public');
+            }
+            
+            // Si se envía remove_image, eliminar la imagen
+            if ($request->has('remove_image') && $request->remove_image == '1') {
+                if ($composting->image && Storage::disk('public')->exists($composting->image)) {
+                    Storage::disk('public')->delete($composting->image);
+                }
+                $data['image'] = null;
+            }
+            
+            // Actualizar el compostaje
+            $composting->update($data);
 
             // Obtener ingredientes existentes para devolver al inventario
             $existingIngredients = $composting->ingredients()->with('organic')->get();
@@ -327,6 +355,11 @@ class CompostingController extends Controller
     {
         DB::beginTransaction();
         try {
+            // Delete image if exists
+            if ($composting->image && Storage::disk('public')->exists($composting->image)) {
+                Storage::disk('public')->delete($composting->image);
+            }
+            
             // Eliminar la pila (esto también eliminará los ingredientes por cascada)
             // NO devolver al inventario porque los residuos ya fueron procesados en el compostaje
             $composting->delete();
@@ -341,5 +374,55 @@ class CompostingController extends Controller
             return redirect()->back()
                 ->with('error', 'Error al eliminar la pila: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Generate PDF for all compostings
+     */
+    public function downloadAllCompostingsPDF()
+    {
+        $compostings = Composting::with(['ingredients.organic', 'creator'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
+        $pdf = PDF::loadView('admin.composting.pdf.all-compostings', compact('compostings'))
+            ->setPaper('a4', 'landscape')
+            ->setOptions([
+                'defaultFont' => 'Arial',
+                'isRemoteEnabled' => false,
+                'isHtml5ParserEnabled' => true,
+                'isPhpEnabled' => false,
+            ]);
+        
+        return $pdf->download('todas_las_pilas_' . date('Y-m-d') . '.pdf');
+    }
+
+    /**
+     * Generate PDF for individual composting
+     */
+    public function downloadCompostingPDF(Composting $composting)
+    {
+        $composting->load(['ingredients.organic', 'creator', 'trackings']);
+        
+        // Convertir imagen a base64 si existe
+        $imageBase64 = null;
+        if ($composting->image && Storage::disk('public')->exists($composting->image)) {
+            $imagePath = Storage::disk('public')->path($composting->image);
+            $imageData = file_get_contents($imagePath);
+            $imageInfo = getimagesize($imagePath);
+            $mimeType = $imageInfo['mime'];
+            $imageBase64 = 'data:' . $mimeType . ';base64,' . base64_encode($imageData);
+        }
+        
+        $pdf = PDF::loadView('admin.composting.pdf.composting-details', compact('composting', 'imageBase64'))
+            ->setPaper('a4', 'portrait')
+            ->setOptions([
+                'defaultFont' => 'Arial',
+                'isRemoteEnabled' => false,
+                'isHtml5ParserEnabled' => true,
+                'isPhpEnabled' => false,
+            ]);
+        
+        return $pdf->download('pila_' . str_replace(' ', '_', $composting->formatted_pile_num) . '_' . date('Y-m-d') . '.pdf');
     }
 }

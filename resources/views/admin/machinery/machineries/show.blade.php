@@ -240,9 +240,11 @@
                             @php
                                 $status = $machinery->status;
                                 $statusBadge = match($status) {
-                                    'Operativa' => 'waste-badge-success',
+                                    'Operación' => 'waste-badge-success',
+                                    'En mantenimiento' => 'waste-badge-warning',
                                     'Mantenimiento requerido' => 'waste-badge-danger',
-                                    default => 'waste-badge-warning'
+                                    'Sin actividad' => 'waste-badge-secondary',
+                                    default => 'waste-badge-secondary'
                                 };
                             @endphp
                             <span class="waste-badge {{ $statusBadge }}">
