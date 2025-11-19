@@ -46,17 +46,26 @@ class MonitoringController extends Controller
             'total_machinery' => Machinery::count(),
         ];
         
-        // Datos para gráficas de residuos orgánicos
+        // Datos para gráficas de residuos orgánicos (filtrados por período - para sección expandida)
         $organicData = $this->getOrganicData($startDate, $endDate, $period);
         
-        // Datos para gráficas de pilas de compostaje
+        // Datos generales para gráficas pequeñas (sin filtrar por período)
+        $organicDataGeneral = $this->getOrganicDataGeneral();
+        
+        // Datos para gráficas de pilas de compostaje (filtrados por período - para sección expandida)
         $compostingData = $this->getCompostingData($startDate, $endDate, $period);
+        
+        // Datos generales para gráficas pequeñas de pilas
+        $compostingDataGeneral = $this->getCompostingDataGeneral();
         
         // Datos para gráficas de seguimientos
         $trackingData = $this->getTrackingData($startDate, $endDate, $period);
         
-        // Datos para gráficas de abonos
+        // Datos para gráficas de abonos (filtrados por período - para sección expandida)
         $fertilizerData = $this->getFertilizerData($startDate, $endDate, $period);
+        
+        // Datos generales para gráficas pequeñas de abonos
+        $fertilizerDataGeneral = $this->getFertilizerDataGeneral();
         
         // Datos de bodega
         $warehouseData = $this->getWarehouseData();
@@ -92,9 +101,12 @@ class MonitoringController extends Controller
         return view('admin.monitoring.index', compact(
             'stats',
             'organicData',
+            'organicDataGeneral',
             'compostingData',
+            'compostingDataGeneral',
             'trackingData',
             'fertilizerData',
+            'fertilizerDataGeneral',
             'warehouseData',
             'machineryData',
             'userActivity',
@@ -189,6 +201,72 @@ class MonitoringController extends Controller
             'by_user' => $byUser,
             'total' => $organics->count(),
             'total_weight' => $organics->sum('weight')
+        ];
+    }
+    
+    /**
+     * Get organic waste data general (all records, for small charts)
+     */
+    private function getOrganicDataGeneral()
+    {
+        $organics = Organic::with('creator')->get();
+        
+        // Por tipo (para gráfica expandida)
+        $byType = $organics->groupBy('type')->map(function($group) {
+            return [
+                'count' => $group->count(),
+                'weight' => $group->sum('weight')
+            ];
+        });
+        
+        // Agrupar por mes para mostrar tendencia general
+        $byDate = $organics->groupBy(function($organic) {
+            return $organic->created_at->format('Y-m');
+        })->map(function($group) {
+            return $group->sum('weight');
+        })->sortKeys();
+        
+        return [
+            'by_type' => $byType->toArray(),
+            'by_date' => $byDate->toArray()
+        ];
+    }
+    
+    /**
+     * Get composting data general (all records, for small charts)
+     */
+    private function getCompostingDataGeneral()
+    {
+        $compostings = Composting::with('creator')->get();
+        
+        // Por estado
+        $byStatus = [
+            'active' => $compostings->whereNull('end_date')->count(),
+            'completed' => $compostings->whereNotNull('end_date')->count()
+        ];
+        
+        return [
+            'by_status' => $byStatus
+        ];
+    }
+    
+    /**
+     * Get fertilizer data general (all records, for small charts)
+     */
+    private function getFertilizerDataGeneral()
+    {
+        $fertilizers = Fertilizer::all();
+        
+        // Por tipo
+        $byType = $fertilizers->groupBy('type')->map(function($group) {
+            return [
+                'count' => $group->count(),
+                'amount' => $group->sum('amount')
+            ];
+        });
+        
+        return [
+            'by_type' => $byType
         ];
     }
     

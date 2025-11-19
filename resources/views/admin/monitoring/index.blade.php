@@ -6,9 +6,14 @@
 <!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
+<!-- DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
 <div class="container mx-auto px-6 py-8">
     <!-- Header -->
-    <div class="dashboard-header animate-fade-in-up">
+    <div class="bg-green-50 rounded-xl shadow-sm p-6 border border-green-200 animate-fade-in-up">
         <div class="flex items-center justify-between">
             <div>
                 <h1 class="welcome-title">
@@ -59,10 +64,10 @@
     <!-- Cards de Módulos -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <!-- Card Residuos -->
-        <div onclick="showModule('residuos')" class="module-card bg-gradient-to-br from-green-50 to-green-100 border-2 border-green-300 rounded-xl p-4 cursor-pointer hover:shadow-lg transition-all duration-200" id="card-residuos">
+        <div onclick="showModule('residuos')" class="module-card bg-white rounded-xl p-4 cursor-pointer hover:shadow-lg transition-all duration-200" id="card-residuos">
             <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center space-x-3">
-                    <div class="bg-green-500 text-white rounded-lg p-3">
+                    <div class="bg-cyan-300 text-white rounded-lg p-3">
                         <i class="fas fa-recycle text-xl"></i>
                     </div>
                     <div>
@@ -71,14 +76,14 @@
                     </div>
                 </div>
             </div>
-            <div class="text-2xl font-bold text-green-700">{{ number_format($stats['total_organics_weight'], 1) }} Kg</div>
+            <div class="text-2xl font-bold text-gray-800">{{ number_format($stats['total_organics_weight'], 1) }} Kg</div>
         </div>
 
         <!-- Card Pilas -->
-        <div onclick="showModule('pilas')" class="module-card bg-gradient-to-br from-cyan-50 to-cyan-100 border-2 border-cyan-300 rounded-xl p-4 cursor-pointer hover:shadow-lg transition-all duration-200" id="card-pilas">
+        <div onclick="showModule('pilas')" class="module-card bg-white rounded-xl p-4 cursor-pointer hover:shadow-lg transition-all duration-200" id="card-pilas">
             <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center space-x-3">
-                    <div class="bg-cyan-500 text-white rounded-lg p-3">
+                    <div class="bg-green-300 text-white rounded-lg p-3">
                         <i class="fas fa-mountain text-xl"></i>
                     </div>
                     <div>
@@ -87,14 +92,14 @@
                     </div>
                 </div>
             </div>
-            <div class="text-2xl font-bold text-cyan-700">{{ $stats['active_compostings'] }} activas</div>
+            <div class="text-2xl font-bold text-gray-800">{{ $stats['active_compostings'] }} activas</div>
         </div>
 
         <!-- Card Abono -->
-        <div onclick="showModule('abono')" class="module-card bg-gradient-to-br from-yellow-50 to-yellow-100 border-2 border-yellow-300 rounded-xl p-4 cursor-pointer hover:shadow-lg transition-all duration-200" id="card-abono">
+        <div onclick="showModule('abono')" class="module-card bg-white rounded-xl p-4 cursor-pointer hover:shadow-lg transition-all duration-200" id="card-abono">
             <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center space-x-3">
-                    <div class="bg-yellow-500 text-white rounded-lg p-3">
+                    <div class="bg-yellow-300 text-white rounded-lg p-3">
                         <i class="fas fa-seedling text-xl"></i>
                     </div>
                     <div>
@@ -103,14 +108,14 @@
                     </div>
                 </div>
             </div>
-            <div class="text-2xl font-bold text-yellow-700">{{ number_format($stats['total_fertilizers_amount'], 1) }} Kg/L</div>
+            <div class="text-2xl font-bold text-gray-800">{{ number_format($stats['total_fertilizers_amount'], 1) }} Kg/L</div>
         </div>
 
         <!-- Card Maquinaria -->
-        <div onclick="showModule('maquinaria')" class="module-card bg-gradient-to-br from-purple-50 to-purple-100 border-2 border-purple-300 rounded-xl p-4 cursor-pointer hover:shadow-lg transition-all duration-200" id="card-maquinaria">
+        <div onclick="showModule('maquinaria')" class="module-card bg-white rounded-xl p-4 cursor-pointer hover:shadow-lg transition-all duration-200" id="card-maquinaria">
             <div class="flex items-center justify-between mb-3">
                 <div class="flex items-center space-x-3">
-                    <div class="bg-purple-500 text-white rounded-lg p-3">
+                    <div class="bg-orange-300 text-white rounded-lg p-3">
                         <i class="fas fa-cogs text-xl"></i>
                     </div>
                     <div>
@@ -119,7 +124,7 @@
                     </div>
                 </div>
             </div>
-            <div class="text-2xl font-bold text-purple-700">{{ $stats['total_machinery'] }} unidades</div>
+            <div class="text-2xl font-bold text-gray-800">{{ $stats['total_machinery'] }} unidades</div>
         </div>
     </div>
 
@@ -129,10 +134,6 @@
             <div class="flex items-center justify-between mb-4">
                 <h2 id="module-title" class="text-2xl font-bold text-gray-800"></h2>
                 <div class="flex items-center space-x-3">
-                    <button onclick="closeModule()" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors">
-                        <i class="fas fa-times mr-2"></i>
-                        Cerrar
-                    </button>
                     <a id="module-excel-link" href="#" onclick="downloadExcel(event)" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                         <i class="fas fa-file-excel mr-2"></i>
                         Excel
@@ -150,70 +151,12 @@
                 </div>
             </div>
             <!-- Historial de Registros -->
-            <div id="module-history" class="mt-6">
+            <div id="module-history" class="mt-6" style="clear: both;">
                 <!-- Contenido dinámico del historial -->
             </div>
         </div>
     </div>
 
-    <!-- Gráficas Resumen Pequeñas -->
-    <div id="small-charts-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
-        <!-- Residuos Diarios -->
-        <div class="bg-white rounded-lg shadow-sm p-3 border border-gray-200">
-            <h2 class="text-xs font-semibold text-green-600 mb-2 flex items-center justify-between">
-                <span class="flex items-center">
-                    <i class="fas fa-recycle text-green-600 mr-1 text-xs"></i>
-                    Peso de Residuos Registrados
-                </span>
-                <span id="residuos-trend" class="text-xs font-bold"></span>
-            </h2>
-            <div style="height: 80px;">
-                <canvas id="organicsByDateChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Pilas por Estado -->
-        <div class="bg-white rounded-lg shadow-sm p-3 border border-gray-200">
-            <h2 class="text-xs font-semibold text-green-600 mb-2 flex items-center justify-between">
-                <span class="flex items-center">
-                    <i class="fas fa-mountain text-cyan-600 mr-1 text-xs"></i>
-                    Estado de Pilas
-                </span>
-                <span id="pilas-trend" class="text-xs font-bold"></span>
-            </h2>
-            <div style="height: 80px;">
-                <canvas id="compostingByStatusChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Abonos por Tipo -->
-        <div class="bg-white rounded-lg shadow-sm p-3 border border-gray-200">
-            <h2 class="text-xs font-semibold text-green-600 mb-2 flex items-center justify-between">
-                <span class="flex items-center">
-                    <i class="fas fa-seedling text-yellow-600 mr-1 text-xs"></i>
-                    Producción de Abonos
-                </span>
-                <span id="abono-trend" class="text-xs font-bold"></span>
-            </h2>
-            <div style="height: 80px;">
-                <canvas id="fertilizersByTypeChart"></canvas>
-            </div>
-        </div>
-
-        <!-- Estado Maquinaria -->
-        <div class="bg-white rounded-lg shadow-sm p-3 border border-gray-200">
-            <h2 class="text-xs font-semibold text-green-600 mb-2 flex items-center justify-between">
-                <span class="flex items-center">
-                    <i class="fas fa-cogs text-purple-600 mr-1 text-xs"></i>
-                    Estado Maquinaria
-                </span>
-                <span id="maquinaria-trend" class="text-xs font-bold"></span>
-            </h2>
-            <div style="height: 80px;">
-                <canvas id="machineryStatusChart"></canvas>
-            </div>
-        </div>
-    </div>
 </div>
 
 <script>
@@ -279,7 +222,7 @@ function showModule(module) {
         'residuos': {
             title: '<i class="fas fa-recycle text-green-600 mr-2"></i>Historial de Residuos Orgánicos',
             pdf: 'residuos',
-            data: @json($organicData['by_type']),
+            data: @json($organicDataGeneral['by_type'] ?? []),
             records: @json($organicRecords)
         },
         'pilas': {
@@ -327,6 +270,7 @@ function showModule(module) {
 }
 
 let oldChartInstance = null;
+let dataTableInstance = null;
 
 // Cerrar módulo
 function closeModule() {
@@ -342,6 +286,10 @@ function closeModule() {
         oldChartInstance.destroy();
         oldChartInstance = null;
     }
+    if (dataTableInstance) {
+        dataTableInstance.destroy();
+        dataTableInstance = null;
+    }
     currentModule = '';
 }
 
@@ -355,7 +303,7 @@ function showModuleHistory(module, records) {
     }
     
     let html = '<div class="mt-6"><h3 class="text-lg font-bold text-gray-800 mb-4">Historial de Entradas</h3>';
-    html += '<div class="overflow-x-auto"><table class="min-w-full divide-y divide-gray-200">';
+    html += '<div class="overflow-x-auto"><table id="history-table" class="min-w-full divide-y divide-gray-200">';
     
     if (module === 'residuos') {
         html += '<thead class="bg-gray-50"><tr><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Peso (Kg)</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Creado por</th></tr></thead>';
@@ -404,6 +352,45 @@ function showModuleHistory(module, records) {
     
     html += '</tbody></table></div></div>';
     historyContainer.innerHTML = html;
+    
+    // Destruir DataTable anterior si existe
+    if (dataTableInstance) {
+        dataTableInstance.destroy();
+        dataTableInstance = null;
+    }
+    
+    // Inicializar DataTable con 5 registros por página
+    setTimeout(() => {
+        dataTableInstance = $('#history-table').DataTable({
+            pageLength: 5,
+            lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Todos"]],
+            dom: 'lrtip', // l = length, r = processing, t = table, i = info, p = pagination (sin f = filter/búsqueda)
+            language: {
+                "sProcessing": "Procesando...",
+                "sLengthMenu": "Mostrar _MENU_ registros",
+                "sZeroRecords": "No se encontraron resultados",
+                "sEmptyTable": "Ningún dato disponible en esta tabla",
+                "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
+                "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
+                "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
+                "sInfoPostFix": "",
+                "sUrl": "",
+                "sInfoThousands": ",",
+                "sLoadingRecords": "Cargando...",
+                "oPaginate": {
+                    "sFirst": "Primero",
+                    "sLast": "Último",
+                    "sNext": "Siguiente",
+                    "sPrevious": "Anterior"
+                },
+                "oAria": {
+                    "sSortAscending": ": Activar para ordenar la columna de manera ascendente",
+                    "sSortDescending": ": Activar para ordenar la columna de manera descendente"
+                }
+            },
+            order: [[0, 'desc']] // Ordenar por primera columna (fecha) descendente
+        });
+    }, 100);
 }
 
 // Descargar PDF
@@ -443,7 +430,7 @@ function createExpandedChart(canvasId, data, module) {
     let labels, values, chartType, datasets;
     
     if (module === 'residuos') {
-        // Para residuos, mostrar por tipo con sus nombres en español
+        // Para residuos, mostrar por tipo con sus nombres en español - solo peso
         const typeMap = {
             'Kitchen': 'Cocina',
             'Beds': 'Camas',
@@ -454,23 +441,35 @@ function createExpandedChart(canvasId, data, module) {
             'Other': 'Otro'
         };
         
-        labels = Object.keys(data).map(key => typeMap[key] || key);
-        values = Object.values(data).map(item => item.count || item);
+        // Asegurar que todos los tipos estén presentes (incluso si no tienen datos)
+        const allTypes = Object.keys(typeMap);
+        const dataMap = {};
+        Object.keys(data).forEach(key => {
+            dataMap[key] = data[key];
+        });
+        
+        // Crear arrays ordenados con todos los tipos
+        labels = [];
+        const weights = [];
+        
+        allTypes.forEach(type => {
+            labels.push(typeMap[type]);
+            if (dataMap[type] && dataMap[type].weight !== undefined) {
+                weights.push(dataMap[type].weight);
+            } else {
+                weights.push(0);
+            }
+        });
+        
         chartType = 'bar';
         
+        // Solo una barra con el peso
         datasets = [{
-            label: 'Cantidad de Registros',
-            data: values,
-            borderColor: colors.successBorder,
-            backgroundColor: colors.success,
-            borderWidth: 2
-        }, {
             label: 'Peso Total (Kg)',
-            data: Object.values(data).map(item => item.weight || 0),
+            data: weights,
             borderColor: colors.infoBorder,
             backgroundColor: colors.info,
-            borderWidth: 2,
-            yAxisID: 'y1'
+            borderWidth: 2
         }];
     } else {
         labels = Object.keys(data);
@@ -505,21 +504,9 @@ function createExpandedChart(canvasId, data, module) {
                     beginAtZero: true,
                     title: {
                         display: true,
-                        text: module === 'residuos' ? 'Cantidad de Registros' : 'Cantidad'
+                        text: module === 'residuos' ? 'Peso (Kg)' : 'Cantidad'
                     }
                 },
-                y1: module === 'residuos' ? {
-                    type: 'linear',
-                    position: 'right',
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Peso (Kg)'
-                    },
-                    grid: {
-                        drawOnChartArea: false
-                    }
-                } : undefined,
                 x: {
                     title: {
                         display: true,
@@ -536,144 +523,89 @@ function createExpandedChart(canvasId, data, module) {
         }
     };
     
-    // Remover y1 si no es residuos
-    if (module !== 'residuos' && chartConfig.options.scales.y1) {
-        delete chartConfig.options.scales.y1;
-    }
     
     oldChartInstance = new Chart(ctx, chartConfig);
 }
 
-// Gráficas pequeñas
-const organicsByDateData = @json($organicData['by_date']);
-const organicsByDateLabels = Object.keys(organicsByDateData);
-const organicsByDateValues = Object.values(organicsByDateData);
-const residuosTrend = calculateTrend(organicsByDateData);
-document.getElementById('residuos-trend').innerHTML = 
-    residuosTrend.direction === 'up' ? `<span class="text-green-600">↑ ${residuosTrend.percent}%</span>` :
-    residuosTrend.direction === 'down' ? `<span class="text-red-600">↓ ${residuosTrend.percent}%</span>` :
-    `<span class="text-gray-600">→ 0%</span>`;
-
-new Chart(document.getElementById('organicsByDateChart'), {
-    type: 'line',
-    data: {
-        labels: organicsByDateLabels,
-        datasets: [{
-            label: 'Peso (Kg)',
-            data: organicsByDateValues,
-            borderColor: colors.successBorder,
-            backgroundColor: colors.success,
-            borderWidth: 2,
-            fill: true,
-            tension: 0.4,
-            pointRadius: 2
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: { beginAtZero: true, display: false },
-            x: { display: false }
-        },
-        plugins: { legend: { display: false } }
-    }
-});
-
-const compostingByStatusData = @json($compostingData['by_status']);
-const pilasTrend = { percent: ((compostingByStatusData.completed / (compostingByStatusData.active + compostingByStatusData.completed || 1)) * 100).toFixed(1), direction: 'up' };
-document.getElementById('pilas-trend').innerHTML = `<span class="text-cyan-600">${pilasTrend.percent}% completadas</span>`;
-
-new Chart(document.getElementById('compostingByStatusChart'), {
-    type: 'line',
-    data: {
-        labels: ['Activas', 'Completadas'],
-        datasets: [{
-            label: 'Pilas',
-            data: [compostingByStatusData.active, compostingByStatusData.completed],
-            borderColor: colors.infoBorder,
-            backgroundColor: colors.info,
-            borderWidth: 2,
-            fill: true,
-            tension: 0.4,
-            pointRadius: 3
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: { beginAtZero: true, display: false },
-            x: { display: false }
-        },
-        plugins: { legend: { display: false } }
-    }
-});
-
-const fertilizersByTypeData = @json($fertilizerData['by_type']);
-const fertilizersByTypeLabels = Object.keys(fertilizersByTypeData).map(type => type === 'Liquid' ? 'Líquido' : 'Sólido');
-const fertilizersByTypeCounts = Object.values(fertilizersByTypeData).map(item => item.count);
-const abonoTrend = calculateTrend(fertilizersByTypeData);
-document.getElementById('abono-trend').innerHTML = 
-    abonoTrend.direction === 'up' ? `<span class="text-yellow-600">↑ ${abonoTrend.percent}%</span>` :
-    abonoTrend.direction === 'down' ? `<span class="text-red-600">↓ ${abonoTrend.percent}%</span>` :
-    `<span class="text-gray-600">→ 0%</span>`;
-
-new Chart(document.getElementById('fertilizersByTypeChart'), {
-    type: 'line',
-    data: {
-        labels: fertilizersByTypeLabels,
-        datasets: [{
-            label: 'Abonos',
-            data: fertilizersByTypeCounts,
-            borderColor: colors.warningBorder,
-            backgroundColor: colors.warning,
-            borderWidth: 2,
-            fill: true,
-            tension: 0.4,
-            pointRadius: 3
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: { beginAtZero: true, display: false },
-            x: { display: false }
-        },
-        plugins: { legend: { display: false } }
-    }
-});
-
-const machineryStatusData = @json($machineryData['by_status']);
-const maquinariaTrend = { percent: ((machineryStatusData['Operativa'] || 0) / (Object.values(machineryStatusData).reduce((a, b) => a + b, 0) || 1) * 100).toFixed(1), direction: 'up' };
-document.getElementById('maquinaria-trend').innerHTML = `<span class="text-purple-600">${maquinariaTrend.percent}% operativa</span>`;
-
-new Chart(document.getElementById('machineryStatusChart'), {
-    type: 'line',
-    data: {
-        labels: Object.keys(machineryStatusData),
-        datasets: [{
-            label: 'Maquinaria',
-            data: Object.values(machineryStatusData),
-            borderColor: colors.orangeBorder,
-            backgroundColor: colors.orange,
-            borderWidth: 2,
-            fill: true,
-            tension: 0.4,
-            pointRadius: 3
-        }]
-    },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: { beginAtZero: true, display: false },
-            x: { display: false }
-        },
-        plugins: { legend: { display: false } }
-    }
+// Mostrar residuos por defecto al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    showModule('residuos');
 });
 </script>
+
+<style>
+/* Estilos para DataTables */
+.dataTables_wrapper {
+    position: relative;
+    clear: both;
+    width: 100%;
+}
+
+.dataTables_wrapper .dataTables_length {
+    float: left;
+    margin-bottom: 1.5rem;
+    padding: 0.5rem 0;
+    clear: both;
+}
+
+.dataTables_wrapper .dataTables_length label {
+    font-weight: 500;
+    color: #374151;
+    margin: 0;
+    display: inline-block;
+}
+
+.dataTables_wrapper .dataTables_length label select {
+    display: inline-block;
+    margin: 0 0.5rem;
+    padding: 0.5rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    font-size: 0.875rem;
+    min-width: 60px;
+    background-color: white;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: none;
+    padding-right: 0.5rem;
+}
+
+.dataTables_wrapper .dataTables_info {
+    padding: 0.75rem 0;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+    padding: 0.75rem 0;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 0.5rem 0.75rem;
+    margin: 0 0.25rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    background-color: white;
+    color: #374151;
+    cursor: pointer;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+    background-color: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background-color: #22c55e;
+    color: white;
+    border-color: #22c55e;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+</style>
 
 @endsection
