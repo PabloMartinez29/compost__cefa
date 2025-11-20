@@ -5,122 +5,142 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalles de Residuo Orgánico #{{ str_pad($organic->id, 3, '0', STR_PAD_LEFT) }}</title>
     <style>
+        @page {
+            margin: 10mm;
+        }
+        
         @media print {
             body { margin: 0; }
             .no-print { display: none !important; }
+            .header { page-break-after: avoid; }
+            .organic-card { page-break-inside: avoid; }
+            .details-grid { page-break-inside: avoid; }
+            .image-section { page-break-inside: avoid; }
         }
         
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             background-color: #ffffff;
+            font-size: 11px;
         }
         
         .header {
             text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
+            margin-bottom: 10px;
+            padding: 12px;
             background-color: #10b981;
             color: white;
+            page-break-after: avoid;
         }
         .header h1 {
             margin: 0;
-            font-size: 20px;
+            font-size: 16px;
             font-weight: bold;
         }
         .header p {
-            margin: 8px 0 0 0;
-            font-size: 14px;
+            margin: 4px 0 0 0;
+            font-size: 11px;
         }
         .organic-card {
             background: white;
-            padding: 20px;
-            margin-bottom: 20px;
+            padding: 12px;
+            margin-bottom: 10px;
             border: 1px solid #e5e7eb;
+            page-break-inside: avoid;
         }
         .organic-info {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
         .organic-id {
-            font-size: 18px;
+            font-size: 14px;
             font-weight: bold;
             color: #1f2937;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
         }
         .organic-type {
             display: inline-block;
-            padding: 6px 12px;
-            font-size: 12px;
+            padding: 4px 8px;
+            font-size: 10px;
             font-weight: bold;
             text-transform: uppercase;
             background-color: #dbeafe;
             color: #2563eb;
-            border-radius: 5px;
+            border-radius: 4px;
         }
         .details-grid {
             display: table;
             width: 100%;
-            margin-top: 20px;
+            margin-top: 10px;
+            page-break-inside: avoid;
         }
         .detail-section {
             display: table-cell;
             width: 50%;
             background: #f9fafb;
-            padding: 15px;
-            border-left: 4px solid #10b981;
+            padding: 10px;
+            border-left: 3px solid #10b981;
             vertical-align: top;
         }
         .detail-section h3 {
             color: #10b981;
-            margin-bottom: 15px;
-            font-size: 14px;
+            margin-bottom: 8px;
+            font-size: 11px;
             font-weight: bold;
             text-transform: uppercase;
         }
         .detail-item {
-            margin-bottom: 10px;
+            margin-bottom: 6px;
         }
         .detail-label {
             font-weight: bold;
             color: #6b7280;
-            font-size: 12px;
+            font-size: 10px;
         }
         .detail-value {
             color: #1f2937;
-            font-size: 12px;
+            font-size: 10px;
         }
         .image-section {
             background: #f5f5f5;
-            padding: 15px;
-            margin-top: 20px;
+            padding: 8px;
+            margin-top: 10px;
             border: 1px solid #cccccc;
             text-align: center;
+            page-break-inside: avoid;
+        }
+        .image-section h3 {
+            color: #10b981;
+            margin-bottom: 8px;
+            font-size: 11px;
+            font-weight: bold;
         }
         .image-section img {
-            max-width: 100%;
-            max-height: 400px;
+            max-width: 120px;
+            max-height: 90px;
             border: 1px solid #e5e7eb;
-            border-radius: 8px;
+            border-radius: 4px;
             object-fit: contain;
             display: block;
             margin: 0 auto;
         }
         .footer {
-            margin-top: 30px;
+            margin-top: 10px;
             text-align: center;
             color: #6b7280;
-            font-size: 12px;
+            font-size: 9px;
             border-top: 1px solid #e5e7eb;
-            padding-top: 15px;
+            padding-top: 8px;
         }
         .date-info {
             background: #f5f5f5;
-            padding: 10px;
-            margin-bottom: 20px;
-            border-left: 4px solid #10b981;
+            padding: 6px;
+            margin-bottom: 10px;
+            border-left: 3px solid #10b981;
             text-align: center;
+            font-size: 9px;
         }
     </style>
 </head>
@@ -183,16 +203,16 @@
         </div>
 
         @if($organic->notes)
-        <div class="detail-section" style="width: 100%; margin-top: 15px;">
-            <h3>Notas</h3>
-            <p style="color: #1f2937; font-size: 12px;">{{ $organic->notes }}</p>
+        <div style="background: #f9fafb; padding: 8px; margin-top: 10px; border-left: 3px solid #10b981; width: 100%; display: block; page-break-inside: avoid;">
+            <h3 style="color: #10b981; margin-bottom: 6px; font-size: 11px; font-weight: bold; text-transform: uppercase;">Notas</h3>
+            <p style="color: #1f2937; font-size: 10px; margin: 0;">{{ $organic->notes }}</p>
         </div>
         @endif
 
         @if($organic->img && isset($imageBase64))
         <div class="image-section">
-            <h3 style="color: #10b981; margin-bottom: 15px; font-size: 14px; font-weight: bold;">Imagen del Residuo</h3>
-            <img src="{{ $imageBase64 }}" alt="Imagen del residuo orgánico" style="max-width: 100%; max-height: 400px; object-fit: contain; border-radius: 8px;">
+            <h3>Imagen del Residuo</h3>
+            <img src="{{ $imageBase64 }}" alt="Imagen del residuo orgánico">
         </div>
         @endif
     </div>

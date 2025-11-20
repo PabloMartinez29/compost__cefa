@@ -380,7 +380,7 @@
                                     ->where('type', 'delete_request')
                                     ->whereIn('status', ['approved', 'rejected'])
                                     ->whereNull('read_at')
-                                    ->with(['organic', 'composting'])
+                                    ->with(['organic', 'composting', 'machinery', 'maintenance', 'supplier', 'usageControl'])
                                     ->orderBy('created_at', 'desc')
                                     ->get();
                             @endphp
@@ -398,8 +398,18 @@
                                             <p class="text-xs text-soft-gray-600 mt-1">
                                                 @if($notification->composting_id)
                                                     Pila de compostaje #{{ $notification->composting->formatted_pile_num ?? 'N/A' }}
-                                                @else
+                                                @elseif($notification->machinery_id)
+                                                    Maquinaria: {{ $notification->machinery->name ?? 'N/A' }}
+                                                @elseif($notification->maintenance_id)
+                                                    Control de actividades #{{ str_pad($notification->maintenance_id, 3, '0', STR_PAD_LEFT) }}
+                                                @elseif($notification->supplier_id)
+                                                    Proveedor #{{ str_pad($notification->supplier_id, 3, '0', STR_PAD_LEFT) }}
+                                                @elseif($notification->usage_control_id)
+                                                    Control de uso del equipo #{{ str_pad($notification->usage_control_id, 3, '0', STR_PAD_LEFT) }}
+                                                @elseif($notification->organic_id)
                                                     Registro #{{ str_pad($notification->organic_id, 3, '0', STR_PAD_LEFT) }}
+                                                @else
+                                                    {{ $notification->message }}
                                                 @endif
                                             </p>
                                             <p class="text-xs text-soft-gray-500 mt-1">
@@ -416,7 +426,27 @@
                                                            class="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors">
                                                             Ver registros
                                                         </a>
-                                                    @else
+                                                    @elseif($notification->machinery_id)
+                                                        <a href="{{ route('aprendiz.machinery.index') }}" 
+                                                           class="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors">
+                                                            Ver registros
+                                                        </a>
+                                                    @elseif($notification->maintenance_id)
+                                                        <a href="{{ route('aprendiz.machinery.maintenance.index') }}" 
+                                                           class="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors">
+                                                            Ver registros
+                                                        </a>
+                                                    @elseif($notification->supplier_id)
+                                                        <a href="{{ route('aprendiz.machinery.supplier.index') }}" 
+                                                           class="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors">
+                                                            Ver registros
+                                                        </a>
+                                                    @elseif($notification->usage_control_id)
+                                                        <a href="{{ route('aprendiz.machinery.usage-control.index') }}" 
+                                                           class="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors">
+                                                            Ver registros
+                                                        </a>
+                                                    @elseif($notification->organic_id)
                                                         <a href="{{ route('aprendiz.organic.index') }}" 
                                                            class="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors">
                                                             Ver registros

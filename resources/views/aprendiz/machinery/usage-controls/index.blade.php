@@ -86,46 +86,54 @@
     </div>
 
     <!-- Main Content -->
-    <div class="waste-container animate-fade-in-up animate-delay-2">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-bold text-gray-800 flex items-center">
-                <i class="fas fa-table text-green-600 mr-2"></i>
-                Registros de Uso del Equipo
-            </h2>
-            <div class="flex items-center space-x-4">
-                <a href="{{ route('aprendiz.machinery.usage-control.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
-                    <i class="fas fa-file-pdf"></i>
-                </a>
-                <a href="{{ route('aprendiz.machinery.usage-control.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
-                    <i class="fas fa-plus mr-2"></i>
-                    Nuevo Registro
-                </a>
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <!-- Table Header -->
+        <div class="p-6 border-b border-gray-200 bg-gray-50">
+            <!-- Primera fila: Título y botones -->
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-clipboard-check text-green-600 mr-2"></i>
+                    Registros de Uso del Equipo
+                </h2>
+                <div class="flex items-center space-x-4">
+                    @if($usageControls->count() > 0)
+                        <a href="{{ route('aprendiz.machinery.usage-control.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                            <i class="fas fa-file-pdf"></i>
+                        </a>
+                    @endif
+                    <a href="{{ route('aprendiz.machinery.usage-control.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                        <i class="fas fa-plus mr-2"></i>
+                        Nuevo Registro
+                    </a>
+                </div>
             </div>
         </div>
 
-        <div class="overflow-x-auto">
-            <!-- DataTables agregará los controles y la tabla aquí -->
-            <div id="usageControlsTable_wrapper" class="p-6">
-                <!-- Contenedor para controles superiores -->
-                <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
-                    <div id="dt-length-container" style="float: left;"></div>
-                    <div id="dt-filter-container" style="float: right;"></div>
-                </div>
-                <table id="usageControlsTable" class="waste-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Imagen</th>
-                            <th>Maquinaria</th>
-                            <th>Fecha/Hora Inicio</th>
-                            <th>Fecha/Hora Fin</th>
-                            <th>Total Horas</th>
-                            <th>Responsable</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($usageControls as $usageControl)
+        @if($usageControls->count() > 0)
+            <!-- Tabla de controles de uso -->
+            <div class="overflow-x-auto">
+                <!-- DataTables agregará los controles y la tabla aquí -->
+                <div id="usageControlsTable_wrapper" class="p-6">
+                    <!-- Contenedor para controles superiores -->
+                    <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
+                        <div id="dt-length-container" style="float: left;"></div>
+                        <div id="dt-filter-container" style="float: right;"></div>
+                    </div>
+                    <table id="usageControlsTable" class="waste-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Imagen</th>
+                                <th>Maquinaria</th>
+                                <th>Fecha/Hora Inicio</th>
+                                <th>Fecha/Hora Fin</th>
+                                <th>Total Horas</th>
+                                <th>Responsable</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($usageControls as $usageControl)
                             <tr>
                                 <td class="font-mono">#{{ str_pad($usageControl->id, 3, '0', STR_PAD_LEFT) }}</td>
                                 <td>
@@ -167,30 +175,55 @@
                                            title="Descargar PDF">
                                             <i class="fas fa-file-pdf"></i>
                                         </a>
-                                        <form action="{{ route('aprendiz.machinery.usage-control.destroy', $usageControl) }}" 
-                                              method="POST" class="inline" 
-                                              onsubmit="return confirmDelete(event, this)">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="inline-flex items-center text-red-500 hover:text-red-700" title="Eliminar">
+                                        
+                                        @php
+                                            $isApproved = isset($approvedUsageControlIds) && in_array($usageControl->id, $approvedUsageControlIds);
+                                            $isPending = isset($pendingUsageControlIds) && in_array($usageControl->id, $pendingUsageControlIds);
+                                            $isRejected = isset($rejectedUsageControlIds) && in_array($usageControl->id, $rejectedUsageControlIds);
+                                        @endphp
+
+                                        @if($isRejected)
+                                            <button type="button" class="inline-flex items-center text-red-600 hover:text-red-800" title="Solicitud rechazada"
+                                                onclick="showRejectedAlert({{ $usageControl->id }})">
+                                                <i class="fas fa-ban text-lg"></i>
+                                            </button>
+                                        @elseif($isApproved)
+                                            <form id="delete-form-{{ $usageControl->id }}" action="{{ route('aprendiz.machinery.usage-control.destroy', $usageControl) }}" method="POST" class="inline-flex items-center" style="margin: 0; padding: 0; margin-left: 0.5rem;">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="button" class="inline-flex items-center text-red-500 hover:text-red-700" title="Eliminar"
+                                                    onclick="confirmDelete('delete-form-{{ $usageControl->id }}')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        @elseif($isPending)
+                                            <button type="button" class="inline-flex items-center text-yellow-500 cursor-default" title="Permiso pendiente de aprobación">
+                                                <i class="fas fa-hourglass-half"></i>
+                                            </button>
+                                        @else
+                                            <button id="deleteBtn{{ $usageControl->id }}" onclick="requestDeletePermission({{ $usageControl->id }})" 
+                                               class="inline-flex items-center text-red-500 hover:text-red-700" title="Solicitar Eliminación">
                                                 <i class="fas fa-trash"></i>
                                             </button>
-                                        </form>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="8" class="text-center py-8 text-gray-500">
-                                    <i class="fas fa-inbox text-4xl mb-4 block"></i>
-                                    No se encontraron registros de uso del equipo
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
+        @else
+            <!-- Estado vacío -->
+            <div class="text-center py-12">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                    <i class="fas fa-clipboard-check text-2xl text-gray-400"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No hay registros de uso del equipo</h3>
+                <p class="text-gray-600">Comienza registrando tu primer control de uso en el sistema.</p>
+            </div>
+        @endif
     </div>
 </div>
 
@@ -417,9 +450,7 @@ function confirmEdit(usageControlId) {
 }
 
 // Función para confirmar eliminación con SweetAlert2
-function confirmDelete(event, form) {
-    event.preventDefault();
-    
+function confirmDelete(formId) {
     Swal.fire({
         title: '¿Estás seguro?',
         text: '¿Quieres eliminar este registro de uso del equipo?',
@@ -439,7 +470,6 @@ function confirmDelete(event, form) {
         }
     }).then((result) => {
         if (result.isConfirmed) {
-            // Mostrar loading
             Swal.fire({
                 title: 'Eliminando...',
                 text: 'Por favor espera',
@@ -451,12 +481,47 @@ function confirmDelete(event, form) {
                 }
             });
             
-            // Enviar formulario
+            document.getElementById(formId).submit();
+        }
+    });
+}
+
+function showRejectedAlert(usageControlId) {
+    Swal.fire({
+        title: 'Solicitud rechazada',
+        text: 'Esta solicitud de eliminación ha sido rechazada por el administrador. No puede eliminar este registro.',
+        icon: 'error',
+        confirmButtonColor: '#dc2626',
+        confirmButtonText: 'Entendido'
+    });
+}
+
+function requestDeletePermission(usageControlId) {
+    Swal.fire({
+        title: 'Solicitar permiso',
+        text: '¿Desea solicitar permiso al administrador para eliminar este registro?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Sí, solicitar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/aprendiz/machinery/usage-control/${usageControlId}/request-delete`;
+            
+            const tokenField = document.createElement('input');
+            tokenField.type = 'hidden';
+            tokenField.name = '_token';
+            tokenField.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            form.appendChild(tokenField);
+            document.body.appendChild(form);
             form.submit();
         }
     });
-    
-    return false;
 }
 
 // Mostrar mensaje de éxito si existe
@@ -500,9 +565,17 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
+    // Verificar que la tabla exista y que haya registros
     const tableElement = document.querySelector('#usageControlsTable');
     if (!tableElement) {
-        console.error('No se encontró la tabla con id #usageControlsTable');
+        console.log('No hay tabla para inicializar DataTables (no hay registros)');
+        return;
+    }
+    
+    // Verificar que haya filas de datos (no solo el thead)
+    const tbody = tableElement.querySelector('tbody');
+    if (!tbody || tbody.children.length === 0) {
+        console.log('No hay registros para mostrar en DataTables');
         return;
     }
     

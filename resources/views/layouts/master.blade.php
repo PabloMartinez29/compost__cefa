@@ -431,7 +431,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                @else
+                                @elseif($notification->type === 'delete_request')
                                     <!-- Notificación de Solicitud de Eliminación -->
                                     <div class="px-4 py-3 hover:bg-soft-gray-50 border-b border-soft-gray-100 last:border-b-0">
                                         <div class="flex items-start space-x-3">
@@ -440,13 +440,23 @@
                                             </div>
                                             <div class="flex-1 min-w-0">
                                                 <p class="text-sm font-medium text-soft-gray-800">
-                                                    {{ $notification->fromUser->name }}
+                                                    {{ $notification->fromUser->name ?? 'Usuario desconocido' }}
                                                 </p>
                                                 <p class="text-xs text-soft-gray-600 mt-1">
                                                     @if($notification->composting_id)
                                                         Solicita eliminar pila de compostaje #{{ $notification->composting->formatted_pile_num ?? 'N/A' }}
+                                                    @elseif($notification->organic_id)
+                                                        Solicita eliminar registro #{{ str_pad($notification->organic_id, 3, '0', STR_PAD_LEFT) }}
+                                                    @elseif($notification->machinery_id)
+                                                        Solicita eliminar maquinaria: {{ $notification->machinery->name ?? 'N/A' }}
+                                                    @elseif($notification->usage_control_id)
+                                                        Solicita eliminar control de uso del equipo #{{ str_pad($notification->usage_control_id, 3, '0', STR_PAD_LEFT) }}
+                                                    @elseif($notification->maintenance_id)
+                                                        Solicita eliminar control de actividades #{{ str_pad($notification->maintenance_id, 3, '0', STR_PAD_LEFT) }}
+                                                    @elseif($notification->supplier_id)
+                                                        Solicita eliminar proveedor #{{ str_pad($notification->supplier_id, 3, '0', STR_PAD_LEFT) }}
                                                     @else
-                                                    Solicita eliminar registro #{{ str_pad($notification->organic_id, 3, '0', STR_PAD_LEFT) }}
+                                                        {{ $notification->message }}
                                                     @endif
                                                 </p>
                                                 <p class="text-xs text-soft-gray-500 mt-1">

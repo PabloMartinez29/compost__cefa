@@ -13,6 +13,9 @@ class Notification extends Model
         'organic_id',
         'composting_id',
         'machinery_id',
+        'maintenance_id',
+        'supplier_id',
+        'usage_control_id',
         'type',
         'status',
         'message',
@@ -47,6 +50,21 @@ class Notification extends Model
     public function machinery(): BelongsTo
     {
         return $this->belongsTo(Machinery::class);
+    }
+
+    public function maintenance(): BelongsTo
+    {
+        return $this->belongsTo(Maintenance::class);
+    }
+
+    public function supplier(): BelongsTo
+    {
+        return $this->belongsTo(Supplier::class);
+    }
+
+    public function usageControl(): BelongsTo
+    {
+        return $this->belongsTo(UsageControl::class);
     }
 
     // Scopes

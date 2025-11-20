@@ -79,48 +79,54 @@
     </div>
 
     <!-- Main Content -->
-    <div class="waste-container animate-fade-in-up animate-delay-2">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-bold text-gray-800 flex items-center">
-                <i class="fas fa-table text-green-600 mr-2"></i>
-                Registros de Maquinaria
-            </h2>
-            <div class="flex items-center space-x-4">
-                <a href="{{ route('aprendiz.machinery.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
-                    <i class="fas fa-file-pdf"></i>
-                </a>
-                <a href="{{ route('aprendiz.machinery.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
-                    <i class="fas fa-plus mr-2"></i>
-                    Nuevo Registro
-                </a>
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <!-- Table Header -->
+        <div class="p-6 border-b border-gray-200 bg-gray-50">
+            <!-- Primera fila: Título y botones -->
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-cogs text-green-600 mr-2"></i>
+                    Registros de Maquinaria
+                </h2>
+                <div class="flex items-center space-x-4">
+                    @if($machineries->count() > 0)
+                        <a href="{{ route('aprendiz.machinery.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                            <i class="fas fa-file-pdf"></i>
+                        </a>
+                    @endif
+                    <a href="{{ route('aprendiz.machinery.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                        <i class="fas fa-plus mr-2"></i>
+                        Nuevo Registro
+                    </a>
+                </div>
             </div>
         </div>
 
-
-        <!-- Tabla de maquinaria -->
-        <div class="overflow-x-auto">
-            <!-- DataTables agregará los controles y la tabla aquí -->
-            <div id="machineriesTable_wrapper" class="p-6">
-                <!-- Contenedor para controles superiores -->
-                <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
-                    <div id="dt-length-container" style="float: left;"></div>
-                    <div id="dt-filter-container" style="float: right;"></div>
-                </div>
-                <table id="machineriesTable" class="waste-table">
-                    <thead>
-                        <tr>
-                            <th>Imagen</th>
-                            <th>Maquinaria</th>
-                            <th>Ubicación</th>
-                            <th>Marca/Modelo</th>
-                            <th>Serie</th>
-                            <th>Estado</th>
-                            <th>Mantenimiento</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($machineries as $machinery)
+        @if($machineries->count() > 0)
+            <!-- Tabla de maquinaria -->
+            <div class="overflow-x-auto">
+                <!-- DataTables agregará los controles y la tabla aquí -->
+                <div id="machineriesTable_wrapper" class="p-6">
+                    <!-- Contenedor para controles superiores -->
+                    <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
+                        <div id="dt-length-container" style="float: left;"></div>
+                        <div id="dt-filter-container" style="float: right;"></div>
+                    </div>
+                    <table id="machineriesTable" class="waste-table">
+                        <thead>
+                            <tr>
+                                <th>Imagen</th>
+                                <th>Maquinaria</th>
+                                <th>Ubicación</th>
+                                <th>Marca/Modelo</th>
+                                <th>Serie</th>
+                                <th>Estado</th>
+                                <th>Mantenimiento</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($machineries as $machinery)
                             <tr>
                                 <td class="text-center align-middle">
                                     @if($machinery->image)
@@ -200,47 +206,53 @@
                                            title="Descargar PDF">
                                             <i class="fas fa-file-pdf"></i>
                                         </a>
-                                        <form action="{{ route('aprendiz.machinery.destroy', $machinery) }}" 
-                                              method="POST" 
-                                              class="inline"
-                                              onsubmit="return confirmDelete(event, this)">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" 
-                                                    class="text-red-600 hover:text-red-900 p-1.5 rounded-lg hover:bg-red-50 transition-colors"
-                                                    title="Eliminar">
+                                        
+                                        @php
+                                            $isApproved = isset($approvedMachineryIds) && in_array($machinery->id, $approvedMachineryIds);
+                                            $isPending = isset($pendingMachineryIds) && in_array($machinery->id, $pendingMachineryIds);
+                                            $isRejected = isset($rejectedMachineryIds) && in_array($machinery->id, $rejectedMachineryIds);
+                                        @endphp
+
+                                        @if($isRejected)
+                                            <button type="button" class="inline-flex items-center text-red-600 hover:text-red-800 p-1.5 rounded-lg hover:bg-red-50 transition-colors" title="Solicitud rechazada"
+                                                onclick="showRejectedAlert({{ $machinery->id }})">
+                                                <i class="fas fa-ban text-lg"></i>
+                                            </button>
+                                        @elseif($isApproved)
+                                            <form id="delete-form-{{ $machinery->id }}" action="{{ route('aprendiz.machinery.destroy', $machinery) }}" method="POST" class="inline-flex items-center" style="margin: 0; padding: 0; margin-left: 0.5rem;">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="button" class="inline-flex items-center text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 transition-colors" title="Eliminar"
+                                                    onclick="confirmDelete('delete-form-{{ $machinery->id }}')">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        @elseif($isPending)
+                                            <button type="button" class="inline-flex items-center text-yellow-500 cursor-default p-1.5 rounded-lg" title="Permiso pendiente de aprobación">
+                                                <i class="fas fa-hourglass-half"></i>
+                                            </button>
+                                        @else
+                                            <button id="deleteBtn{{ $machinery->id }}" onclick="requestDeletePermission({{ $machinery->id }})" 
+                                               class="inline-flex items-center text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 transition-colors" title="Solicitar Eliminación">
                                                 <i class="fas fa-trash"></i>
                                             </button>
-                                        </form>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="8" class="text-center py-8 text-gray-500">
-                                    <i class="fas fa-inbox text-4xl mb-4 block"></i>
-                                    No hay maquinaria registrada
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
-        
-        @if($machineries->count() === 0)
+        @else
             <!-- Estado vacío -->
             <div class="text-center py-12">
                 <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
                     <i class="fas fa-cogs text-2xl text-gray-400"></i>
                 </div>
                 <h3 class="text-lg font-medium text-gray-900 mb-2">No hay maquinaria registrada</h3>
-                <p class="text-gray-600 mb-6">Comienza registrando tu primera maquinaria en el sistema.</p>
-                <a href="{{ route('aprendiz.machinery.create') }}" 
-                   class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 inline-flex items-center shadow-sm">
-                    <i class="fas fa-plus mr-2"></i>
-                    Registrar Primera Maquinaria
-                </a>
+                <p class="text-gray-600">Comienza registrando tu primera maquinaria en el sistema.</p>
             </div>
         @endif
     </div>
@@ -396,9 +408,7 @@
     }
 
     // Función para confirmar eliminación con SweetAlert2
-    function confirmDelete(event, form) {
-        event.preventDefault();
-        
+    function confirmDelete(formId) {
         Swal.fire({
             title: '¿Estás seguro?',
             text: '¿Quieres eliminar este registro de maquinaria?',
@@ -431,11 +441,48 @@
                 });
                 
                 // Enviar formulario
+                document.getElementById(formId).submit();
+            }
+        });
+    }
+
+    function showRejectedAlert(machineryId) {
+        Swal.fire({
+            title: 'Solicitud rechazada',
+            text: 'Esta solicitud de eliminación ha sido rechazada por el administrador. No puede eliminar este registro.',
+            icon: 'error',
+            confirmButtonColor: '#dc2626',
+            confirmButtonText: 'Entendido'
+        });
+    }
+
+    function requestDeletePermission(machineryId) {
+        Swal.fire({
+            title: 'Solicitar permiso',
+            text: '¿Desea solicitar permiso al administrador para eliminar esta maquinaria?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Sí, solicitar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Crear formulario para solicitar permiso
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/aprendiz/machinery/machineries/${machineryId}/request-delete`;
+                
+                const tokenField = document.createElement('input');
+                tokenField.type = 'hidden';
+                tokenField.name = '_token';
+                tokenField.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+                
+                form.appendChild(tokenField);
+                document.body.appendChild(form);
                 form.submit();
             }
         });
-        
-        return false;
     }
     
     // Función para previsualizar imagen en el modal de edición
@@ -518,10 +565,17 @@
             return;
         }
         
-        // Verificar que la tabla exista
+        // Verificar que la tabla exista y que haya registros
         const tableElement = document.querySelector('#machineriesTable');
         if (!tableElement) {
-            console.error('No se encontró la tabla con id #machineriesTable');
+            console.log('No hay tabla para inicializar DataTables (no hay registros)');
+            return;
+        }
+        
+        // Verificar que haya filas de datos (no solo el thead)
+        const tbody = tableElement.querySelector('tbody');
+        if (!tbody || tbody.children.length === 0) {
+            console.log('No hay registros para mostrar en DataTables');
             return;
         }
         

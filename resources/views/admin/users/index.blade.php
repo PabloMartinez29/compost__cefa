@@ -117,9 +117,11 @@ Swal.fire({
                     Lista de Usuarios
                 </h2>
                 <div class="flex items-center space-x-4">
-                    <a href="{{ route('admin.users.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
-                        <i class="fas fa-file-pdf"></i>
-                    </a>
+                    @if($users->count() > 0)
+                        <a href="{{ route('admin.users.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                            <i class="fas fa-file-pdf"></i>
+                        </a>
+                    @endif
                     <a href="{{ route('admin.users.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
                         <i class="fas fa-plus mr-2"></i>
                         Nuevo Usuario
@@ -128,26 +130,27 @@ Swal.fire({
             </div>
         </div>
         
-        <!-- DataTables agregará los controles y la tabla aquí -->
-        <div id="usersTable_wrapper" class="p-6">
-            <!-- Contenedor para controles superiores -->
-            <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
-                <div id="dt-length-container" style="float: left;"></div>
-                <div id="dt-filter-container" style="float: right;"></div>
-            </div>
-            <table id="usersTable" class="waste-table">
-                <thead>
-                    <tr>
-                        <th>Identificación</th>
-                        <th>Usuario</th>
-                        <th>Email</th>
-                        <th>Rol</th>
-                        <th>Fecha Registro</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($users as $user)
+        @if($users->count() > 0)
+            <!-- DataTables agregará los controles y la tabla aquí -->
+            <div id="usersTable_wrapper" class="p-6">
+                <!-- Contenedor para controles superiores -->
+                <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
+                    <div id="dt-length-container" style="float: left;"></div>
+                    <div id="dt-filter-container" style="float: right;"></div>
+                </div>
+                <table id="usersTable" class="waste-table">
+                    <thead>
+                        <tr>
+                            <th>Identificación</th>
+                            <th>Usuario</th>
+                            <th>Email</th>
+                            <th>Rol</th>
+                            <th>Fecha Registro</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($users as $user)
                     <tr>
                         <td class="font-mono">{{ $user->identification ?? 'ID' . str_pad($user->id, 6, '0', STR_PAD_LEFT) }}</td>
                         <td>
@@ -204,10 +207,20 @@ Swal.fire({
                             </div>
                         </td>
                     </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @else
+            <!-- Estado vacío -->
+            <div class="text-center py-12">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                    <i class="fas fa-users text-2xl text-gray-400"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No hay usuarios registrados</h3>
+                <p class="text-gray-600">Comienza registrando tu primer usuario en el sistema.</p>
+            </div>
+        @endif
     </div>
 </div>
 
@@ -914,10 +927,17 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    // Verificar que la tabla exista
+    // Verificar que la tabla exista y que haya registros
     const tableElement = document.querySelector('#usersTable');
     if (!tableElement) {
-        console.error('No se encontró la tabla con id #usersTable');
+        console.log('No hay tabla para inicializar DataTables (no hay registros)');
+        return;
+    }
+    
+    // Verificar que haya filas de datos (no solo el thead)
+    const tbody = tableElement.querySelector('tbody');
+    if (!tbody || tbody.children.length === 0) {
+        console.log('No hay registros para mostrar en DataTables');
         return;
     }
     

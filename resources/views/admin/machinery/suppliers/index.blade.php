@@ -86,53 +86,61 @@
     </div>
 
     <!-- Main Content -->
-    <div class="waste-container animate-fade-in-up animate-delay-2">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-bold text-gray-800 flex items-center">
-                <i class="fas fa-table text-green-600 mr-2"></i>
-                Registros de Proveedores
-            </h2>
-            <div class="flex items-center space-x-4">
-                <a href="{{ route('admin.machinery.supplier.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
-                    <i class="fas fa-file-pdf"></i>
-                </a>
-                <a href="{{ route('admin.machinery.supplier.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
-                    <i class="fas fa-plus mr-2"></i>
-                    Nuevo Registro
-                </a>
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <!-- Table Header -->
+        <div class="p-6 border-b border-gray-200 bg-gray-50">
+            <!-- Primera fila: Título y botones -->
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-truck text-green-600 mr-2"></i>
+                    Registros de Proveedores
+                </h2>
+                <div class="flex items-center space-x-4">
+                    @if($suppliers->count() > 0)
+                        <a href="{{ route('admin.machinery.supplier.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                            <i class="fas fa-file-pdf"></i>
+                        </a>
+                    @endif
+                    <a href="{{ route('admin.machinery.supplier.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                        <i class="fas fa-plus mr-2"></i>
+                        Nuevo Registro
+                    </a>
+                </div>
             </div>
         </div>
 
         @if(session('success'))
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded m-6">
                 {{ session('success') }}
             </div>
         @endif
 
-        <div class="overflow-x-auto">
-            <!-- DataTables agregará los controles y la tabla aquí -->
-            <div id="suppliersTable_wrapper" class="p-6">
-                <!-- Contenedor para controles superiores -->
-                <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
-                    <div id="dt-length-container" style="float: left;"></div>
-                    <div id="dt-filter-container" style="float: right;"></div>
-                </div>
-                <table id="suppliersTable" class="waste-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Imagen</th>
-                            <th>Maquinaria</th>
-                            <th>Fabricante</th>
-                            <th>Proveedor</th>
-                            <th>Origen</th>
-                            <th>Fecha de Compra</th>
-                            <th>Contacto</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($suppliers as $supplier)
+        @if($suppliers->count() > 0)
+            <!-- Tabla de proveedores -->
+            <div class="overflow-x-auto">
+                <!-- DataTables agregará los controles y la tabla aquí -->
+                <div id="suppliersTable_wrapper" class="p-6">
+                    <!-- Contenedor para controles superiores -->
+                    <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
+                        <div id="dt-length-container" style="float: left;"></div>
+                        <div id="dt-filter-container" style="float: right;"></div>
+                    </div>
+                    <table id="suppliersTable" class="waste-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Imagen</th>
+                                <th>Maquinaria</th>
+                                <th>Fabricante</th>
+                                <th>Proveedor</th>
+                                <th>Origen</th>
+                                <th>Fecha de Compra</th>
+                                <th>Contacto</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($suppliers as $supplier)
                             <tr>
                                 <td class="font-mono">#{{ str_pad($supplier->id, 3, '0', STR_PAD_LEFT) }}</td>
                                 <td>
@@ -168,7 +176,7 @@
                                 <td>
                                     <div class="flex space-x-2 items-center">
                                         <button onclick="openViewModal({{ $supplier->id }})" 
-                                           class="inline-flex items-center text-blue-500 hover:text-blue-700" title="Ver Detalles">
+                                           class="inline-flex items-center text-blue-400 hover:text-blue-500" title="Ver Detalles">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                         <button onclick="confirmEdit({{ $supplier->id }})" 
@@ -176,7 +184,7 @@
                                             <i class="fas fa-edit"></i>
                                         </button>
                                         <a href="{{ route('admin.machinery.supplier.download.pdf', $supplier) }}" 
-                                           class="inline-flex items-center text-red-500 hover:text-red-700" 
+                                           class="inline-flex items-center text-red-800 hover:text-red-900" 
                                            title="Descargar PDF">
                                             <i class="fas fa-file-pdf"></i>
                                         </a>
@@ -192,18 +200,21 @@
                                     </div>
                                 </td>
                             </tr>
-                        @empty
-                            <tr>
-                                <td colspan="9" class="text-center py-8 text-gray-500">
-                                    <i class="fas fa-inbox text-4xl mb-4 block"></i>
-                                    No se encontraron registros de proveedores
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
+        @else
+            <!-- Estado vacío -->
+            <div class="text-center py-12">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                    <i class="fas fa-truck text-2xl text-gray-400"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No hay registros de proveedores</h3>
+                <p class="text-gray-600">Comienza registrando tu primer proveedor en el sistema.</p>
+            </div>
+        @endif
     </div>
 </div>
 
@@ -472,9 +483,17 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
+    // Verificar que la tabla exista y que haya registros
     const tableElement = document.querySelector('#suppliersTable');
     if (!tableElement) {
-        console.error('No se encontró la tabla con id #suppliersTable');
+        console.log('No hay tabla para inicializar DataTables (no hay registros)');
+        return;
+    }
+    
+    // Verificar que haya filas de datos (no solo el thead)
+    const tbody = tableElement.querySelector('tbody');
+    if (!tbody || tbody.children.length === 0) {
+        console.log('No hay registros para mostrar en DataTables');
         return;
     }
     

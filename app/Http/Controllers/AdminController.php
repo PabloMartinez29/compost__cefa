@@ -124,19 +124,62 @@ class AdminController extends Controller
             $composting = \App\Models\Composting::find($notification->composting_id);
             if ($composting) {
                 \App\Models\Notification::create([
-                    'user_id' => $notification->from_user_id, // El aprendiz que hizo la solicitud
-                    'from_user_id' => auth()->id(), // El administrador
+                    'user_id' => $notification->from_user_id,
+                    'from_user_id' => auth()->id(),
                     'composting_id' => $notification->composting_id,
                     'type' => 'delete_request',
                     'status' => 'approved',
                     'message' => 'Su solicitud de eliminación ha sido APROBADA. Ahora puede eliminar la pila de compostaje #' . $composting->formatted_pile_num
                 ]);
             }
-        } else {
-            // Es una notificación de residuos orgánicos (lógica existente)
+        } elseif ($notification->machinery_id) {
+            // Es una notificación de maquinaria
+            $machinery = \App\Models\Machinery::find($notification->machinery_id);
+            if ($machinery) {
+                \App\Models\Notification::create([
+                    'user_id' => $notification->from_user_id,
+                    'from_user_id' => auth()->id(),
+                    'machinery_id' => $notification->machinery_id,
+                    'type' => 'delete_request',
+                    'status' => 'approved',
+                    'message' => 'Su solicitud de eliminación ha sido APROBADA. Ahora puede eliminar la maquinaria: ' . $machinery->name
+                ]);
+            }
+        } elseif ($notification->maintenance_id) {
+            // Es una notificación de mantenimiento
             \App\Models\Notification::create([
-                'user_id' => $notification->from_user_id, // El aprendiz que hizo la solicitud
-                'from_user_id' => auth()->id(), // El administrador
+                'user_id' => $notification->from_user_id,
+                'from_user_id' => auth()->id(),
+                'maintenance_id' => $notification->maintenance_id,
+                'type' => 'delete_request',
+                'status' => 'approved',
+                'message' => 'Su solicitud de eliminación ha sido APROBADA. Ahora puede eliminar el control de actividades #' . str_pad($notification->maintenance_id, 3, '0', STR_PAD_LEFT)
+            ]);
+        } elseif ($notification->supplier_id) {
+            // Es una notificación de proveedor
+            \App\Models\Notification::create([
+                'user_id' => $notification->from_user_id,
+                'from_user_id' => auth()->id(),
+                'supplier_id' => $notification->supplier_id,
+                'type' => 'delete_request',
+                'status' => 'approved',
+                'message' => 'Su solicitud de eliminación ha sido APROBADA. Ahora puede eliminar el proveedor #' . str_pad($notification->supplier_id, 3, '0', STR_PAD_LEFT)
+            ]);
+        } elseif ($notification->usage_control_id) {
+            // Es una notificación de control de uso
+            \App\Models\Notification::create([
+                'user_id' => $notification->from_user_id,
+                'from_user_id' => auth()->id(),
+                'usage_control_id' => $notification->usage_control_id,
+                'type' => 'delete_request',
+                'status' => 'approved',
+                'message' => 'Su solicitud de eliminación ha sido APROBADA. Ahora puede eliminar el control de uso del equipo #' . str_pad($notification->usage_control_id, 3, '0', STR_PAD_LEFT)
+            ]);
+        } else {
+            // Es una notificación de residuos orgánicos
+            \App\Models\Notification::create([
+                'user_id' => $notification->from_user_id,
+                'from_user_id' => auth()->id(),
                 'organic_id' => $notification->organic_id,
                 'type' => 'delete_request',
                 'status' => 'approved',
@@ -163,19 +206,62 @@ class AdminController extends Controller
             $composting = \App\Models\Composting::find($notification->composting_id);
             if ($composting) {
                 \App\Models\Notification::create([
-                    'user_id' => $notification->from_user_id, // El aprendiz que hizo la solicitud
-                    'from_user_id' => auth()->id(), // El administrador
+                    'user_id' => $notification->from_user_id,
+                    'from_user_id' => auth()->id(),
                     'composting_id' => $notification->composting_id,
                     'type' => 'delete_request',
                     'status' => 'rejected',
                     'message' => 'Su solicitud de eliminación ha sido RECHAZADA. No puede eliminar la pila de compostaje #' . $composting->formatted_pile_num
                 ]);
             }
+        } elseif ($notification->machinery_id) {
+            // Es una notificación de maquinaria
+            $machinery = \App\Models\Machinery::find($notification->machinery_id);
+            if ($machinery) {
+                \App\Models\Notification::create([
+                    'user_id' => $notification->from_user_id,
+                    'from_user_id' => auth()->id(),
+                    'machinery_id' => $notification->machinery_id,
+                    'type' => 'delete_request',
+                    'status' => 'rejected',
+                    'message' => 'Su solicitud de eliminación ha sido RECHAZADA. No puede eliminar la maquinaria: ' . $machinery->name
+                ]);
+            }
+        } elseif ($notification->maintenance_id) {
+            // Es una notificación de mantenimiento
+            \App\Models\Notification::create([
+                'user_id' => $notification->from_user_id,
+                'from_user_id' => auth()->id(),
+                'maintenance_id' => $notification->maintenance_id,
+                'type' => 'delete_request',
+                'status' => 'rejected',
+                'message' => 'Su solicitud de eliminación ha sido RECHAZADA. No puede eliminar el control de actividades #' . str_pad($notification->maintenance_id, 3, '0', STR_PAD_LEFT)
+            ]);
+        } elseif ($notification->supplier_id) {
+            // Es una notificación de proveedor
+            \App\Models\Notification::create([
+                'user_id' => $notification->from_user_id,
+                'from_user_id' => auth()->id(),
+                'supplier_id' => $notification->supplier_id,
+                'type' => 'delete_request',
+                'status' => 'rejected',
+                'message' => 'Su solicitud de eliminación ha sido RECHAZADA. No puede eliminar el proveedor #' . str_pad($notification->supplier_id, 3, '0', STR_PAD_LEFT)
+            ]);
+        } elseif ($notification->usage_control_id) {
+            // Es una notificación de control de uso
+            \App\Models\Notification::create([
+                'user_id' => $notification->from_user_id,
+                'from_user_id' => auth()->id(),
+                'usage_control_id' => $notification->usage_control_id,
+                'type' => 'delete_request',
+                'status' => 'rejected',
+                'message' => 'Su solicitud de eliminación ha sido RECHAZADA. No puede eliminar el control de uso del equipo #' . str_pad($notification->usage_control_id, 3, '0', STR_PAD_LEFT)
+            ]);
         } else {
             // Es una notificación de residuos orgánicos
             \App\Models\Notification::create([
-                'user_id' => $notification->from_user_id, // El aprendiz que hizo la solicitud
-                'from_user_id' => auth()->id(), // El administrador
+                'user_id' => $notification->from_user_id,
+                'from_user_id' => auth()->id(),
                 'organic_id' => $notification->organic_id,
                 'type' => 'delete_request',
                 'status' => 'rejected',
@@ -193,7 +279,7 @@ class AdminController extends Controller
     {
         $notifications = Notification::where('user_id', auth()->id())
             ->whereIn('type', ['delete_request', 'maintenance_reminder'])
-            ->with(['fromUser', 'organic', 'composting', 'machinery'])
+            ->with(['fromUser', 'organic', 'composting', 'machinery', 'maintenance', 'supplier', 'usageControl'])
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 

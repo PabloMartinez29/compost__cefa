@@ -86,23 +86,31 @@
     </div>
 
     <!-- Main Content -->
-    <div class="waste-container animate-fade-in-up animate-delay-2">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-bold text-gray-800 flex items-center">
-                <i class="fas fa-table text-green-600 mr-2"></i>
-                Registros de Actividades
-            </h2>
-            <div class="flex items-center space-x-4">
-                <a href="{{ route('aprendiz.machinery.maintenance.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
-                    <i class="fas fa-file-pdf"></i>
-                </a>
-                <a href="{{ route('aprendiz.machinery.maintenance.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
-                    <i class="fas fa-plus mr-2"></i>
-                    Nuevo Registro
-                </a>
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <!-- Table Header -->
+        <div class="p-6 border-b border-gray-200 bg-gray-50">
+            <!-- Primera fila: Título y botones -->
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-wrench text-green-600 mr-2"></i>
+                    Registros de Actividades
+                </h2>
+                <div class="flex items-center space-x-4">
+                    @if($maintenances->count() > 0)
+                        <a href="{{ route('aprendiz.machinery.maintenance.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                            <i class="fas fa-file-pdf"></i>
+                        </a>
+                    @endif
+                    <a href="{{ route('aprendiz.machinery.maintenance.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                        <i class="fas fa-plus mr-2"></i>
+                        Nuevo Registro
+                    </a>
+                </div>
             </div>
         </div>
 
+        @if($maintenances->count() > 0)
+            <!-- Tabla de mantenimientos -->
             <div class="overflow-x-auto">
                 <!-- DataTables agregará los controles y la tabla aquí -->
                 <div id="maintenancesTable_wrapper" class="p-6">
@@ -122,10 +130,10 @@
                                 <th>Descripción</th>
                                 <th>Responsable</th>
                                 <th>Acciones</th>
-                        </tr>
-                    </thead>
+                            </tr>
+                        </thead>
                         <tbody>
-                            @forelse($maintenances as $maintenance)
+                            @foreach($maintenances as $maintenance)
                                 <tr>
                                     <td class="font-mono">#{{ str_pad($maintenance->id, 3, '0', STR_PAD_LEFT) }}</td>
                                     <td>
@@ -178,30 +186,55 @@
                                                title="Descargar PDF">
                                                 <i class="fas fa-file-pdf"></i>
                                             </a>
-                                            <form action="{{ route('aprendiz.machinery.maintenance.destroy', $maintenance) }}" 
-                                                  method="POST" class="inline" 
-                                                  onsubmit="return confirmDelete(event, this)">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="inline-flex items-center text-red-500 hover:text-red-700" title="Eliminar">
+                                            
+                                            @php
+                                                $isApproved = isset($approvedMaintenanceIds) && in_array($maintenance->id, $approvedMaintenanceIds);
+                                                $isPending = isset($pendingMaintenanceIds) && in_array($maintenance->id, $pendingMaintenanceIds);
+                                                $isRejected = isset($rejectedMaintenanceIds) && in_array($maintenance->id, $rejectedMaintenanceIds);
+                                            @endphp
+
+                                            @if($isRejected)
+                                                <button type="button" class="inline-flex items-center text-red-600 hover:text-red-800" title="Solicitud rechazada"
+                                                    onclick="showRejectedAlert({{ $maintenance->id }})">
+                                                    <i class="fas fa-ban text-lg"></i>
+                                                </button>
+                                            @elseif($isApproved)
+                                                <form id="delete-form-{{ $maintenance->id }}" action="{{ route('aprendiz.machinery.maintenance.destroy', $maintenance) }}" method="POST" class="inline-flex items-center" style="margin: 0; padding: 0; margin-left: 0.5rem;">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="button" class="inline-flex items-center text-red-500 hover:text-red-700" title="Eliminar"
+                                                        onclick="confirmDelete('delete-form-{{ $maintenance->id }}')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            @elseif($isPending)
+                                                <button type="button" class="inline-flex items-center text-yellow-500 cursor-default" title="Permiso pendiente de aprobación">
+                                                    <i class="fas fa-hourglass-half"></i>
+                                                </button>
+                                            @else
+                                                <button id="deleteBtn{{ $maintenance->id }}" onclick="requestDeletePermission({{ $maintenance->id }})" 
+                                                   class="inline-flex items-center text-red-500 hover:text-red-700" title="Solicitar Eliminación">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
-                                            </form>
+                                            @endif
                                     </div>
                                 </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="8" class="text-center py-8 text-gray-500">
-                                        <i class="fas fa-inbox text-4xl mb-4 block"></i>
-                                        No se encontraron registros de actividades
-                                </td>
                             </tr>
-                            @endforelse
-                    </tbody>
-                </table>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             </div>
+        @else
+            <!-- Estado vacío -->
+            <div class="text-center py-12">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                    <i class="fas fa-wrench text-2xl text-gray-400"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No hay registros de actividades</h3>
+                <p class="text-gray-600">Comienza registrando tu primera actividad en el sistema.</p>
+            </div>
+        @endif
     </div>
 </div>
 
@@ -377,9 +410,7 @@ function confirmEdit(maintenanceId) {
 }
 
 // Función para confirmar eliminación con SweetAlert2
-function confirmDelete(event, form) {
-    event.preventDefault();
-    
+function confirmDelete(formId) {
     Swal.fire({
         title: '¿Estás seguro?',
         text: '¿Quieres eliminar este registro de actividad?',
@@ -412,11 +443,47 @@ function confirmDelete(event, form) {
             });
             
             // Enviar formulario
+            document.getElementById(formId).submit();
+        }
+    });
+}
+
+function showRejectedAlert(maintenanceId) {
+    Swal.fire({
+        title: 'Solicitud rechazada',
+        text: 'Esta solicitud de eliminación ha sido rechazada por el administrador. No puede eliminar este registro.',
+        icon: 'error',
+        confirmButtonColor: '#dc2626',
+        confirmButtonText: 'Entendido'
+    });
+}
+
+function requestDeletePermission(maintenanceId) {
+    Swal.fire({
+        title: 'Solicitar permiso',
+        text: '¿Desea solicitar permiso al administrador para eliminar este registro?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Sí, solicitar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/aprendiz/machinery/maintenance/${maintenanceId}/request-delete`;
+            
+            const tokenField = document.createElement('input');
+            tokenField.type = 'hidden';
+            tokenField.name = '_token';
+            tokenField.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            
+            form.appendChild(tokenField);
+            document.body.appendChild(form);
             form.submit();
         }
     });
-    
-    return false;
 }
 
 // Mostrar mensaje de éxito si existe
@@ -460,9 +527,17 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
+    // Verificar que la tabla exista y que haya registros
     const tableElement = document.querySelector('#maintenancesTable');
     if (!tableElement) {
-        console.error('No se encontró la tabla con id #maintenancesTable');
+        console.log('No hay tabla para inicializar DataTables (no hay registros)');
+        return;
+    }
+    
+    // Verificar que haya filas de datos (no solo el thead)
+    const tbody = tableElement.querySelector('tbody');
+    if (!tbody || tbody.children.length === 0) {
+        console.log('No hay registros para mostrar en DataTables');
         return;
     }
     

@@ -86,23 +86,31 @@
     </div>
 
     <!-- Main Content -->
-    <div class="waste-container animate-fade-in-up animate-delay-2">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-bold text-gray-800 flex items-center">
-                <i class="fas fa-table text-green-600 mr-2"></i>
-                Registros de Actividades
-            </h2>
-            <div class="flex items-center space-x-4">
-                <a href="{{ route('admin.machinery.maintenance.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
-                    <i class="fas fa-file-pdf"></i>
-                </a>
-                <a href="{{ route('admin.machinery.maintenance.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
-                    <i class="fas fa-plus mr-2"></i>
-                    Nuevo Registro
-                </a>
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <!-- Table Header -->
+        <div class="p-6 border-b border-gray-200 bg-gray-50">
+            <!-- Primera fila: Título y botones -->
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-wrench text-green-600 mr-2"></i>
+                    Registros de Actividades
+                </h2>
+                <div class="flex items-center space-x-4">
+                    @if($maintenances->count() > 0)
+                        <a href="{{ route('admin.machinery.maintenance.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                            <i class="fas fa-file-pdf"></i>
+                        </a>
+                    @endif
+                    <a href="{{ route('admin.machinery.maintenance.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                        <i class="fas fa-plus mr-2"></i>
+                        Nuevo Registro
+                    </a>
+                </div>
             </div>
         </div>
 
+        @if($maintenances->count() > 0)
+            <!-- Tabla de mantenimientos -->
             <div class="overflow-x-auto">
                 <!-- DataTables agregará los controles y la tabla aquí -->
                 <div id="maintenancesTable_wrapper" class="p-6">
@@ -122,10 +130,10 @@
                                 <th>Descripción</th>
                                 <th>Responsable</th>
                                 <th>Acciones</th>
-                        </tr>
-                    </thead>
+                            </tr>
+                        </thead>
                         <tbody>
-                            @forelse($maintenances as $maintenance)
+                            @foreach($maintenances as $maintenance)
                                 <tr>
                                     <td class="font-mono">#{{ str_pad($maintenance->id, 3, '0', STR_PAD_LEFT) }}</td>
                                     <td>
@@ -165,43 +173,46 @@
                                     <td>{{ $maintenance->responsible }}</td>
                                 <td>
                                     <div class="flex space-x-2 items-center">
-                                            <button onclick="openViewModal({{ $maintenance->id }})" 
-                                               class="inline-flex items-center text-blue-500 hover:text-blue-700" title="Ver Detalles">
-                                                <i class="fas fa-eye"></i>
+                                        <button onclick="openViewModal({{ $maintenance->id }})" 
+                                           class="inline-flex items-center text-blue-400 hover:text-blue-500" title="Ver Detalles">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button onclick="confirmEdit({{ $maintenance->id }})" 
+                                           class="inline-flex items-center text-green-500 hover:text-green-700" title="Editar">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <a href="{{ route('admin.machinery.maintenance.download.pdf', $maintenance) }}" 
+                                           class="inline-flex items-center text-red-800 hover:text-red-900" 
+                                           title="Descargar PDF">
+                                            <i class="fas fa-file-pdf"></i>
+                                        </a>
+                                        <form action="{{ route('admin.machinery.maintenance.destroy', $maintenance) }}" 
+                                              method="POST" class="inline" 
+                                              onsubmit="return confirmDelete(event, this)">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="inline-flex items-center text-red-500 hover:text-red-700" title="Eliminar">
+                                                <i class="fas fa-trash"></i>
                                             </button>
-                                            <button onclick="confirmEdit({{ $maintenance->id }})" 
-                                               class="inline-flex items-center text-green-500 hover:text-green-700" title="Editar">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <a href="{{ route('admin.machinery.maintenance.download.pdf', $maintenance) }}" 
-                                               class="inline-flex items-center text-red-500 hover:text-red-700" 
-                                               title="Descargar PDF">
-                                                <i class="fas fa-file-pdf"></i>
-                                            </a>
-                                            <form action="{{ route('admin.machinery.maintenance.destroy', $maintenance) }}" 
-                                                  method="POST" class="inline" 
-                                                  onsubmit="return confirmDelete(event, this)">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="inline-flex items-center text-red-500 hover:text-red-700" title="Eliminar">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </form>
+                                        </form>
                                     </div>
                                 </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="8" class="text-center py-8 text-gray-500">
-                                        <i class="fas fa-inbox text-4xl mb-4 block"></i>
-                                        No se encontraron registros de actividades
-                                </td>
                             </tr>
-                            @endforelse
-                    </tbody>
-                </table>
+                            @endforeach
+                        </tbody>
+                    </table>
                 </div>
             </div>
+        @else
+            <!-- Estado vacío -->
+            <div class="text-center py-12">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                    <i class="fas fa-wrench text-2xl text-gray-400"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No hay registros de actividades</h3>
+                <p class="text-gray-600">Comienza registrando tu primera actividad en el sistema.</p>
+            </div>
+        @endif
     </div>
 </div>
 
@@ -460,9 +471,17 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
+    // Verificar que la tabla exista y que haya registros
     const tableElement = document.querySelector('#maintenancesTable');
     if (!tableElement) {
-        console.error('No se encontró la tabla con id #maintenancesTable');
+        console.log('No hay tabla para inicializar DataTables (no hay registros)');
+        return;
+    }
+    
+    // Verificar que haya filas de datos (no solo el thead)
+    const tbody = tableElement.querySelector('tbody');
+    if (!tbody || tbody.children.length === 0) {
+        console.log('No hay registros para mostrar en DataTables');
         return;
     }
     

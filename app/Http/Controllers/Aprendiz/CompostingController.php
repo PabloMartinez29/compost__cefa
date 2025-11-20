@@ -29,7 +29,51 @@ class CompostingController extends Controller
         $completedPiles = Composting::whereNotNull('end_date')->count();
         $totalIngredients = Composting::withCount('ingredients')->get()->sum('ingredients_count');
 
-        return view('aprendiz.composting.index', compact('compostings', 'totalPiles', 'activePiles', 'completedPiles', 'totalIngredients'));
+        // IDs de pilas con aprobación vigente para eliminar
+        $userId = auth()->check() ? auth()->id() : null;
+        $approvedCompostingIds = \App\Models\Notification::where('user_id', $userId)
+            ->where('type', 'delete_request')
+            ->where('status', 'approved')
+            ->whereNotNull('composting_id')
+            ->pluck('composting_id')
+            ->toArray();
+
+        // IDs de pilas con solicitud pendiente
+        $pendingCompostingIds = \App\Models\Notification::where('from_user_id', $userId)
+            ->where('type', 'delete_request')
+            ->where('status', 'pending')
+            ->whereNotNull('composting_id')
+            ->pluck('composting_id')
+            ->toArray();
+
+        // IDs de pilas con solicitud rechazada
+        $rejectedCompostingIds = \App\Models\Notification::where('user_id', $userId)
+            ->where('type', 'delete_request')
+            ->where('status', 'rejected')
+            ->whereNotNull('composting_id')
+            ->pluck('composting_id')
+            ->toArray();
+        
+        // También verificar notificaciones pendientes que fueron rechazadas
+        $rejectedFromPending = \App\Models\Notification::where('from_user_id', $userId)
+            ->where('type', 'delete_request')
+            ->where('status', 'rejected')
+            ->whereNotNull('composting_id')
+            ->pluck('composting_id')
+            ->toArray();
+        
+        $rejectedCompostingIds = array_unique(array_merge($rejectedCompostingIds, $rejectedFromPending));
+
+        return view('aprendiz.composting.index', compact(
+            'compostings', 
+            'totalPiles', 
+            'activePiles', 
+            'completedPiles', 
+            'totalIngredients',
+            'approvedCompostingIds',
+            'pendingCompostingIds',
+            'rejectedCompostingIds'
+        ));
     }
 
     /**
@@ -66,7 +110,7 @@ class CompostingController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $rules = [
             'pile_num' => 'required|integer|min:1|unique:compostings,pile_num',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after:start_date',
@@ -76,7 +120,14 @@ class CompostingController extends Controller
             'ingredients.*.organic_id' => 'required|exists:organics,id',
             'ingredients.*.amount' => 'required|numeric|min:0.01',
             'ingredients.*.notes' => 'nullable|string|max:500'
-        ]);
+        ];
+        
+        // Validar imagen solo si está presente
+        if ($request->hasFile('image')) {
+            $rules['image'] = 'image|mimes:jpeg,png,jpg,gif,webp|max:2048';
+        }
+        
+        $request->validate($rules);
 
         // Validar que no se exceda la cantidad disponible en bodega
         $inventory = WarehouseClassification::getInventoryByType();
@@ -93,6 +144,21 @@ class CompostingController extends Controller
 
         DB::beginTransaction();
         try {
+            // Handle image upload
+            $imagePath = null;
+            if ($request->hasFile('image')) {
+                $imagePath = $request->file('image')->store('compostings', 'public');
+                \Log::info('Image uploaded for composting (aprendiz)', [
+                    'image_path' => $imagePath,
+                    'file_exists' => Storage::disk('public')->exists($imagePath)
+                ]);
+            } else {
+                \Log::info('No image file in request for composting (aprendiz)', [
+                    'has_file' => $request->hasFile('image'),
+                    'all_files' => $request->allFiles()
+                ]);
+            }
+            
             // Crear el compostaje
             $composting = Composting::create([
                 'pile_num' => $request->pile_num,
@@ -100,7 +166,18 @@ class CompostingController extends Controller
                 'end_date' => $request->end_date,
                 'total_kg' => $request->total_kg,
                 'efficiency' => $request->efficiency,
+                'image' => $imagePath,
                 'created_by' => auth()->id()
+            ]);
+            
+            // Recargar el modelo para asegurar que la imagen esté disponible
+            $composting->refresh();
+            
+            \Log::info('Composting created (aprendiz)', [
+                'composting_id' => $composting->id,
+                'image' => $composting->image,
+                'image_path' => $imagePath,
+                'image_exists' => $composting->image ? Storage::disk('public')->exists($composting->image) : false
             ]);
 
             // Crear los ingredientes y restar del inventario
@@ -237,7 +314,7 @@ class CompostingController extends Controller
      */
     public function update(Request $request, Composting $composting)
     {
-        $request->validate([
+        $rules = [
             'pile_num' => 'required|integer|min:1|unique:compostings,pile_num,' . $composting->id,
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after:start_date',
@@ -247,7 +324,14 @@ class CompostingController extends Controller
             'ingredients.*.organic_id' => 'required|exists:organics,id',
             'ingredients.*.amount' => 'required|numeric|min:0.01',
             'ingredients.*.notes' => 'nullable|string|max:500'
-        ]);
+        ];
+        
+        // Validar imagen solo si está presente
+        if ($request->hasFile('image')) {
+            $rules['image'] = 'image|mimes:jpeg,png,jpg,gif,webp|max:2048';
+        }
+        
+        $request->validate($rules);
 
         // Validar que no se exceda la cantidad disponible en bodega
         $inventory = WarehouseClassification::getInventoryByType();
@@ -264,13 +348,34 @@ class CompostingController extends Controller
 
         DB::beginTransaction();
         try {
+            // Handle image upload
+            $imagePath = $composting->image; // Mantener la imagen actual por defecto
+            
+            // Si se solicita eliminar la imagen actual
+            if ($request->has('remove_image') && $request->remove_image == '1') {
+                if ($composting->image && Storage::disk('public')->exists($composting->image)) {
+                    Storage::disk('public')->delete($composting->image);
+                }
+                $imagePath = null;
+            }
+            
+            // Si se sube una nueva imagen
+            if ($request->hasFile('image')) {
+                // Eliminar la imagen anterior si existe
+                if ($composting->image && Storage::disk('public')->exists($composting->image)) {
+                    Storage::disk('public')->delete($composting->image);
+                }
+                $imagePath = $request->file('image')->store('compostings', 'public');
+            }
+            
             // Actualizar el compostaje
             $composting->update([
                 'pile_num' => $request->pile_num,
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date,
                 'total_kg' => $request->total_kg,
-                'efficiency' => $request->efficiency
+                'efficiency' => $request->efficiency,
+                'image' => $imagePath
             ]);
 
             // Obtener ingredientes existentes para devolver al inventario
@@ -333,11 +438,40 @@ class CompostingController extends Controller
      */
     public function destroy(Composting $composting)
     {
+        $currentUserId = auth()->check() ? auth()->id() : null;
+        
+        // Verificar que el registro pertenece al usuario
+        if ($composting->created_by !== $currentUserId) {
+            return redirect()->route('aprendiz.composting.index')
+                ->with('permission_required', 'No tiene permisos para eliminar este registro.');
+        }
+        
+        // Verificar que hay una solicitud aprobada
+        $approvedNotification = \App\Models\Notification::where('user_id', $currentUserId)
+            ->where('composting_id', $composting->id)
+            ->where('type', 'delete_request')
+            ->where('status', 'approved')
+            ->orderBy('created_at', 'desc')
+            ->first();
+        
+        if (!$approvedNotification) {
+            return redirect()->route('aprendiz.composting.index')
+                ->with('permission_required', 'No tiene permiso para eliminar esta pila. Debe solicitar permiso primero y esperar la aprobación del administrador.');
+        }
+        
         DB::beginTransaction();
         try {
+            // Eliminar la imagen si existe
+            if ($composting->image && Storage::disk('public')->exists($composting->image)) {
+                Storage::disk('public')->delete($composting->image);
+            }
+            
             // Eliminar la pila (esto también eliminará los ingredientes por cascada)
             // NO devolver al inventario porque los residuos ya fueron procesados en el compostaje
             $composting->delete();
+            
+            // Marcar la notificación como procesada o eliminarla
+            $approvedNotification->update(['read_at' => now()]);
             
             DB::commit();
             
@@ -346,8 +480,9 @@ class CompostingController extends Controller
                 
         } catch (\Exception $e) {
             DB::rollback();
+            \Log::error('Error al eliminar pila de compostaje: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'Error al eliminar la pila: ' . $e->getMessage());
+                ->with('error', 'Error al eliminar la pila. Por favor, intente nuevamente.');
         }
     }
 
@@ -419,22 +554,25 @@ class CompostingController extends Controller
             $rejected->delete();
         }
 
-        // Buscar el administrador
-        $admin = \App\Models\User::where('role', 'admin')->first();
+        // Buscar todos los administradores y crear notificaciones para cada uno
+        $admins = \App\Models\User::where('role', 'admin')->get();
         
-        if ($admin) {
-            $notification = \App\Models\Notification::create([
-                'user_id' => $admin->id,
-                'from_user_id' => $currentUserId,
-                'composting_id' => $composting->id,
-                'type' => 'delete_request',
-                'status' => 'pending',
-                'message' => (auth()->check() ? auth()->user()->name : 'Usuario') . ' solicita permiso para eliminar la pila de compostaje #' . $composting->formatted_pile_num
-            ]);
-            
-            \Log::info('Notification created with ID: ' . $notification->id . ' for composting ID: ' . $composting->id);
+        if ($admins->count() > 0) {
+            foreach ($admins as $admin) {
+                // Crear notificación para cada administrador
+                $notification = \App\Models\Notification::create([
+                    'user_id' => $admin->id,
+                    'from_user_id' => $currentUserId,
+                    'composting_id' => $composting->id,
+                    'type' => 'delete_request',
+                    'status' => 'pending',
+                    'message' => (auth()->check() ? auth()->user()->name : 'Usuario') . ' solicita permiso para eliminar la pila de compostaje #' . $composting->formatted_pile_num
+                ]);
+                
+                \Log::info('Notification created with ID: ' . $notification->id . ' for composting ID: ' . $composting->id . ' for admin ID: ' . $admin->id);
+            }
         } else {
-            \Log::warning('No admin user found to send notification to');
+            \Log::warning('No se encontraron administradores para enviar notificación de eliminación de pila de compostaje');
         }
 
         \Log::info('=== REQUEST DELETE PERMISSION END ===');
@@ -451,30 +589,43 @@ class CompostingController extends Controller
         
         \Log::info('Checking delete permission status for composting ID: ' . $composting->id . ', User ID: ' . $currentUserId);
         
-        $existing = \App\Models\Notification::where('from_user_id', $currentUserId)
+        // Primero buscar si hay una notificación de respuesta del admin (aprobada o rechazada)
+        // Esta es la notificación donde el aprendiz es el user_id (quien recibe la respuesta)
+        $responseNotification = \App\Models\Notification::where('user_id', $currentUserId)
             ->where('composting_id', $composting->id)
             ->where('type', 'delete_request')
+            ->whereIn('status', ['approved', 'rejected'])
+            ->orderBy('created_at', 'desc')
             ->first();
         
-        \Log::info('Existing notification found: ' . ($existing ? 'Yes' : 'No'));
-        if ($existing) {
-            \Log::info('Notification status: ' . $existing->status);
-        } else {
-            \Log::info('No notification found for composting ID: ' . $composting->id . ' and user ID: ' . $currentUserId);
-        }
-        
-        if ($existing) {
+        if ($responseNotification) {
+            \Log::info('Response notification found with status: ' . $responseNotification->status);
             return response()->json([
                 'has_request' => true,
-                'status' => $existing->status,
-                'message' => $existing->status === 'pending' 
-                    ? 'Su solicitud de eliminación está pendiente de aprobación del administrador.'
-                    : ($existing->status === 'approved' 
-                        ? 'Su solicitud ya fue aprobada. Ahora puede eliminar el registro.'
-                        : 'Su solicitud fue rechazada.')
+                'status' => $responseNotification->status,
+                'message' => $responseNotification->status === 'approved' 
+                    ? 'Su solicitud ya fue aprobada. Ahora puede eliminar el registro.'
+                    : 'Su solicitud fue rechazada.'
             ]);
         }
         
+        // Si no hay respuesta, buscar si hay una solicitud pendiente (donde el aprendiz es from_user_id)
+        $pendingRequest = \App\Models\Notification::where('from_user_id', $currentUserId)
+            ->where('composting_id', $composting->id)
+            ->where('type', 'delete_request')
+            ->where('status', 'pending')
+            ->first();
+        
+        if ($pendingRequest) {
+            \Log::info('Pending request found');
+            return response()->json([
+                'has_request' => true,
+                'status' => 'pending',
+                'message' => 'Su solicitud de eliminación está pendiente de aprobación del administrador.'
+            ]);
+        }
+        
+        \Log::info('No notification found for composting ID: ' . $composting->id . ' and user ID: ' . $currentUserId);
         return response()->json([
             'has_request' => false,
             'message' => 'No hay solicitudes pendientes para esta pila.'

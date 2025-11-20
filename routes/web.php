@@ -302,6 +302,10 @@ Route::middleware(['auth', 'role:aprendiz'])->group(function(){
               'destroy' => 'aprendiz.machinery.destroy',
           ]);
           
+          // Permission request routes for machinery
+          Route::post('aprendiz/machinery/machineries/{machinery}/request-delete', [AprendizMachineryController::class, 'requestDeletePermission'])->name('aprendiz.machinery.request-delete');
+          Route::get('aprendiz/machinery/machineries/{machinery}/check-delete-status', [AprendizMachineryController::class, 'checkDeletePermissionStatus'])->name('aprendiz.machinery.check-delete-status');
+          
           // PDF Routes for Machinery (Apprentices)
           Route::get('aprendiz/machinery/machineries/download/all-pdf', [AprendizMachineryController::class, 'downloadAllMachineriesPDF'])->name('aprendiz.machinery.download.all-pdf');
           Route::get('aprendiz/machinery/machineries/{machinery}/download/pdf', [AprendizMachineryController::class, 'downloadMachineryPDF'])->name('aprendiz.machinery.download.pdf');
@@ -314,6 +318,10 @@ Route::middleware(['auth', 'role:aprendiz'])->group(function(){
           Route::get('aprendiz/machinery/supplier/{supplier}/edit', [AprendizSupplierController::class, 'edit'])->name('aprendiz.machinery.supplier.edit');
           Route::put('aprendiz/machinery/supplier/{supplier}', [AprendizSupplierController::class, 'update'])->name('aprendiz.machinery.supplier.update');
           Route::delete('aprendiz/machinery/supplier/{supplier}', [AprendizSupplierController::class, 'destroy'])->name('aprendiz.machinery.supplier.destroy');
+          
+          // Permission request routes for suppliers
+          Route::post('aprendiz/machinery/supplier/{supplier}/request-delete', [AprendizSupplierController::class, 'requestDeletePermission'])->name('aprendiz.machinery.supplier.request-delete');
+          Route::get('aprendiz/machinery/supplier/{supplier}/check-delete-status', [AprendizSupplierController::class, 'checkDeletePermissionStatus'])->name('aprendiz.machinery.supplier.check-delete-status');
           
           // PDF Routes for Suppliers (Apprentices)
           Route::get('aprendiz/machinery/supplier/download/all-pdf', [AprendizSupplierController::class, 'downloadAllSuppliersPDF'])->name('aprendiz.machinery.supplier.download.all-pdf');
@@ -328,6 +336,10 @@ Route::middleware(['auth', 'role:aprendiz'])->group(function(){
           Route::put('aprendiz/machinery/maintenance/{maintenance}', [AprendizMaintenanceController::class, 'update'])->name('aprendiz.machinery.maintenance.update');
           Route::delete('aprendiz/machinery/maintenance/{maintenance}', [AprendizMaintenanceController::class, 'destroy'])->name('aprendiz.machinery.maintenance.destroy');
           
+          // Permission request routes for maintenances
+          Route::post('aprendiz/machinery/maintenance/{maintenance}/request-delete', [AprendizMaintenanceController::class, 'requestDeletePermission'])->name('aprendiz.machinery.maintenance.request-delete');
+          Route::get('aprendiz/machinery/maintenance/{maintenance}/check-delete-status', [AprendizMaintenanceController::class, 'checkDeletePermissionStatus'])->name('aprendiz.machinery.maintenance.check-delete-status');
+          
           // PDF Routes for Maintenances (Apprentices)
           Route::get('aprendiz/machinery/maintenance/download/all-pdf', [AprendizMaintenanceController::class, 'downloadAllMaintenancesPDF'])->name('aprendiz.machinery.maintenance.download.all-pdf');
           Route::get('aprendiz/machinery/maintenance/{maintenance}/download/pdf', [AprendizMaintenanceController::class, 'downloadMaintenancePDF'])->name('aprendiz.machinery.maintenance.download.pdf');
@@ -340,6 +352,10 @@ Route::middleware(['auth', 'role:aprendiz'])->group(function(){
           Route::get('aprendiz/machinery/usage-control/{usageControl}/edit', [AprendizUsageControlController::class, 'edit'])->name('aprendiz.machinery.usage-control.edit');
           Route::put('aprendiz/machinery/usage-control/{usageControl}', [AprendizUsageControlController::class, 'update'])->name('aprendiz.machinery.usage-control.update');
           Route::delete('aprendiz/machinery/usage-control/{usageControl}', [AprendizUsageControlController::class, 'destroy'])->name('aprendiz.machinery.usage-control.destroy');
+          
+          // Permission request routes for usage controls
+          Route::post('aprendiz/machinery/usage-control/{usageControl}/request-delete', [AprendizUsageControlController::class, 'requestDeletePermission'])->name('aprendiz.machinery.usage-control.request-delete');
+          Route::get('aprendiz/machinery/usage-control/{usageControl}/check-delete-status', [AprendizUsageControlController::class, 'checkDeletePermissionStatus'])->name('aprendiz.machinery.usage-control.check-delete-status');
           
           // PDF Routes for Usage Controls (Apprentices)
           Route::get('aprendiz/machinery/usage-control/download/all-pdf', [AprendizUsageControlController::class, 'downloadAllUsageControlsPDF'])->name('aprendiz.machinery.usage-control.download.all-pdf');

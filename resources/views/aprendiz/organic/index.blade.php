@@ -110,60 +110,68 @@ use Illuminate\Support\Facades\Storage;
     </div>
 
     <!-- Main Content -->
-    <div class="waste-container animate-fade-in-up animate-delay-2">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-bold text-gray-800 flex items-center">
-                <i class="fas fa-table text-green-600 mr-2"></i>
-                Registros de Residuos Orgánicos
-            </h2>
-            <div class="flex items-center space-x-4">
-                <a href="{{ route('aprendiz.organic.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
-                    <i class="fas fa-file-pdf"></i>
-                </a>
-                <a href="{{ route('aprendiz.organic.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
-                    <i class="fas fa-plus mr-2"></i>
-                    Nuevo Registro
-                </a>
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <!-- Table Header -->
+        <div class="p-6 border-b border-gray-200 bg-gray-50">
+            <!-- Primera fila: Título y botones -->
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-recycle text-green-600 mr-2"></i>
+                    Registros de Residuos Orgánicos
+                </h2>
+                <div class="flex items-center space-x-4">
+                    @if($organics->count() > 0)
+                        <a href="{{ route('aprendiz.organic.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                            <i class="fas fa-file-pdf"></i>
+                        </a>
+                    @endif
+                    <a href="{{ route('aprendiz.organic.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                        <i class="fas fa-plus mr-2"></i>
+                        Nuevo Registro
+                    </a>
+                </div>
             </div>
         </div>
 
         @if(session('success'))
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded m-6">
                 {{ session('success') }}
             </div>
         @endif
 
         @if(session('permission_required'))
-            <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded mb-4">
+            <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded m-6">
                 <i class="fas fa-exclamation-triangle mr-2"></i>
                 {{ session('permission_required') }}
             </div>
         @endif
 
-        <div class="overflow-x-auto">
-            <!-- DataTables agregará los controles y la tabla aquí -->
-            <div id="organicsTable_wrapper" class="p-6">
-                <!-- Contenedor para controles superiores -->
-                <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
-                    <div id="dt-length-container" style="float: left;"></div>
-                    <div id="dt-filter-container" style="float: right;"></div>
-                </div>
-                <table id="organicsTable" class="waste-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Fecha</th>
-                            <th>Imagen</th>
-                            <th>Tipo</th>
-                            <th>Peso (Kg)</th>
-                            <th>Entregado Por</th>
-                            <th>Recibido Por</th>
-                            <th>Creado por</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($organics as $organic)
+        @if($organics->count() > 0)
+            <!-- Tabla de residuos -->
+            <div class="overflow-x-auto">
+                <!-- DataTables agregará los controles y la tabla aquí -->
+                <div id="organicsTable_wrapper" class="p-6">
+                    <!-- Contenedor para controles superiores -->
+                    <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
+                        <div id="dt-length-container" style="float: left;"></div>
+                        <div id="dt-filter-container" style="float: right;"></div>
+                    </div>
+                    <table id="organicsTable" class="waste-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Fecha</th>
+                                <th>Imagen</th>
+                                <th>Tipo</th>
+                                <th>Peso (Kg)</th>
+                                <th>Entregado Por</th>
+                                <th>Recibido Por</th>
+                                <th>Creado por</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($organics as $organic)
                         <tr>
                             <td class="font-mono">#{{ str_pad($organic->id, 3, '0', STR_PAD_LEFT) }}</td>
                             <td>{{ $organic->formatted_date }}</td>
@@ -233,7 +241,12 @@ use Illuminate\Support\Facades\Storage;
                                             $isRejected = isset($rejectedOrganicIds) && in_array($organic->id, $rejectedOrganicIds);
                                         @endphp
 
-                                        @if($isApproved)
+                                        @if($isRejected)
+                                            <button type="button" class="inline-flex items-center text-red-600 hover:text-red-800" title="Solicitud rechazada"
+                                                onclick="showRejectedAlert({{ $organic->id }})">
+                                                <i class="fas fa-ban text-lg"></i>
+                                            </button>
+                                        @elseif($isApproved)
                                             <form id="delete-form-{{ $organic->id }}" action="{{ route('aprendiz.organic.destroy', $organic) }}" method="POST" class="inline-flex items-center" style="margin: 0; padding: 0; margin-left: 0.5rem;">
                                                 @csrf
                                                 @method('DELETE')
@@ -245,11 +258,6 @@ use Illuminate\Support\Facades\Storage;
                                         @elseif($isPending)
                                             <button type="button" class="inline-flex items-center text-yellow-500 cursor-default" title="Permiso pendiente de aprobación">
                                                 <i class="fas fa-hourglass-half"></i>
-                                            </button>
-                                        @elseif($isRejected)
-                                            <button type="button" class="inline-flex items-center text-red-500 hover:text-red-700" title="Solicitud rechazada"
-                                                onclick="showRejectedAlert({{ $organic->id }})">
-                                                <i class="fas fa-ban"></i>
                                             </button>
                                         @else
                                             <form id="request-delete-form-{{ $organic->id }}" action="{{ route('aprendiz.organic.request-delete', $organic) }}" method="POST" class="inline-flex items-center" style="margin: 0; padding: 0; margin-left: 0.5rem;">
@@ -279,11 +287,21 @@ use Illuminate\Support\Facades\Storage;
                                 </div>
                             </td>
                         </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
+        @else
+            <!-- Estado vacío -->
+            <div class="text-center py-12">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                    <i class="fas fa-recycle text-2xl text-gray-400"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No hay registros de residuos orgánicos</h3>
+                <p class="text-gray-600">Comienza registrando tu primer residuo orgánico en el sistema.</p>
+            </div>
+        @endif
     </div>
 </div>
 
@@ -1000,10 +1018,17 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    // Verificar que la tabla exista
+    // Verificar que la tabla exista y que haya registros
     const tableElement = document.querySelector('#organicsTable');
     if (!tableElement) {
-        console.error('No se encontró la tabla con id #organicsTable');
+        console.log('No hay tabla para inicializar DataTables (no hay registros)');
+        return;
+    }
+    
+    // Verificar que haya filas de datos (no solo el thead)
+    const tbody = tableElement.querySelector('tbody');
+    if (!tbody || tbody.children.length === 0) {
+        console.log('No hay registros para mostrar en DataTables');
         return;
     }
     

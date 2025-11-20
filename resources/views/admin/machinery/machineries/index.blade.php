@@ -79,168 +79,161 @@
     </div>
 
     <!-- Main Content -->
-    <div class="waste-container animate-fade-in-up animate-delay-2">
-        <div class="flex items-center justify-between mb-6">
-            <h2 class="text-xl font-bold text-gray-800 flex items-center">
-                <i class="fas fa-table text-green-600 mr-2"></i>
-                Registros de Maquinaria
-            </h2>
-            <div class="flex items-center space-x-4">
-                <a href="{{ route('admin.machinery.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
-                    <i class="fas fa-file-pdf"></i>
-                </a>
-                <a href="{{ route('admin.machinery.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
-                    <i class="fas fa-plus mr-2"></i>
-                    Nuevo Registro
-                </a>
-            </div>
-        </div>
-
-
-        <!-- Tabla de maquinaria -->
-        <div class="overflow-x-auto">
-            <!-- DataTables agregará los controles y la tabla aquí -->
-            <div id="machineriesTable_wrapper" class="p-6">
-                <!-- Contenedor para controles superiores -->
-                <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
-                    <div id="dt-length-container" style="float: left;"></div>
-                    <div id="dt-filter-container" style="float: right;"></div>
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <!-- Table Header -->
+        <div class="p-6 border-b border-gray-200 bg-gray-50">
+            <!-- Primera fila: Título y botones -->
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+                    <i class="fas fa-cogs text-green-600 mr-2"></i>
+                    Registros de Maquinaria
+                </h2>
+                <div class="flex items-center space-x-4">
+                    @if($machineries->count() > 0)
+                        <a href="{{ route('admin.machinery.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                            <i class="fas fa-file-pdf"></i>
+                        </a>
+                    @endif
+                    <a href="{{ route('admin.machinery.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                        <i class="fas fa-plus mr-2"></i>
+                        Nuevo Registro
+                    </a>
                 </div>
-                <table id="machineriesTable" class="waste-table">
-                    <thead>
-                        <tr>
-                            <th>Imagen</th>
-                            <th>Maquinaria</th>
-                            <th>Ubicación</th>
-                            <th>Marca/Modelo</th>
-                            <th>Serie</th>
-                            <th>Estado</th>
-                            <th>Mantenimiento</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($machineries as $machinery)
-                            <tr>
-                                <td class="text-center align-middle">
-                                    @if($machinery->image)
-                                        <div class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 mx-auto">
-                                            <img src="{{ Storage::url($machinery->image) }}" 
-                                                 alt="{{ $machinery->name }}" 
-                                                 class="w-full h-full object-cover">
-                                        </div>
-                                    @else
-                                        <div class="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0 mx-auto">
-                                            <i class="fas fa-cogs text-green-600"></i>
-                                        </div>
-                                    @endif
-                                </td>
-                                <td class="text-left align-middle">
-                                    <div>
-                                        <div class="text-sm font-medium text-gray-900 break-words">
-                                            {{ $machinery->name }}
-                                        </div>
-                                        <div class="text-xs text-gray-500 break-words">
-                                            Desde {{ $machinery->start_func->format('d/m/Y') }}
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="text-left align-middle">
-                                    <div class="text-sm text-gray-900 break-words">{{ $machinery->location }}</div>
-                                </td>
-                                <td class="text-left align-middle">
-                                    <div class="text-sm text-gray-900 break-words">{{ $machinery->brand }}</div>
-                                    <div class="text-xs text-gray-500 break-words">{{ $machinery->model }}</div>
-                                </td>
-                                <td class="text-left align-middle">
-                                    <div class="text-sm font-mono text-gray-900 break-words">{{ $machinery->serial }}</div>
-                                </td>
-                                <td class="text-center align-middle">
-                                    @php
-                                        $status = $machinery->status;
-                                        $statusClass = match($status) {
-                                            'Operación' => 'bg-green-100 text-green-800',
-                                            'En mantenimiento' => 'bg-yellow-100 text-yellow-800',
-                                            'Mantenimiento requerido' => 'bg-red-100 text-red-800',
-                                            'Sin actividad' => 'bg-gray-100 text-gray-800',
-                                            default => 'bg-gray-100 text-gray-800'
-                                        };
-                                    @endphp
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $statusClass }} break-words">
-                                        {{ $status }}
-                                    </span>
-                                </td>
-                                <td class="text-center align-middle">
-                                    <div class="text-sm text-gray-900 break-words">{{ $machinery->maint_freq }}</div>
-                                </td>
-                                <td class="text-center align-middle">
-                                    <div class="flex items-center justify-center space-x-1">
-                                        <a href="{{ route('admin.machinery.show', $machinery) }}" 
-                                           class="text-blue-600 hover:text-blue-900 p-1.5 rounded-lg hover:bg-blue-50 transition-colors"
-                                           title="Ver detalles">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <button type="button"
-                                                onclick="confirmEdit({{ $machinery->id }})"
-                                                class="inline-flex items-center text-green-500 hover:text-green-700 p-1.5 rounded-lg transition-colors"
-                                                title="Editar"
-                                                data-id="{{ $machinery->id }}"
-                                                data-name="{{ $machinery->name }}"
-                                                data-location="{{ $machinery->location }}"
-                                                data-brand="{{ $machinery->brand }}"
-                                                data-model="{{ $machinery->model }}"
-                                                data-serial="{{ $machinery->serial }}"
-                                                data-start_func="{{ $machinery->start_func->format('Y-m-d') }}"
-                                                data-maint_freq="{{ $machinery->maint_freq }}"
-                                                data-image="{{ $machinery->image ? Storage::url($machinery->image) : '' }}">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <a href="{{ route('admin.machinery.download.pdf', $machinery) }}" 
-                                           class="text-red-500 hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 transition-colors"
-                                           title="Descargar PDF">
-                                            <i class="fas fa-file-pdf"></i>
-                                        </a>
-                                        <form action="{{ route('admin.machinery.destroy', $machinery) }}" 
-                                              method="POST" 
-                                              class="inline"
-                                              onsubmit="return confirmDelete(event, this)">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" 
-                                                    class="text-red-600 hover:text-red-900 p-1.5 rounded-lg hover:bg-red-50 transition-colors"
-                                                    title="Eliminar">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="8" class="text-center py-8 text-gray-500">
-                                    <i class="fas fa-inbox text-4xl mb-4 block"></i>
-                                    No hay maquinaria registrada
-                                </td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
             </div>
         </div>
-        
-        @if($machineries->count() === 0)
+
+        @if($machineries->count() > 0)
+            <!-- Tabla de maquinaria -->
+            <div class="overflow-x-auto">
+                <!-- DataTables agregará los controles y la tabla aquí -->
+                <div id="machineriesTable_wrapper" class="p-6">
+                    <!-- Contenedor para controles superiores -->
+                    <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
+                        <div id="dt-length-container" style="float: left;"></div>
+                        <div id="dt-filter-container" style="float: right;"></div>
+                    </div>
+                    <table id="machineriesTable" class="waste-table">
+                        <thead>
+                            <tr>
+                                <th>Imagen</th>
+                                <th>Maquinaria</th>
+                                <th>Ubicación</th>
+                                <th>Marca/Modelo</th>
+                                <th>Serie</th>
+                                <th>Estado</th>
+                                <th>Mantenimiento</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($machineries as $machinery)
+                                <tr>
+                                    <td class="text-center align-middle">
+                                        @if($machinery->image)
+                                            <div class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 mx-auto">
+                                                <img src="{{ Storage::url($machinery->image) }}" 
+                                                     alt="{{ $machinery->name }}" 
+                                                     class="w-full h-full object-cover">
+                                            </div>
+                                        @else
+                                            <div class="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0 mx-auto">
+                                                <i class="fas fa-cogs text-green-600"></i>
+                                            </div>
+                                        @endif
+                                    </td>
+                                    <td class="text-left align-middle">
+                                        <div>
+                                            <div class="text-sm font-medium text-gray-900 break-words">
+                                                {{ $machinery->name }}
+                                            </div>
+                                            <div class="text-xs text-gray-500 break-words">
+                                                Desde {{ $machinery->start_func->format('d/m/Y') }}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="text-left align-middle">
+                                        <div class="text-sm text-gray-900 break-words">{{ $machinery->location }}</div>
+                                    </td>
+                                    <td class="text-left align-middle">
+                                        <div class="text-sm text-gray-900 break-words">{{ $machinery->brand }}</div>
+                                        <div class="text-xs text-gray-500 break-words">{{ $machinery->model }}</div>
+                                    </td>
+                                    <td class="text-left align-middle">
+                                        <div class="text-sm font-mono text-gray-900 break-words">{{ $machinery->serial }}</div>
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        @php
+                                            $status = $machinery->status;
+                                            $statusClass = match($status) {
+                                                'Operación' => 'bg-green-100 text-green-800',
+                                                'En mantenimiento' => 'bg-yellow-100 text-yellow-800',
+                                                'Mantenimiento requerido' => 'bg-red-100 text-red-800',
+                                                'Sin actividad' => 'bg-gray-100 text-gray-800',
+                                                default => 'bg-gray-100 text-gray-800'
+                                            };
+                                        @endphp
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusClass }} break-words">
+                                            {{ $status }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        <div class="text-sm text-gray-900 break-words">{{ $machinery->maint_freq }}</div>
+                                    </td>
+                                    <td class="text-center align-middle">
+                                        <div class="flex items-center justify-center space-x-2">
+                                            <a href="{{ route('admin.machinery.show', $machinery) }}" 
+                                               class="inline-flex items-center text-blue-400 hover:text-blue-500"
+                                               title="Ver detalles">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <button type="button"
+                                                    onclick="confirmEdit({{ $machinery->id }})"
+                                                    class="inline-flex items-center text-green-500 hover:text-green-700"
+                                                    title="Editar"
+                                                    data-id="{{ $machinery->id }}"
+                                                    data-name="{{ $machinery->name }}"
+                                                    data-location="{{ $machinery->location }}"
+                                                    data-brand="{{ $machinery->brand }}"
+                                                    data-model="{{ $machinery->model }}"
+                                                    data-serial="{{ $machinery->serial }}"
+                                                    data-start_func="{{ $machinery->start_func->format('Y-m-d') }}"
+                                                    data-maint_freq="{{ $machinery->maint_freq }}"
+                                                    data-image="{{ $machinery->image ? Storage::url($machinery->image) : '' }}">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <a href="{{ route('admin.machinery.download.pdf', $machinery) }}" 
+                                               class="inline-flex items-center text-red-800 hover:text-red-900"
+                                               title="Descargar PDF">
+                                                <i class="fas fa-file-pdf"></i>
+                                            </a>
+                                            <form action="{{ route('admin.machinery.destroy', $machinery) }}" 
+                                                  method="POST" 
+                                                  class="inline"
+                                                  onsubmit="return confirmDelete(event, this)">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" 
+                                                        class="inline-flex items-center text-red-500 hover:text-red-700"
+                                                        title="Eliminar">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @else
             <!-- Estado vacío -->
             <div class="text-center py-12">
                 <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
                     <i class="fas fa-cogs text-2xl text-gray-400"></i>
                 </div>
                 <h3 class="text-lg font-medium text-gray-900 mb-2">No hay maquinaria registrada</h3>
-                <p class="text-gray-600 mb-6">Comienza registrando tu primera maquinaria en el sistema.</p>
-                <a href="{{ route('admin.machinery.create') }}" 
-                   class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 inline-flex items-center shadow-sm">
-                    <i class="fas fa-plus mr-2"></i>
-                    Registrar Primera Maquinaria
-                </a>
+                <p class="text-gray-600">Comienza registrando tu primera maquinaria en el sistema.</p>
             </div>
         @endif
     </div>
@@ -518,10 +511,17 @@
             return;
         }
         
-        // Verificar que la tabla exista
+        // Verificar que la tabla exista y que haya registros
         const tableElement = document.querySelector('#machineriesTable');
         if (!tableElement) {
-            console.error('No se encontró la tabla con id #machineriesTable');
+            console.log('No hay tabla para inicializar DataTables (no hay registros)');
+            return;
+        }
+        
+        // Verificar que haya filas de datos (no solo el thead)
+        const tbody = tableElement.querySelector('tbody');
+        if (!tbody || tbody.children.length === 0) {
+            console.log('No hay registros para mostrar en DataTables');
             return;
         }
         

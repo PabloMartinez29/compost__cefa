@@ -172,7 +172,14 @@ class Composting extends Model
      */
     public function getProcessProgressAttribute(): float
     {
-        $daysElapsed = max(0, $this->days_elapsed);
+        // Obtener el día máximo registrado en los seguimientos
+        $maxTrackingDay = 0;
+        if ($this->trackings->count() > 0) {
+            $maxTrackingDay = $this->trackings->max('day');
+        }
+        
+        // Usar el máximo entre días transcurridos y el día máximo registrado
+        $daysElapsed = min(max(max(0, $this->days_elapsed), $maxTrackingDay), 45);
         // El progreso se basa en los días transcurridos (máximo 45 días = 100%)
         return min(($daysElapsed / 45) * 100, 100);
     }
@@ -222,7 +229,14 @@ class Composting extends Model
      */
     public function getTrackingProgressAttribute(): string
     {
-        $daysElapsed = min(max(0, $this->days_elapsed), 45);
+        // Obtener el día máximo registrado en los seguimientos
+        $maxTrackingDay = 0;
+        if ($this->trackings->count() > 0) {
+            $maxTrackingDay = $this->trackings->max('day');
+        }
+        
+        // Usar el máximo entre días transcurridos y el día máximo registrado
+        $daysElapsed = min(max(max(0, $this->days_elapsed), $maxTrackingDay), 45);
         $totalTrackings = $this->trackings->count();
         return "{$daysElapsed} de 45 días ({$totalTrackings} seguimientos registrados)";
     }
@@ -242,8 +256,15 @@ class Composting extends Model
     {
         $missingDays = [];
         
+        // Obtener el día máximo registrado en los seguimientos
+        $maxTrackingDay = 0;
+        if ($this->trackings->count() > 0) {
+            $maxTrackingDay = $this->trackings->max('day');
+        }
+        
         // Si la pila está completada o han pasado 45 días, mostrar los 45 días completos
-        $daysElapsed = ($this->status === 'Completada' || $this->days_elapsed >= 45) ? 45 : min($this->days_elapsed, 45);
+        // Usar el máximo entre días transcurridos y el día máximo registrado
+        $daysElapsed = ($this->status === 'Completada' || $this->days_elapsed >= 45) ? 45 : min(max($this->days_elapsed, $maxTrackingDay), 45);
         $trackedDays = $this->trackings->pluck('day')->toArray();
         
         $startDate = Carbon::parse($this->start_date);

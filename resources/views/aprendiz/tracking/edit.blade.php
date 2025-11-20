@@ -197,9 +197,9 @@
                         <div class="bg-soft-gray-50 rounded-lg p-4 border border-soft-gray-200">
                             <label for="temp_internal" class="block text-sm font-semibold text-soft-gray-700 mb-3 flex items-center">
                                 <i class="fas fa-thermometer-full text-soft-green-600 mr-2"></i>
-                                Temperatura Interna (°C) <span class="text-red-500 ml-1">*</span>
+                                Temperatura Interna (°C)
                             </label>
-                            <input type="number" name="temp_internal" id="temp_internal" step="0.01" min="0" max="100" required
+                            <input type="number" name="temp_internal" id="temp_internal" step="0.01" min="0" max="100"
                                    value="{{ old('temp_internal', $tracking->temp_internal) }}"
                                    class="w-full px-4 py-3 border-2 border-soft-gray-300 rounded-lg focus:ring-2 focus:ring-soft-green-500 focus:border-soft-green-500 transition-all duration-200 @error('temp_internal') border-red-500 @enderror"
                                    placeholder="Ej: 45.5">
@@ -214,9 +214,9 @@
                         <div class="bg-soft-gray-50 rounded-lg p-4 border border-soft-gray-200">
                             <label for="temp_time" class="block text-sm font-semibold text-soft-gray-700 mb-3 flex items-center">
                                 <i class="fas fa-clock text-soft-green-600 mr-2"></i>
-                                Hora de Medición <span class="text-red-500 ml-1">*</span>
+                                Hora de Medición
                             </label>
-                            <input type="time" name="temp_time" id="temp_time" required
+                            <input type="time" name="temp_time" id="temp_time"
                                    value="{{ old('temp_time', $tracking->temp_time ? $tracking->temp_time->format('H:i') : '') }}"
                                    class="w-full px-4 py-3 border-2 border-soft-gray-300 rounded-lg focus:ring-2 focus:ring-soft-green-500 focus:border-soft-green-500 transition-all duration-200 @error('temp_time') border-red-500 @enderror">
                             @error('temp_time')
@@ -232,9 +232,9 @@
                         <div class="bg-soft-gray-50 rounded-lg p-4 border border-soft-gray-200">
                             <label for="temp_env" class="block text-sm font-semibold text-soft-gray-700 mb-3 flex items-center">
                                 <i class="fas fa-sun text-soft-green-600 mr-2"></i>
-                                Temperatura Ambiente (°C) <span class="text-red-500 ml-1">*</span>
+                                Temperatura Ambiente (°C)
                             </label>
-                            <input type="number" name="temp_env" id="temp_env" step="0.01" min="-10" max="50" required
+                            <input type="number" name="temp_env" id="temp_env" step="0.01" min="-10" max="50"
                                    value="{{ old('temp_env', $tracking->temp_env) }}"
                                    class="w-full px-4 py-3 border-2 border-soft-gray-300 rounded-lg focus:ring-2 focus:ring-soft-green-500 focus:border-soft-green-500 transition-all duration-200 @error('temp_env') border-red-500 @enderror"
                                    placeholder="Ej: 25.0">
@@ -249,9 +249,9 @@
                         <div class="bg-soft-gray-50 rounded-lg p-4 border border-soft-gray-200">
                             <label for="hum_pile" class="block text-sm font-semibold text-soft-gray-700 mb-3 flex items-center">
                                 <i class="fas fa-tint text-soft-green-600 mr-2"></i>
-                                Humedad Pila (%) <span class="text-red-500 ml-1">*</span>
+                                Humedad Pila (%)
                             </label>
-                            <input type="number" name="hum_pile" id="hum_pile" step="0.01" min="0" max="100" required
+                            <input type="number" name="hum_pile" id="hum_pile" step="0.01" min="0" max="100"
                                    value="{{ old('hum_pile', $tracking->hum_pile) }}"
                                    class="w-full px-4 py-3 border-2 border-soft-gray-300 rounded-lg focus:ring-2 focus:ring-soft-green-500 focus:border-soft-green-500 transition-all duration-200 @error('hum_pile') border-red-500 @enderror"
                                    placeholder="Ej: 60.0">
@@ -268,9 +268,9 @@
                         <div class="bg-soft-gray-50 rounded-lg p-4 border border-soft-gray-200">
                             <label for="hum_env" class="block text-sm font-semibold text-soft-gray-700 mb-3 flex items-center">
                                 <i class="fas fa-cloud text-soft-green-600 mr-2"></i>
-                                Humedad Ambiente (%) <span class="text-red-500 ml-1">*</span>
+                                Humedad Ambiente (%)
                             </label>
-                            <input type="number" name="hum_env" id="hum_env" step="0.01" min="0" max="100" required
+                            <input type="number" name="hum_env" id="hum_env" step="0.01" min="0" max="100"
                                    value="{{ old('hum_env', $tracking->hum_env) }}"
                                    class="w-full px-4 py-3 border-2 border-soft-gray-300 rounded-lg focus:ring-2 focus:ring-soft-green-500 focus:border-soft-green-500 transition-all duration-200 @error('hum_env') border-red-500 @enderror"
                                    placeholder="Ej: 70.0">
@@ -285,9 +285,9 @@
                         <div class="bg-soft-gray-50 rounded-lg p-4 border border-soft-gray-200">
                             <label for="ph" class="block text-sm font-semibold text-soft-gray-700 mb-3 flex items-center">
                                 <i class="fas fa-flask text-soft-green-600 mr-2"></i>
-                                pH <span class="text-red-500 ml-1">*</span>
+                                pH
                             </label>
-                            <input type="number" name="ph" id="ph" step="0.01" min="0" max="14" required
+                            <input type="number" name="ph" id="ph" step="0.01" min="0" max="14"
                                    value="{{ old('ph', $tracking->ph) }}"
                                    class="w-full px-4 py-3 border-2 border-soft-gray-300 rounded-lg focus:ring-2 focus:ring-soft-green-500 focus:border-soft-green-500 transition-all duration-200 @error('ph') border-red-500 @enderror"
                                    placeholder="Ej: 6.5">
@@ -304,9 +304,9 @@
                         <div class="bg-soft-gray-50 rounded-lg p-4 border border-soft-gray-200">
                             <label for="water" class="block text-sm font-semibold text-soft-gray-700 mb-3 flex items-center">
                                 <i class="fas fa-tint text-soft-green-600 mr-2"></i>
-                                Agua Agregada (L) <span class="text-red-500 ml-1">*</span>
+                                Agua Agregada (L)
                             </label>
-                            <input type="number" name="water" id="water" step="0.01" min="0" required
+                            <input type="number" name="water" id="water" step="0.01" min="0"
                                    value="{{ old('water', $tracking->water) }}"
                                    class="w-full px-4 py-3 border-2 border-soft-gray-300 rounded-lg focus:ring-2 focus:ring-soft-green-500 focus:border-soft-green-500 transition-all duration-200 @error('water') border-red-500 @enderror"
                                    placeholder="Ej: 5.0">
@@ -321,9 +321,9 @@
                         <div class="bg-soft-gray-50 rounded-lg p-4 border border-soft-gray-200">
                             <label for="lime" class="block text-sm font-semibold text-soft-gray-700 mb-3 flex items-center">
                                 <i class="fas fa-mountain text-soft-green-600 mr-2"></i>
-                                Cal Agregada (Kg) <span class="text-red-500 ml-1">*</span>
+                                Cal Agregada (Kg)
                             </label>
-                            <input type="number" name="lime" id="lime" step="0.01" min="0" required
+                            <input type="number" name="lime" id="lime" step="0.01" min="0"
                                    value="{{ old('lime', $tracking->lime) }}"
                                    class="w-full px-4 py-3 border-2 border-soft-gray-300 rounded-lg focus:ring-2 focus:ring-soft-green-500 focus:border-soft-green-500 transition-all duration-200 @error('lime') border-red-500 @enderror"
                                    placeholder="Ej: 2.5">

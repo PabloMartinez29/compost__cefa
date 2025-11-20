@@ -29,12 +29,50 @@ class UsageControlController extends Controller
                                               ->count();
         $totalHours = UsageControl::sum('hours');
         
+        // IDs de controles de uso con aprobación vigente para eliminar
+        $userId = auth()->check() ? auth()->id() : null;
+        $approvedUsageControlIds = \App\Models\Notification::where('user_id', $userId)
+            ->where('type', 'delete_request')
+            ->where('status', 'approved')
+            ->whereNotNull('usage_control_id')
+            ->pluck('usage_control_id')
+            ->toArray();
+
+        // IDs de controles de uso con solicitud pendiente
+        $pendingUsageControlIds = \App\Models\Notification::where('from_user_id', $userId)
+            ->where('type', 'delete_request')
+            ->where('status', 'pending')
+            ->whereNotNull('usage_control_id')
+            ->pluck('usage_control_id')
+            ->toArray();
+
+        // IDs de controles de uso con solicitud rechazada
+        $rejectedUsageControlIds = \App\Models\Notification::where('user_id', $userId)
+            ->where('type', 'delete_request')
+            ->where('status', 'rejected')
+            ->whereNotNull('usage_control_id')
+            ->pluck('usage_control_id')
+            ->toArray();
+        
+        // También verificar notificaciones pendientes que fueron rechazadas
+        $rejectedFromPending = \App\Models\Notification::where('from_user_id', $userId)
+            ->where('type', 'delete_request')
+            ->where('status', 'rejected')
+            ->whereNotNull('usage_control_id')
+            ->pluck('usage_control_id')
+            ->toArray();
+        
+        $rejectedUsageControlIds = array_unique(array_merge($rejectedUsageControlIds, $rejectedFromPending));
+
         return view('aprendiz.machinery.usage-controls.index', compact(
             'usageControls', 
             'totalUsageControls', 
             'todayUsageControls', 
             'thisMonthUsageControls',
-            'totalHours'
+            'totalHours',
+            'approvedUsageControlIds',
+            'pendingUsageControlIds',
+            'rejectedUsageControlIds'
         ));
     }
 
@@ -231,10 +269,120 @@ class UsageControlController extends Controller
     /**
      * Remove the specified resource from storage.
      */
+    /**
+     * Request permission to delete usage control
+     */
+    public function requestDeletePermission(UsageControl $usageControl)
+    {
+        $currentUserId = auth()->check() ? auth()->id() : null;
+
+        $existing = \App\Models\Notification::where('from_user_id', $currentUserId)
+            ->where('usage_control_id', $usageControl->id)
+            ->where('type', 'delete_request')
+            ->whereIn('status', ['pending', 'approved'])
+            ->first();
+        
+        if ($existing && $existing->status === 'pending') {
+            return redirect()->route('aprendiz.machinery.usage-control.index')
+                ->with('permission_required', 'Su solicitud de eliminación ya está pendiente de aprobación del administrador.');
+        }
+        
+        if ($existing && $existing->status === 'approved') {
+            return redirect()->route('aprendiz.machinery.usage-control.index')
+                ->with('success', 'Su solicitud ya fue aprobada. Ahora puede eliminar el registro.');
+        }
+
+        $rejected = \App\Models\Notification::where('from_user_id', $currentUserId)
+            ->where('usage_control_id', $usageControl->id)
+            ->where('type', 'delete_request')
+            ->where('status', 'rejected')
+            ->first();
+        
+        if ($rejected) {
+            $rejected->delete();
+        }
+
+        $admins = \App\Models\User::where('role', 'admin')->get();
+        
+        if ($admins->isNotEmpty()) {
+            foreach ($admins as $admin) {
+                \App\Models\Notification::create([
+                    'user_id' => $admin->id,
+                    'from_user_id' => $currentUserId,
+                    'usage_control_id' => $usageControl->id,
+                    'type' => 'delete_request',
+                    'status' => 'pending',
+                    'message' => (auth()->check() ? auth()->user()->name : 'Usuario') . ' solicita permiso para eliminar el control de uso del equipo #' . str_pad($usageControl->id, 3, '0', STR_PAD_LEFT)
+                ]);
+            }
+        }
+
+        return redirect()->route('aprendiz.machinery.usage-control.index')
+            ->with('success', 'Solicitud de eliminación enviada al administrador. Recibirá una notificación cuando sea aprobada.');
+    }
+
+    /**
+     * Check delete permission status
+     */
+    public function checkDeletePermissionStatus(UsageControl $usageControl)
+    {
+        $currentUserId = auth()->check() ? auth()->id() : null;
+        
+        $responseNotification = \App\Models\Notification::where('user_id', $currentUserId)
+            ->where('usage_control_id', $usageControl->id)
+            ->where('type', 'delete_request')
+            ->whereIn('status', ['approved', 'rejected'])
+            ->first();
+
+        if ($responseNotification) {
+            return response()->json([
+                'has_request' => true,
+                'status' => $responseNotification->status,
+                'message' => $responseNotification->status === 'approved' 
+                    ? 'Su solicitud ya fue aprobada. Ahora puede eliminar el registro.'
+                    : 'Su solicitud fue rechazada.'
+            ]);
+        }
+
+        $pendingRequest = \App\Models\Notification::where('from_user_id', $currentUserId)
+            ->where('usage_control_id', $usageControl->id)
+            ->where('type', 'delete_request')
+            ->where('status', 'pending')
+            ->first();
+        
+        if ($pendingRequest) {
+            return response()->json([
+                'has_request' => true,
+                'status' => $pendingRequest->status,
+                'message' => 'Su solicitud de eliminación está pendiente de aprobación del administrador.'
+            ]);
+        }
+        
+        return response()->json([
+            'has_request' => false,
+            'message' => 'No hay solicitudes pendientes para este registro.'
+        ]);
+    }
+
     public function destroy(UsageControl $usageControl)
     {
+        $currentUserId = auth()->check() ? auth()->id() : null;
+
+        $approvedNotification = \App\Models\Notification::where('user_id', $currentUserId)
+            ->where('usage_control_id', $usageControl->id)
+            ->where('type', 'delete_request')
+            ->where('status', 'approved')
+            ->first();
+
+        if (!$approvedNotification) {
+            return redirect()->back()
+                ->with('error', 'No tiene permiso para eliminar este registro. La solicitud de eliminación no ha sido aprobada por el administrador.');
+        }
+
         try {
             $usageControl->delete();
+            
+            $approvedNotification->delete();
             
             return redirect()->route('aprendiz.machinery.usage-control.index')
                 ->with('success', 'Registro de uso del equipo eliminado exitosamente.');

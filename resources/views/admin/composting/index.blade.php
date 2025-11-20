@@ -93,9 +93,11 @@
                     Pilas de Compostaje Registradas
                 </h2>
                 <div class="flex items-center space-x-4">
-                    <a href="{{ route('admin.composting.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
-                        <i class="fas fa-file-pdf"></i>
-                    </a>
+                    @if($compostings->count() > 0)
+                        <a href="{{ route('admin.composting.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                            <i class="fas fa-file-pdf"></i>
+                        </a>
+                    @endif
                     <a href="{{ route('admin.composting.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
                         <i class="fas fa-plus mr-2"></i>
                         Nueva Pila
@@ -105,41 +107,42 @@
         </div>
 
         @if(session('success'))
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded m-6">
                 {{ session('success') }}
             </div>
         @endif
 
         @if(session('error'))
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded m-6">
                 {{ session('error') }}
             </div>
         @endif
 
-        <!-- DataTables agregará los controles y la tabla aquí -->
-        <div id="compostingsTable_wrapper" class="p-6">
-            <!-- Contenedor para controles superiores -->
-            <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
-                <div id="dt-length-container" style="float: left;"></div>
-                <div id="dt-filter-container" style="float: right;"></div>
-            </div>
-            <table id="compostingsTable" class="waste-table">
+        @if($compostings->count() > 0)
+            <!-- Tabla de pilas -->
+            <div id="compostingsTable_wrapper" class="p-6">
+                <!-- Contenedor para controles superiores -->
+                <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
+                    <div id="dt-length-container" style="float: left;"></div>
+                    <div id="dt-filter-container" style="float: right;"></div>
+                </div>
+                <table id="compostingsTable" class="waste-table">
                     <thead>
-                    <tr>
-                        <th>Imagen</th>
-                        <th>Pila</th>
-                        <th>Fecha Inicio</th>
-                        <th>Fecha Fin</th>
-                        <th>Kg Beneficiados</th>
-                        <th>Eficiencia</th>
-                        <th>Ingredientes</th>
-                        <th>Estado</th>
-                        <th>Creado por</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($compostings as $composting)
+                        <tr>
+                            <th>Imagen</th>
+                            <th>Pila</th>
+                            <th>Fecha Inicio</th>
+                            <th>Fecha Fin</th>
+                            <th>Kg Beneficiados</th>
+                            <th>Eficiencia</th>
+                            <th>Ingredientes</th>
+                            <th>Estado</th>
+                            <th>Creado por</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($compostings as $composting)
                         <tr>
                             <td class="text-center">
                                 @if($composting->image)
@@ -226,12 +229,20 @@
                                 </div>
                             </td>
                         </tr>
-                    @endforeach
-                </tbody>
-            </table>
-                </div>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
-        </div>
+        @else
+            <!-- Estado vacío -->
+            <div class="text-center py-12">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                    <i class="fas fa-mountain text-2xl text-gray-400"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No hay pilas de compostaje registradas</h3>
+                <p class="text-gray-600">Comienza registrando tu primera pila de compostaje en el sistema.</p>
+            </div>
+        @endif
     </div>
 </div>
 
@@ -767,10 +778,17 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    // Verificar que la tabla exista
+    // Verificar que la tabla exista y que haya registros
     const tableElement = document.querySelector('#compostingsTable');
     if (!tableElement) {
-        console.error('No se encontró la tabla con id #compostingsTable');
+        console.log('No hay tabla para inicializar DataTables (no hay registros)');
+        return;
+    }
+    
+    // Verificar que haya filas de datos (no solo el thead)
+    const tbody = tableElement.querySelector('tbody');
+    if (!tbody || tbody.children.length === 0) {
+        console.log('No hay registros para mostrar en DataTables');
         return;
     }
     

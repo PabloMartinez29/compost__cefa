@@ -17,7 +17,48 @@ class MachineryController extends Controller
     public function index()
     {
         $machineries = Machinery::latest()->get();
-        return view('aprendiz.machinery.machineries.index', compact('machineries'));
+        
+        // IDs de maquinarias con aprobación vigente para eliminar
+        $userId = auth()->check() ? auth()->id() : null;
+        $approvedMachineryIds = \App\Models\Notification::where('user_id', $userId)
+            ->where('type', 'delete_request')
+            ->where('status', 'approved')
+            ->whereNotNull('machinery_id')
+            ->pluck('machinery_id')
+            ->toArray();
+
+        // IDs de maquinarias con solicitud pendiente
+        $pendingMachineryIds = \App\Models\Notification::where('from_user_id', $userId)
+            ->where('type', 'delete_request')
+            ->where('status', 'pending')
+            ->whereNotNull('machinery_id')
+            ->pluck('machinery_id')
+            ->toArray();
+
+        // IDs de maquinarias con solicitud rechazada
+        $rejectedMachineryIds = \App\Models\Notification::where('user_id', $userId)
+            ->where('type', 'delete_request')
+            ->where('status', 'rejected')
+            ->whereNotNull('machinery_id')
+            ->pluck('machinery_id')
+            ->toArray();
+        
+        // También verificar notificaciones pendientes que fueron rechazadas
+        $rejectedFromPending = \App\Models\Notification::where('from_user_id', $userId)
+            ->where('type', 'delete_request')
+            ->where('status', 'rejected')
+            ->whereNotNull('machinery_id')
+            ->pluck('machinery_id')
+            ->toArray();
+        
+        $rejectedMachineryIds = array_unique(array_merge($rejectedMachineryIds, $rejectedFromPending));
+
+        return view('aprendiz.machinery.machineries.index', compact(
+            'machineries',
+            'approvedMachineryIds',
+            'pendingMachineryIds',
+            'rejectedMachineryIds'
+        ));
     }
 
     /**
@@ -169,23 +210,143 @@ class MachineryController extends Controller
     }
 
     /**
+     * Request permission to delete machinery
+     */
+    public function requestDeletePermission(Machinery $machinery)
+    {
+        $currentUserId = auth()->check() ? auth()->id() : null;
+
+        // Evitar solicitudes duplicadas si ya hay una pendiente o aprobada
+        $existing = \App\Models\Notification::where('from_user_id', $currentUserId)
+            ->where('machinery_id', $machinery->id)
+            ->where('type', 'delete_request')
+            ->whereIn('status', ['pending', 'approved'])
+            ->first();
+        
+        if ($existing && $existing->status === 'pending') {
+            return redirect()->route('aprendiz.machinery.index')
+                ->with('permission_required', 'Su solicitud de eliminación ya está pendiente de aprobación del administrador.');
+        }
+        
+        if ($existing && $existing->status === 'approved') {
+            return redirect()->route('aprendiz.machinery.index')
+                ->with('success', 'Su solicitud ya fue aprobada. Ahora puede eliminar el registro.');
+        }
+
+        // Si hay una solicitud rechazada, eliminarla para permitir nueva solicitud
+        $rejected = \App\Models\Notification::where('from_user_id', $currentUserId)
+            ->where('machinery_id', $machinery->id)
+            ->where('type', 'delete_request')
+            ->where('status', 'rejected')
+            ->first();
+        
+        if ($rejected) {
+            $rejected->delete();
+        }
+
+        // Buscar todos los administradores
+        $admins = \App\Models\User::where('role', 'admin')->get();
+        
+        if ($admins->isNotEmpty()) {
+            foreach ($admins as $admin) {
+                \App\Models\Notification::create([
+                    'user_id' => $admin->id,
+                    'from_user_id' => $currentUserId,
+                    'machinery_id' => $machinery->id,
+                    'type' => 'delete_request',
+                    'status' => 'pending',
+                    'message' => (auth()->check() ? auth()->user()->name : 'Usuario') . ' solicita permiso para eliminar la maquinaria: ' . $machinery->name
+                ]);
+            }
+        } else {
+            \Log::warning('No admin users found to send notification to');
+        }
+
+        return redirect()->route('aprendiz.machinery.index')
+            ->with('success', 'Solicitud de eliminación enviada al administrador. Recibirá una notificación cuando sea aprobada.');
+    }
+
+    /**
+     * Check delete permission status
+     */
+    public function checkDeletePermissionStatus(Machinery $machinery)
+    {
+        $currentUserId = auth()->check() ? auth()->id() : null;
+        
+        // Primero, buscar una notificación de respuesta del admin (donde el aprendiz es user_id)
+        $responseNotification = \App\Models\Notification::where('user_id', $currentUserId)
+            ->where('machinery_id', $machinery->id)
+            ->where('type', 'delete_request')
+            ->whereIn('status', ['approved', 'rejected'])
+            ->first();
+
+        if ($responseNotification) {
+            return response()->json([
+                'has_request' => true,
+                'status' => $responseNotification->status,
+                'message' => $responseNotification->status === 'approved' 
+                    ? 'Su solicitud ya fue aprobada. Ahora puede eliminar el registro.'
+                    : 'Su solicitud fue rechazada.'
+            ]);
+        }
+
+        // Si no hay una notificación de respuesta, buscar la solicitud pendiente original
+        $pendingRequest = \App\Models\Notification::where('from_user_id', $currentUserId)
+            ->where('machinery_id', $machinery->id)
+            ->where('type', 'delete_request')
+            ->where('status', 'pending')
+            ->first();
+        
+        if ($pendingRequest) {
+            return response()->json([
+                'has_request' => true,
+                'status' => $pendingRequest->status,
+                'message' => 'Su solicitud de eliminación está pendiente de aprobación del administrador.'
+            ]);
+        }
+        
+        return response()->json([
+            'has_request' => false,
+            'message' => 'No hay solicitudes pendientes para esta maquinaria.'
+        ]);
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(Machinery $machinery)
     {
+        $currentUserId = auth()->check() ? auth()->id() : null;
+
+        // Verificar si hay una notificación de aprobación para este registro
+        $approvedNotification = \App\Models\Notification::where('user_id', $currentUserId)
+            ->where('machinery_id', $machinery->id)
+            ->where('type', 'delete_request')
+            ->where('status', 'approved')
+            ->first();
+
+        if (!$approvedNotification) {
+            return redirect()->back()
+                ->with('error', 'No tiene permiso para eliminar esta maquinaria. La solicitud de eliminación no ha sido aprobada por el administrador.');
+        }
+
         try {
             // Delete image if exists
-            if ($machinery->image) {
+            if ($machinery->image && Storage::disk('public')->exists($machinery->image)) {
                 Storage::disk('public')->delete($machinery->image);
             }
             
             $machinery->delete();
             
+            // Eliminar la notificación de aprobación después de la eliminación exitosa
+            $approvedNotification->delete();
+            
             return redirect()->route('aprendiz.machinery.index')
                 ->with('success', 'Maquinaria eliminada exitosamente.');
         } catch (\Exception $e) {
+            \Log::error('Error deleting machinery: ' . $e->getMessage());
             return redirect()->back()
-                ->with('error', 'Error al eliminar la maquinaria: ' . $e->getMessage());
+                ->with('error', 'Error al eliminar la maquinaria. Por favor, intente nuevamente.');
         }
     }
 

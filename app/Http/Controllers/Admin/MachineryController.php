@@ -176,7 +176,7 @@ class MachineryController extends Controller
     {
         try {
             // Delete image if exists
-            if ($machinery->image) {
+            if ($machinery->image && Storage::disk('public')->exists($machinery->image)) {
                 Storage::disk('public')->delete($machinery->image);
             }
             
@@ -185,8 +185,9 @@ class MachineryController extends Controller
             return redirect()->route('admin.machinery.index')
                 ->with('success', 'Maquinaria eliminada exitosamente.');
         } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Error al eliminar la maquinaria: ' . $e->getMessage());
+            \Log::error('Error al eliminar maquinaria: ' . $e->getMessage());
+            return redirect()->route('admin.machinery.index')
+                ->with('error', 'Error al eliminar la maquinaria. Por favor, intente nuevamente.');
         }
     }
 

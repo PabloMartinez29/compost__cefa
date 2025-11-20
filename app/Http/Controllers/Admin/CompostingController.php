@@ -60,7 +60,7 @@ class CompostingController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
+        $rules = [
             'pile_num' => 'required|integer|min:1',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after:start_date',
@@ -70,7 +70,14 @@ class CompostingController extends Controller
             'ingredients.*.organic_id' => 'required|exists:organics,id',
             'ingredients.*.amount' => 'required|numeric|min:0.01',
             'ingredients.*.notes' => 'nullable|string|max:255'
-        ]);
+        ];
+        
+        // Validar imagen solo si está presente
+        if ($request->hasFile('image')) {
+            $rules['image'] = 'image|mimes:jpeg,png,jpg,gif,webp|max:2048';
+        }
+        
+        $request->validate($rules);
 
         // Validar que no exceda la cantidad disponible
         foreach ($request->ingredients as $ingredientData) {
@@ -239,7 +246,7 @@ class CompostingController extends Controller
      */
     public function update(Request $request, Composting $composting)
     {
-        $request->validate([
+        $rules = [
             'pile_num' => 'required|integer|min:1',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after:start_date',
@@ -249,7 +256,14 @@ class CompostingController extends Controller
             'ingredients.*.organic_id' => 'required|exists:organics,id',
             'ingredients.*.amount' => 'required|numeric|min:0.01',
             'ingredients.*.notes' => 'nullable|string|max:255'
-        ]);
+        ];
+        
+        // Validar imagen solo si está presente
+        if ($request->hasFile('image')) {
+            $rules['image'] = 'image|mimes:jpeg,png,jpg,gif,webp|max:2048';
+        }
+        
+        $request->validate($rules);
 
         // Validar que no exceda la cantidad disponible
         foreach ($request->ingredients as $ingredientData) {

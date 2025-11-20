@@ -3,6 +3,10 @@
 @section('content')
 @vite(['resources/css/waste.css'])
 
+@php
+    use Illuminate\Support\Facades\Storage;
+@endphp
+
 <div class="container mx-auto px-6 py-8">
     <!-- Header -->
     <div class="waste-header animate-fade-in-up">
@@ -28,7 +32,7 @@
 
     <!-- Main Content -->
     <div class="waste-container animate-fade-in-up animate-delay-2">
-        <form action="{{ route('aprendiz.composting.store') }}" method="POST" id="compostingForm">
+        <form action="{{ route('aprendiz.composting.store') }}" method="POST" id="compostingForm" enctype="multipart/form-data">
             @csrf
             
             <!-- Datos Generales -->
@@ -98,6 +102,31 @@
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
                         <p class="text-gray-500 text-sm mt-1">Opcional - Porcentaje de eficiencia</p>
+                    </div>
+
+                    <!-- Imagen de la Pila -->
+                    <div class="waste-form-group md:col-span-3">
+                        <label class="waste-form-label">Imagen de la Pila</label>
+                        <div class="relative">
+                            <input type="file" name="image" id="image" 
+                                   class="waste-form-input @error('image') border-red-500 @enderror" 
+                                   accept="image/*" onchange="previewImage(this)">
+                            <div id="imagePreview" class="mt-4 hidden">
+                                <div class="relative inline-block">
+                                    <img id="previewImg" class="w-32 h-32 object-cover rounded-xl border-2 border-gray-300 shadow-lg" alt="Preview">
+                                    <button type="button" onclick="removeImage()" class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        @error('image')
+                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                        @enderror
+                        <p class="text-gray-500 text-sm mt-1 flex items-center">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Formatos permitidos: JPEG, PNG, JPG, GIF, WEBP
+                        </p>
                     </div>
                 </div>
             </div>
@@ -277,5 +306,32 @@ document.getElementById('compostingForm').addEventListener('submit', function(e)
         return;
     }
 });
+
+// Función para previsualizar imagen
+function previewImage(input) {
+    const preview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            preview.classList.remove('hidden');
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        preview.classList.add('hidden');
+    }
+}
+
+function removeImage() {
+    const input = document.getElementById('image');
+    const preview = document.getElementById('imagePreview');
+    
+    input.value = '';
+    preview.classList.add('hidden');
+}
 </script>
 @endsection
