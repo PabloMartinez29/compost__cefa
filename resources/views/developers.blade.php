@@ -134,7 +134,7 @@
                     </div>
                 </div>
 
-                <!-- Developer 2: Placeholder -->
+                <!-- Developer 2: Ivan Dario Perdomo Perez -->
                 <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-100 overflow-hidden developer-card">
                     <div class="p-6">
                         <!-- Profile Image -->
@@ -162,7 +162,7 @@
                             <a href="#" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
                                 <i class="fab fa-linkedin-in text-sm"></i>
                             </a>
-                            <a href="#" target="_blank" class="w-10 h-10 bg-gray-800 hover:bg-gray-900 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
+                            <a href="https://github.com/perdomoivan" target="_blank" class="w-10 h-10 bg-gray-800 hover:bg-gray-900 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
                                 <i class="fab fa-github text-sm"></i>
                             </a>
                         </div>
