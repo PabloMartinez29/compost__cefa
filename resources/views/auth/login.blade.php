@@ -4,6 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('img/logo-compost-cefa.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('img/logo-compost-cefa.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('img/logo-compost-cefa.png') }}">
+    
     <title>Iniciar Sesión - Sistema de Compostaje</title>
     
     <!-- Fonts -->
@@ -67,7 +73,16 @@
         
         /* Asegurar que el contenedor de alertas mantenga su altura */
         #alerts-container {
-            min-height: 60px;
+            min-height: 40px;
+        }
+        
+        /* Prevenir scroll en el body */
+        body {
+            overflow: hidden;
+        }
+        
+        html {
+            overflow: hidden;
         }
     </style>
 </head>
@@ -80,11 +95,11 @@
         </a>
     </div>
 
-    <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-6xl w-full fade-in-up">
+    <div class="h-screen flex items-center justify-center py-2 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        <div class="max-w-6xl w-full fade-in-up h-full flex items-center">
             <!-- Main Container -->
-            <div class="auth-container">
-                <div class="flex">
+            <div class="auth-container h-full max-h-[95vh]">
+                <div class="flex h-full">
                     <!-- Left Side - Image -->
                     <div class="auth-side-panel">
                         <!-- Background Image -->
@@ -96,30 +111,30 @@
                     </div>
                     
                     <!-- Right Side - Login Form -->
-                    <div class="auth-form-panel">
+                    <div class="auth-form-panel flex flex-col justify-center overflow-y-auto">
                         <!-- Logo and Title -->
-                        <div class="text-center mb-8">
-                            <div class="auth-logo">
-                                <i class="fas fa-seedling text-white text-2xl"></i>
+                        <div class="text-center mb-4">
+                            <div class="auth-logo" style="width: 3rem; height: 3rem; margin: 0 auto 0.75rem;">
+                                <i class="fas fa-seedling text-white text-xl"></i>
                             </div>
-                            <h2 class="text-3xl font-bold text-soft-gray-800 mb-4 typewriter">
+                            <h2 class="text-2xl font-bold text-soft-gray-800 mb-2 typewriter">
                                 COMPOST CEFA
                             </h2>
                         </div>
 
                         <!-- Login Form -->
-                        <div class="space-y-6">
-                            <div class="text-center mb-6">
-                                <h3 class="text-2xl font-bold text-soft-gray-800 mb-2">Iniciar Sesión</h3>
-                                <p class="text-soft-gray-600">Accede a tu cuenta para gestionar el compostaje</p>
+                        <div class="space-y-4">
+                            <div class="text-center mb-4">
+                                <h3 class="text-xl font-bold text-soft-gray-800 mb-1">Iniciar Sesión</h3>
+                                <p class="text-sm text-soft-gray-600">Accede a tu cuenta para gestionar el compostaje</p>
                             </div>
 
-                            <form method="POST" action="{{ route('login') }}" class="space-y-6">
+                            <form method="POST" action="{{ route('login') }}" class="space-y-4">
                                 @csrf
                                 
                                 <!-- Email -->
                                 <div>
-                                    <label for="email" class="block text-sm font-medium text-soft-gray-700 mb-2">
+                                    <label for="email" class="block text-xs font-medium text-soft-gray-700 mb-1">
                                         Correo Electrónico
                                     </label>
                                     <div class="relative">
@@ -141,7 +156,7 @@
 
                                 <!-- Password -->
                                 <div>
-                                    <label for="password" class="block text-sm font-medium text-soft-gray-700 mb-2">
+                                    <label for="password" class="block text-xs font-medium text-soft-gray-700 mb-1">
                                         Contraseña
                                     </label>
                                     <div class="relative">
@@ -162,16 +177,8 @@
                                     @enderror
                                 </div>
 
-                                <!-- Remember Me and Forgot Password -->
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center">
-                                        <input id="remember" name="remember" type="checkbox" 
-                                               class="h-4 w-4 text-soft-green-600 focus:ring-soft-green-500 border-soft-gray-300 rounded">
-                                        <label for="remember" class="ml-2 block text-sm text-soft-gray-700">
-                                            Recordarme
-                                        </label>
-                                    </div>
-                                    
+                                <!-- Forgot Password -->
+                                <div class="flex items-center justify-end">
                                     @if (Route::has('password.request'))
                                         <a href="{{ route('password.request') }}" class="auth-link text-sm">
                                             ¿Olvidaste tu contraseña?
@@ -180,7 +187,7 @@
                                 </div>
 
                             <!-- Alerts Container -->
-                            <div id="alerts-container" class="space-y-2 mb-4 min-h-[60px]">
+                            <div id="alerts-container" class="space-y-2 mb-2 min-h-[40px]">
                                 @if (session('success'))
                                     <div class="p-3 rounded-lg border bg-green-50 border-green-200 text-green-700">
                                         <div class="flex items-center">
@@ -318,7 +325,7 @@
             `;
             
             // Asegurar que el contenedor tenga altura mínima antes de agregar
-            alertsContainer.style.minHeight = '60px';
+            alertsContainer.style.minHeight = '40px';
             alertsContainer.appendChild(alertDiv);
             
             // Auto remove after 5 seconds for errors, 10 seconds for success
@@ -340,7 +347,7 @@
             const alertsContainer = document.getElementById('alerts-container');
             alertsContainer.innerHTML = '';
             // Mantener altura mínima para evitar cambios de layout
-            alertsContainer.style.minHeight = '60px';
+            alertsContainer.style.minHeight = '40px';
         }
 
         // Función para validar email personalizada
