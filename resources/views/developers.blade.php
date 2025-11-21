@@ -13,6 +13,9 @@
         <!-- Font Awesome -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         
+        <!-- Developer CSS -->
+        <link rel="stylesheet" href="{{ asset('css/developer.css') }}">
+        
         <!-- Alpine.js -->
         <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
         
@@ -61,6 +64,7 @@
                     </a>
                 </div>
                 <div class="hidden md:flex items-center space-x-8">
+                    <a href="{{ url('/') }}" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Inicio</a>
                     <a href="{{ url('/') }}#about" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Acerca de</a>
                     <a href="{{ url('/') }}#modules" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Módulos</a>
                     <a href="{{ url('/') }}#features" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Características</a>
@@ -96,12 +100,12 @@
             <!-- Developers Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 <!-- Developer 1: Juan Pablo Martinez Lievano -->
-                <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-100 overflow-hidden">
+                <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-100 overflow-hidden developer-card">
                     <div class="p-6">
                         <!-- Profile Image -->
-                        <div class="flex justify-center mb-6">
-                            <img id="dev1-img" src="" alt="Juan Pablo Martinez Lievano" class="w-32 h-32 rounded-full object-cover object-top shadow-lg border-4 border-compost-200 cursor-pointer hover:scale-105 transition-transform duration-300" style="object-position: center top;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="w-32 h-32 bg-gradient-to-br from-compost-600 to-compost-700 rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-105 transition-transform duration-300" style="display:none;" id="dev1-placeholder">
+                        <div class="flex justify-center mb-6 relative">
+                            <img id="dev1-img" src="{{ asset('img/developers/juan-pablo-martinez.jpeg') }}" alt="Juan Pablo Martinez Lievano" class="w-40 h-40 rounded-full object-cover object-top shadow-lg border-4 border-compost-200 cursor-pointer hover:scale-105 transition-transform duration-300 developer-image" onclick="openImageModal(this.src)" onerror="this.style.display='none'; this.nextElementSibling.classList.add('show');" loading="eager" decoding="async">
+                            <div class="w-40 h-40 bg-gradient-to-br from-compost-600 to-compost-700 rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-105 transition-transform duration-300 developer-placeholder absolute top-0 left-1/2 transform -translate-x-1/2" id="dev1-placeholder">
                                 <i class="fas fa-user text-white text-5xl"></i>
                             </div>
                         </div>
@@ -114,32 +118,29 @@
                         </div>
                         
                         <!-- Name -->
-                        <h3 class="text-xl font-bold text-compost-800 text-center mb-6">
+                        <h3 class="text-xl font-bold text-compost-800 text-center mb-6 break-words">
                             Juan Pablo Martinez Lievano
                         </h3>
                         
                         <!-- Social Links -->
                         <div class="flex justify-center space-x-3">
-                            <a href="#" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md">
+                            <a href="https://www.linkedin.com/in/juan-pablo-martinez-bb8310368/" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
                                 <i class="fab fa-linkedin-in text-sm"></i>
                             </a>
-                            <a href="#" target="_blank" class="w-10 h-10 bg-gray-800 hover:bg-gray-900 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md">
+                            <a href="https://github.com/PabloMartinez29" target="_blank" class="w-10 h-10 bg-gray-800 hover:bg-gray-900 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
                                 <i class="fab fa-github text-sm"></i>
-                            </a>
-                            <a href="#" target="_blank" class="w-10 h-10 bg-blue-500 hover:bg-blue-600 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md">
-                                <i class="fab fa-facebook-f text-sm"></i>
                             </a>
                         </div>
                     </div>
                 </div>
 
                 <!-- Developer 2: Placeholder -->
-                <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-100 overflow-hidden">
+                <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-100 overflow-hidden developer-card">
                     <div class="p-6">
                         <!-- Profile Image -->
-                        <div class="flex justify-center mb-6">
-                            <img id="dev2-img" src="" alt="Desarrollador 2" class="w-32 h-32 rounded-full object-cover object-top shadow-lg border-4 border-compost-200 cursor-pointer hover:scale-105 transition-transform duration-300" style="object-position: center top;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="w-32 h-32 bg-gradient-to-br from-compost-400 to-compost-500 rounded-full flex items-center justify-center shadow-lg opacity-60 cursor-pointer hover:scale-105 transition-transform duration-300" style="display:none;" id="dev2-placeholder">
+                        <div class="flex justify-center mb-6 relative">
+                            <img id="dev2-img" src="{{ asset('img/developers/desarrollador-2.jpeg') }}" alt="Desarrollador 2" class="w-40 h-40 rounded-full object-cover object-top shadow-lg border-4 border-compost-200 cursor-pointer hover:scale-105 transition-transform duration-300 developer-image" onclick="openImageModal(this.src)" onerror="this.style.display='none'; this.nextElementSibling.classList.add('show');" style="display: none;" loading="eager" decoding="async">
+                            <div class="w-40 h-40 bg-gradient-to-br from-compost-400 to-compost-500 rounded-full flex items-center justify-center shadow-lg opacity-60 cursor-pointer hover:scale-105 transition-transform duration-300 developer-placeholder show" id="dev2-placeholder">
                                 <i class="fas fa-user text-white text-5xl"></i>
                             </div>
                         </div>
@@ -152,16 +153,16 @@
                         </div>
                         
                         <!-- Name -->
-                        <h3 class="text-xl font-bold text-compost-800 text-center mb-6">
+                        <h3 class="text-xl font-bold text-compost-800 text-center mb-6 break-words">
                             [Nombre del Desarrollador]
                         </h3>
                         
                         <!-- Social Links -->
                         <div class="flex justify-center space-x-3">
-                            <a href="#" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md">
+                            <a href="#" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
                                 <i class="fab fa-linkedin-in text-sm"></i>
                             </a>
-                            <a href="#" target="_blank" class="w-10 h-10 bg-gray-800 hover:bg-gray-900 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md">
+                            <a href="#" target="_blank" class="w-10 h-10 bg-gray-800 hover:bg-gray-900 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
                                 <i class="fab fa-github text-sm"></i>
                             </a>
                         </div>
@@ -169,12 +170,12 @@
                 </div>
 
                 <!-- Developer 3: Placeholder -->
-                <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-100 overflow-hidden">
+                <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-100 overflow-hidden developer-card">
                     <div class="p-6">
                         <!-- Profile Image -->
-                        <div class="flex justify-center mb-6">
-                            <img id="dev3-img" src="" alt="Desarrollador 3" class="w-32 h-32 rounded-full object-cover object-top shadow-lg border-4 border-compost-200 cursor-pointer hover:scale-105 transition-transform duration-300" style="object-position: center top;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="w-32 h-32 bg-gradient-to-br from-compost-400 to-compost-500 rounded-full flex items-center justify-center shadow-lg opacity-60 cursor-pointer hover:scale-105 transition-transform duration-300" style="display:none;" id="dev3-placeholder">
+                        <div class="flex justify-center mb-6 relative">
+                            <img id="dev3-img" src="{{ asset('img/developers/desarrollador-3.jpeg') }}" alt="Desarrollador 3" class="w-40 h-40 rounded-full object-cover object-top shadow-lg border-4 border-compost-200 cursor-pointer hover:scale-105 transition-transform duration-300 developer-image" onclick="openImageModal(this.src)" onerror="this.style.display='none'; this.nextElementSibling.classList.add('show');" style="display: none;" loading="eager" decoding="async">
+                            <div class="w-40 h-40 bg-gradient-to-br from-compost-400 to-compost-500 rounded-full flex items-center justify-center shadow-lg opacity-60 cursor-pointer hover:scale-105 transition-transform duration-300 developer-placeholder show" id="dev3-placeholder">
                                 <i class="fas fa-user text-white text-5xl"></i>
                             </div>
                         </div>
@@ -187,16 +188,16 @@
                         </div>
                         
                         <!-- Name -->
-                        <h3 class="text-xl font-bold text-compost-800 text-center mb-6">
+                        <h3 class="text-xl font-bold text-compost-800 text-center mb-6 break-words">
                             [Nombre del Desarrollador]
                         </h3>
                         
                         <!-- Social Links -->
                         <div class="flex justify-center space-x-3">
-                            <a href="#" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md">
+                            <a href="#" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
                                 <i class="fab fa-linkedin-in text-sm"></i>
                             </a>
-                            <a href="#" target="_blank" class="w-10 h-10 bg-gray-800 hover:bg-gray-900 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md">
+                            <a href="#" target="_blank" class="w-10 h-10 bg-gray-800 hover:bg-gray-900 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
                                 <i class="fab fa-github text-sm"></i>
                             </a>
                         </div>
@@ -204,12 +205,12 @@
                 </div>
 
                 <!-- Developer 4: Placeholder -->
-                <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-100 overflow-hidden">
+                <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-100 overflow-hidden developer-card">
                     <div class="p-6">
                         <!-- Profile Image -->
-                        <div class="flex justify-center mb-6">
-                            <img id="dev4-img" src="" alt="Desarrollador 4" class="w-32 h-32 rounded-full object-cover object-top shadow-lg border-4 border-compost-200 cursor-pointer hover:scale-105 transition-transform duration-300" style="object-position: center top;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="w-32 h-32 bg-gradient-to-br from-compost-400 to-compost-500 rounded-full flex items-center justify-center shadow-lg opacity-60 cursor-pointer hover:scale-105 transition-transform duration-300" style="display:none;" id="dev4-placeholder">
+                        <div class="flex justify-center mb-6 relative">
+                            <img id="dev4-img" src="{{ asset('img/developers/desarrollador-4.jpeg') }}" alt="Desarrollador 4" class="w-40 h-40 rounded-full object-cover object-top shadow-lg border-4 border-compost-200 cursor-pointer hover:scale-105 transition-transform duration-300 developer-image" onclick="openImageModal(this.src)" onerror="this.style.display='none'; this.nextElementSibling.classList.add('show');" style="display: none;" loading="eager" decoding="async">
+                            <div class="w-40 h-40 bg-gradient-to-br from-compost-400 to-compost-500 rounded-full flex items-center justify-center shadow-lg opacity-60 cursor-pointer hover:scale-105 transition-transform duration-300 developer-placeholder show" id="dev4-placeholder">
                                 <i class="fas fa-user text-white text-5xl"></i>
                             </div>
                         </div>
@@ -222,16 +223,16 @@
                         </div>
                         
                         <!-- Name -->
-                        <h3 class="text-xl font-bold text-compost-800 text-center mb-6">
+                        <h3 class="text-xl font-bold text-compost-800 text-center mb-6 break-words">
                             [Nombre del Desarrollador]
                         </h3>
                         
                         <!-- Social Links -->
                         <div class="flex justify-center space-x-3">
-                            <a href="#" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md">
+                            <a href="#" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
                                 <i class="fab fa-linkedin-in text-sm"></i>
                             </a>
-                            <a href="#" target="_blank" class="w-10 h-10 bg-gray-800 hover:bg-gray-900 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md">
+                            <a href="#" target="_blank" class="w-10 h-10 bg-gray-800 hover:bg-gray-900 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
                                 <i class="fab fa-github text-sm"></i>
                             </a>
                         </div>
@@ -248,13 +249,19 @@
             <div class="text-center mb-16">
                 <h2 class="text-5xl md:text-6xl font-black text-compost-800 mb-6">Créditos</h2>
                 <div class="w-24 h-1 bg-gradient-to-r from-compost-600 to-compost-500 mx-auto mb-8"></div>
-                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
                     Tecnologías y herramientas utilizadas en el desarrollo de este sistema
                 </p>
+                <!-- Toggle Arrow -->
+                <div class="flex justify-center">
+                    <button id="creditsToggle" onclick="toggleCredits()" class="text-compost-600 hover:text-compost-700 transition-all duration-300 transform hover:scale-110 animate-bounce cursor-pointer">
+                        <i id="creditsArrow" class="fas fa-chevron-down text-4xl"></i>
+                    </button>
+                </div>
             </div>
 
             <!-- Technologies Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div id="creditsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 hidden">
                 <!-- Laravel -->
                 <div class="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-100 overflow-hidden">
                     <div class="p-6 text-center">
@@ -507,14 +514,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Back to Home Button -->
-            <div class="text-center mt-16">
-                <a href="{{ url('/') }}" class="inline-flex items-center space-x-2 bg-gradient-to-r from-compost-600 to-compost-700 text-white px-8 py-4 rounded-xl font-bold text-lg hover:from-compost-700 hover:to-compost-800 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl">
-                    <i class="fas fa-arrow-left"></i>
-                    <span>Volver al Inicio</span>
-                </a>
-            </div>
         </div>
     </section>
 
@@ -619,96 +618,13 @@
 
     <!-- JavaScript -->
     <script>
-        // Function to load image with multiple format support
-        function loadDeveloperImage(imgElement, baseName, altText) {
-            const formats = ['jpeg', 'jpg', 'png', 'webp', 'gif'];
-            // Use asset helper to get the base path
-            const developersPath = '{{ asset("img/developers") }}';
-            let currentFormat = 0;
-            
-            function tryNextFormat() {
-                if (currentFormat >= formats.length) {
-                    // All formats failed, show placeholder
-                    imgElement.style.display = 'none';
-                    const placeholder = imgElement.nextElementSibling;
-                    if (placeholder) {
-                        placeholder.style.display = 'flex';
-                    }
-                    return;
-                }
-                
-                const format = formats[currentFormat];
-                // Ensure proper path construction with slash
-                const imagePath = developersPath.replace(/\/$/, '') + '/' + baseName + '.' + format;
-                const testImg = new Image();
-                
-                testImg.onload = function() {
-                    // Set image source and attributes
-                    imgElement.src = imagePath;
-                    imgElement.alt = altText;
-                    
-                    // Ensure image is visible
-                    imgElement.style.display = 'block';
-                    
-                    // Hide placeholder if it exists
-                    const placeholder = imgElement.nextElementSibling;
-                    if (placeholder && placeholder.classList.contains('bg-gradient-to-br')) {
-                        placeholder.style.display = 'none';
-                    }
-                    
-                    // Set click handler to open modal
-                    imgElement.onclick = function() {
-                        openImageModal(imagePath);
-                    };
-                };
-                
-                testImg.onerror = function() {
-                    currentFormat++;
-                    tryNextFormat();
-                };
-                
-                testImg.src = imagePath;
-            }
-            
-            tryNextFormat();
-        }
-
-        // Load developer images on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            // Developer 1: Juan Pablo Martinez
-            const dev1Img = document.getElementById('dev1-img');
-            if (dev1Img) {
-                loadDeveloperImage(dev1Img, 'juan-pablo-martinez', 'Juan Pablo Martinez Lievano');
-            }
-            
-            // Developer 2
-            const dev2Img = document.getElementById('dev2-img');
-            if (dev2Img) {
-                loadDeveloperImage(dev2Img, 'desarrollador-2', 'Desarrollador 2');
-            }
-            
-            // Developer 3
-            const dev3Img = document.getElementById('dev3-img');
-            if (dev3Img) {
-                loadDeveloperImage(dev3Img, 'desarrollador-3', 'Desarrollador 3');
-            }
-            
-            // Developer 4
-            const dev4Img = document.getElementById('dev4-img');
-            if (dev4Img) {
-                loadDeveloperImage(dev4Img, 'desarrollador-4', 'Desarrollador 4');
-            }
-        });
-
         // Header scroll effect
         window.addEventListener('scroll', function() {
             const header = document.querySelector('header');
             if (window.scrollY > 100) {
-                header.classList.add('shadow-xl');
-                header.style.background = 'rgba(255, 255, 255, 0.98)';
+                header.classList.add('shadow-xl', 'scrolled');
             } else {
-                header.classList.remove('shadow-xl');
-                header.style.background = 'rgba(255, 255, 255, 0.95)';
+                header.classList.remove('shadow-xl', 'scrolled');
             }
         });
 
@@ -749,6 +665,28 @@
                 }
             }
         });
+
+        // Toggle Credits Section
+        function toggleCredits() {
+            const creditsGrid = document.getElementById('creditsGrid');
+            const creditsArrow = document.getElementById('creditsArrow');
+            const creditsToggle = document.getElementById('creditsToggle');
+            
+            if (creditsGrid.classList.contains('hidden')) {
+                // Show credits
+                creditsGrid.classList.remove('hidden');
+                creditsGrid.classList.add('animate-fadeIn');
+                creditsArrow.classList.remove('fa-chevron-down');
+                creditsArrow.classList.add('fa-chevron-up');
+                creditsToggle.classList.remove('animate-bounce');
+            } else {
+                // Hide credits
+                creditsGrid.classList.add('hidden');
+                creditsArrow.classList.remove('fa-chevron-up');
+                creditsArrow.classList.add('fa-chevron-down');
+                creditsToggle.classList.add('animate-bounce');
+            }
+        }
     </script>
 </body>
 </html>
