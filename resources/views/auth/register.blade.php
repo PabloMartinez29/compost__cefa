@@ -4,6 +4,12 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="{{ asset('img/logo-compost-cefa.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('img/logo-compost-cefa.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('img/logo-compost-cefa.png') }}">
+    
     <title>Registro - Sistema de Compostaje</title>
     
     <!-- Fonts -->
@@ -56,6 +62,39 @@
     
     <!-- Custom Auth CSS -->
     @vite(['resources/css/auth.css'])
+    
+    <style>
+        /* Prevenir zoom en inputs en dispositivos móviles */
+        input[type="email"],
+        input[type="password"],
+        input[type="text"],
+        select {
+            font-size: 16px !important;
+        }
+        
+        /* Estilos para el select */
+        select.auth-input {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+            background-position: right 0.75rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+        
+        /* Asegurar que el contenedor de alertas mantenga su altura */
+        #alerts-container {
+            min-height: 40px;
+        }
+        
+        /* Prevenir scroll en el body */
+        body {
+            overflow: hidden;
+        }
+        
+        html {
+            overflow: hidden;
+        }
+    </style>
 </head>
 
 <body class="bg-gradient-to-br from-green-50 via-green-100 to-green-200 min-h-screen font-sans">
@@ -66,11 +105,11 @@
         </a>
     </div>
 
-    <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div class="max-w-6xl w-full fade-in-up">
+    <div class="h-screen flex items-center justify-center py-2 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        <div class="max-w-6xl w-full fade-in-up h-full flex items-center">
             <!-- Main Container -->
-            <div class="auth-container">
-                <div class="flex">
+            <div class="auth-container h-full max-h-[95vh]">
+                <div class="flex h-full">
                     <!-- Left Side - Image -->
                     <div class="auth-side-panel">
                         <!-- Background Image -->
@@ -82,26 +121,28 @@
                     </div>
                     
                     <!-- Right Side - Register Form -->
-                    <div class="auth-form-panel">
+                    <div class="auth-form-panel flex flex-col overflow-y-auto" style="padding-top: 0; justify-content: flex-start;">
                         <!-- Logo and Title -->
-                        <div class="text-center mb-6">
-                            <div class="auth-logo">
-                                <i class="fas fa-user-plus text-white text-xl"></i>
+                        <div class="text-center mb-4" style="padding-top: 1.5rem; padding-bottom: 0.5rem; margin-top: 1rem;">
+                            <div class="auth-logo" style="width: 3rem; height: 3rem; margin: 0 auto 0.75rem;">
+                                <i class="fas fa-user-plus text-white text-lg"></i>
                             </div>
-                            <h2 class="text-3xl font-bold text-soft-gray-800 mb-2 typewriter">
-                                COMPOST CEFA
-                            </h2>
-                            <p class="text-soft-gray-600 mb-4">Únete al sistema de gestión de compostaje</p>
+                            <div style="min-height: 3rem; display: flex; align-items: center; justify-content: center; padding: 0.5rem 0;">
+                                <h2 class="text-2xl font-bold text-soft-gray-800 mb-2 typewriter" style="line-height: 1.5; padding: 0.25rem 0;">
+                                    COMPOST CEFA
+                                </h2>
+                            </div>
+                            <p class="text-sm text-soft-gray-600 mb-3">Únete al sistema de gestión de compostaje</p>
                         </div>
 
                         <!-- Register Form -->
-                        <div class="space-y-6">
-                            <form method="POST" action="{{ route('register') }}" class="space-y-6">
+                        <div class="space-y-4">
+                            <form method="POST" action="{{ route('register') }}" class="space-y-4">
         @csrf
 
         <!-- Name -->
                                 <div class="bounce-in" style="animation-delay: 0.1s;">
-                                    <label for="name" class="block text-sm font-medium text-soft-gray-700 mb-2">
+                                    <label for="name" class="block text-xs font-medium text-soft-gray-700 mb-1">
                                         Nombre Completo
                                     </label>
                                     <div class="relative">
@@ -117,9 +158,33 @@
                                     @enderror
                                 </div>
 
+                                <!-- Document Type -->
+                                <div class="bounce-in" style="animation-delay: 0.15s;">
+                                    <label for="document_type" class="block text-xs font-medium text-soft-gray-700 mb-1">
+                                        Tipo de Documento
+                                    </label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                            <i class="fas fa-id-card text-soft-gray-400"></i>
+                                        </div>
+                                        <select id="document_type" name="document_type" required 
+                                                class="auth-input appearance-none pr-10" style="color: #9ca3af; font-weight: normal;">
+                                            <option value="" style="color: #9ca3af; font-weight: normal;">Seleccione un tipo</option>
+                                            <option value="CC">Cédula de Ciudadanía</option>
+                                            <option value="TI">Tarjeta de Identidad</option>
+                                            <option value="CE">Cédula de Extranjería</option>
+                                            <option value="PEP">Permiso Especial de Permanencia</option>
+                                            <option value="PASAPORTE">Pasaporte</option>
+                                        </select>
+                                    </div>
+                                    @error('document_type')
+                                        <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
                                 <!-- Email -->
                                 <div class="bounce-in" style="animation-delay: 0.2s;">
-                                    <label for="email" class="block text-sm font-medium text-soft-gray-700 mb-2">
+                                    <label for="email" class="block text-xs font-medium text-soft-gray-700 mb-1">
                                         Correo Electrónico
                                     </label>
                                     <div class="relative">
@@ -137,8 +202,8 @@
 
                                 <!-- Identification -->
                                 <div class="bounce-in" style="animation-delay: 0.25s;">
-                                    <label for="identification" class="block text-sm font-medium text-soft-gray-700 mb-2">
-                                        Identificación
+                                    <label for="identification" class="block text-xs font-medium text-soft-gray-700 mb-1">
+                                        Número de Identificación
                                     </label>
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -155,7 +220,7 @@
 
         <!-- Password -->
                                 <div class="bounce-in" style="animation-delay: 0.35s;">
-                                    <label for="password" class="block text-sm font-medium text-soft-gray-700 mb-2">
+                                    <label for="password" class="block text-xs font-medium text-soft-gray-700 mb-1">
                                         Contraseña
                                     </label>
                                     <div class="relative">
@@ -184,7 +249,7 @@
 
         <!-- Confirm Password -->
                                 <div class="bounce-in" style="animation-delay: 0.45s;">
-                                    <label for="password_confirmation" class="block text-sm font-medium text-soft-gray-700 mb-2">
+                                    <label for="password_confirmation" class="block text-xs font-medium text-soft-gray-700 mb-1">
                                         Confirmar Contraseña
                                     </label>
                                     <div class="relative">
@@ -217,7 +282,7 @@
                                 </div>
 
                                 <!-- Alerts Container -->
-                                <div id="alerts-container" class="space-y-2 mb-4">
+                                <div id="alerts-container" class="space-y-2 mb-2 min-h-[40px]">
                                     @if (session('success'))
                                         <div class="p-3 rounded-lg border bg-green-50 border-green-200 text-green-700">
                                             <div class="flex items-center">
@@ -302,6 +367,7 @@
             const passwordConfirmation = formData.get('password_confirmation');
             const email = formData.get('email');
             const name = formData.get('name');
+            const documentType = formData.get('document_type');
             const identification = formData.get('identification');
             const terms = formData.get('terms');
             
@@ -320,6 +386,12 @@
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!email || !emailRegex.test(email)) {
                 showAlert('Por favor ingresa un email válido', 'error');
+                hasErrors = true;
+            }
+            
+            // Validate document type
+            if (!documentType) {
+                showAlert('Por favor selecciona un tipo de documento', 'error');
                 hasErrors = true;
             }
             

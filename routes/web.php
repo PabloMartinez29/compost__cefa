@@ -29,6 +29,10 @@ Route::get('/', function () {
     return view('welcome');
 })->middleware(SetLocale::class);
 
+Route::get('/developers', function () {
+    return view('developers');
+})->name('developers');
+
 // Ruta general del dashboard que redirige según el rol
 Route::get('/dashboard', function () {
     if (Auth::check()) {

@@ -3,7 +3,13 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>COMPOST CEFA - Sistema de Registro</title>
+        
+        <!-- Favicon -->
+        <link rel="icon" type="image/png" href="{{ asset('img/logo-compost-cefa.png') }}">
+        <link rel="shortcut icon" type="image/png" href="{{ asset('img/logo-compost-cefa.png') }}">
+        <link rel="apple-touch-icon" href="{{ asset('img/logo-compost-cefa.png') }}">
+        
+        <title>COMPOST CEFA - Sistema de Registro</title>
 
         <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -89,6 +95,7 @@
                     <a href="#about" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Acerca de</a>
                     <a href="#modules" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Módulos</a>
                     <a href="#features" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Características</a>
+                    <a href="{{ route('developers') }}" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Desarrolladores</a>
             @if (Route::has('login'))
                     @auth
                         <!-- User Info Dropdown -->
@@ -158,8 +165,18 @@
         </header>
 
     <!-- Hero Section -->
-    <section class="pt-32 pb-20 relative bg-gradient-to-br from-compost-50 via-white to-compost-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section class="pt-32 pb-20 relative overflow-hidden min-h-screen flex items-center">
+        <!-- Video Background -->
+        <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover z-0">
+            <source src="{{ asset('videos/hero-background.mp4') }}" type="video/mp4">
+            <!-- Fallback si el video no carga -->
+        </video>
+        
+        <!-- Overlay con opacidad para legibilidad del texto -->
+        <div class="absolute inset-0 bg-black/80 z-10"></div>
+        
+        <!-- Contenido sobre el video -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
             <div class="text-center">
                 <!-- Main Title with Typewriter Effect -->
                 <div class="mb-8">
@@ -173,16 +190,8 @@
 
                 <!-- Subtitle with Definition -->
                 <div class="max-w-4xl mx-auto mb-12">
-                    <p class="text-2xl md:text-3xl text-gray-700 font-medium leading-relaxed" id="typewriter-description">
+                    <p class="text-2xl md:text-3xl text-white font-medium leading-relaxed drop-shadow-md" id="typewriter-description">
                         Sistema de Registro de Creación de Pilas de Compostaje y Manipulación de Maquinaria
-                    </p>
-                </div>
-
-                <!-- Description -->
-                <div class="max-w-3xl mx-auto mb-16">
-                    <p class="text-lg md:text-xl text-gray-600 leading-relaxed">
-                        Plataforma integral para el registro y control de la creación de pilas de compostaje, 
-                        manipulación de maquinaria y administración del centro de acopio de residuos orgánicos.
                     </p>
                 </div>
 
@@ -212,10 +221,10 @@
         </div>
 
         <!-- Floating Elements -->
-        <div class="absolute top-20 left-10 w-4 h-4 bg-compost-400 rounded-full animate-bounce opacity-60"></div>
-        <div class="absolute top-40 right-20 w-6 h-6 bg-compost-300 rounded-full animate-bounce opacity-40" style="animation-delay: 0.5s;"></div>
-        <div class="absolute bottom-20 left-20 w-3 h-3 bg-compost-500 rounded-full animate-bounce opacity-70" style="animation-delay: 1s;"></div>
-        <div class="absolute bottom-40 right-10 w-5 h-5 bg-compost-400 rounded-full animate-bounce opacity-50" style="animation-delay: 1.5s;"></div>
+        <div class="absolute top-20 left-10 w-4 h-4 bg-compost-400 rounded-full animate-bounce opacity-60 z-30"></div>
+        <div class="absolute top-40 right-20 w-6 h-6 bg-compost-300 rounded-full animate-bounce opacity-40 z-30" style="animation-delay: 0.5s;"></div>
+        <div class="absolute bottom-20 left-20 w-3 h-3 bg-compost-500 rounded-full animate-bounce opacity-70 z-30" style="animation-delay: 1s;"></div>
+        <div class="absolute bottom-40 right-10 w-5 h-5 bg-compost-400 rounded-full animate-bounce opacity-50 z-30" style="animation-delay: 1.5s;"></div>
     </section>
 
     <!-- About Section -->
@@ -445,21 +454,20 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Main Footer Content -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
-                <!-- Brand -->
+                <!-- Map -->
                 <div class="col-span-1 md:col-span-2">
-                    <div class="flex items-center space-x-4 mb-6">
-                        <div class="w-12 h-12 bg-gradient-to-br from-compost-600 to-compost-700 rounded-xl flex items-center justify-center shadow-lg">
-                            <i class="fas fa-seedling text-white text-xl"></i>
-                        </div>
-                        <div>
-                            <span class="text-2xl font-black text-white">COMPOST</span>
-                            <span class="text-xl font-bold text-compost-300 block -mt-1">CEFA</span>
-                        </div>
+                    <h3 class="text-lg font-bold text-white mb-4">Ubicación</h3>
+                    <div class="rounded-lg overflow-hidden shadow-lg" style="height: 300px;">
+                        <iframe 
+                            src="https://www.google.com/maps?q=2.61361,-75.36111&hl=es&z=15&output=embed" 
+                            width="100%" 
+                            height="100%" 
+                            style="border:0;" 
+                            allowfullscreen="" 
+                            loading="lazy" 
+                            referrerpolicy="no-referrer-when-downgrade">
+                        </iframe>
                     </div>
-                    <p class="text-compost-200 leading-relaxed max-w-md">
-                        Sistema integral de registro para la creación de pilas de compostaje y manipulación de maquinaria. 
-                        Optimizando procesos para un futuro más sostenible.
-                    </p>
                 </div>
                 
                 <!-- Quick Links -->
@@ -469,6 +477,7 @@
                         <li><a href="#about" class="text-compost-200 hover:text-white transition-colors duration-300">Acerca de</a></li>
                         <li><a href="#modules" class="text-compost-200 hover:text-white transition-colors duration-300">Módulos</a></li>
                         <li><a href="#features" class="text-compost-200 hover:text-white transition-colors duration-300">Características</a></li>
+                        <li><a href="{{ route('developers') }}" class="text-compost-200 hover:text-white transition-colors duration-300">Desarrolladores</a></li>
                         @if (Route::has('login'))
                             <li><a href="{{ route('login') }}" class="text-compost-200 hover:text-white transition-colors duration-300">Iniciar Sesión</a></li>
                         @endif
