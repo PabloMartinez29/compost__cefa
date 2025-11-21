@@ -1,0 +1,82 @@
+/* Developer Page Styles */
+
+/* Profile Image Styles */
+.developer-image {
+    object-position: center top;
+    position: relative;
+    z-index: 1;
+    image-rendering: auto;
+    image-rendering: -webkit-optimize-contrast;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    will-change: transform;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    filter: contrast(1.05) saturate(1.1);
+}
+
+/* Placeholder Styles */
+.developer-placeholder {
+    display: none;
+}
+
+.developer-placeholder.show {
+    display: flex;
+}
+
+/* Modal Styles */
+#imageModal {
+    backdrop-filter: blur(8px);
+}
+
+#imageModal .modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+#imageModal .modal-content {
+    max-width: 100%;
+    max-height: 85vh;
+}
+
+/* Smooth Transitions */
+.developer-card {
+    transition: all 0.3s ease;
+}
+
+.developer-card:hover {
+    transform: translateY(-8px);
+}
+
+/* Social Links */
+.social-link {
+    transition: all 0.3s ease;
+}
+
+.social-link:hover {
+    transform: scale(1.1);
+}
+
+/* Header Scroll Effect */
+header.scrolled {
+    background: rgba(255, 255, 255, 0.98) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Credits Toggle Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
