@@ -139,8 +139,8 @@
                     <div class="p-6">
                         <!-- Profile Image -->
                         <div class="flex justify-center mb-6 relative">
-                            <img id="dev2-img" src="{{ asset('img/developers/desarrollador-2.jpeg') }}" alt="Desarrollador 2" class="w-40 h-40 rounded-full object-cover object-top shadow-lg border-4 border-compost-200 cursor-pointer hover:scale-105 transition-transform duration-300 developer-image" onclick="openImageModal(this.src)" onerror="this.style.display='none'; this.nextElementSibling.classList.add('show');" style="display: none;" loading="eager" decoding="async">
-                            <div class="w-40 h-40 bg-gradient-to-br from-compost-400 to-compost-500 rounded-full flex items-center justify-center shadow-lg opacity-60 cursor-pointer hover:scale-105 transition-transform duration-300 developer-placeholder show" id="dev2-placeholder">
+                            <img id="dev2-img" src="{{ asset('img/developers/Ivan-Dario-Perdomo-Perez.png') }}" alt="Ivan Dario Perdomo Perez" class="w-40 h-40 rounded-full object-cover object-top shadow-lg border-4 border-compost-200 cursor-pointer hover:scale-105 transition-transform duration-300 developer-image" onclick="openImageModal(this.src)" onerror="this.style.display='none'; this.nextElementSibling.classList.add('show');" loading="eager" decoding="async">
+                            <div class="w-40 h-40 bg-gradient-to-br from-compost-600 to-compost-700 rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-105 transition-transform duration-300 developer-placeholder absolute top-0 left-1/2 transform -translate-x-1/2" id="dev2-placeholder">
                                 <i class="fas fa-user text-white text-5xl"></i>
                             </div>
                         </div>
@@ -154,7 +154,7 @@
                         
                         <!-- Name -->
                         <h3 class="text-xl font-bold text-compost-800 text-center mb-6 break-words">
-                            [Nombre del Desarrollador]
+                            Iván Darío Perdomo Pérez
                         </h3>
                         
                         <!-- Social Links -->
