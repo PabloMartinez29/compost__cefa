@@ -169,13 +169,13 @@
                     </div>
                 </div>
 
-                <!-- Developer 3: Placeholder -->
+                <!-- Developer 3: Anggie Lizeth Anaya Perdomo -->
                 <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-100 overflow-hidden developer-card">
                     <div class="p-6">
                         <!-- Profile Image -->
                         <div class="flex justify-center mb-6 relative">
-                            <img id="dev3-img" src="{{ asset('img/developers/desarrollador-3.jpeg') }}" alt="Desarrollador 3" class="w-40 h-40 rounded-full object-cover object-top shadow-lg border-4 border-compost-200 cursor-pointer hover:scale-105 transition-transform duration-300 developer-image" onclick="openImageModal(this.src)" onerror="this.style.display='none'; this.nextElementSibling.classList.add('show');" style="display: none;" loading="eager" decoding="async">
-                            <div class="w-40 h-40 bg-gradient-to-br from-compost-400 to-compost-500 rounded-full flex items-center justify-center shadow-lg opacity-60 cursor-pointer hover:scale-105 transition-transform duration-300 developer-placeholder show" id="dev3-placeholder">
+                            <img id="dev3-img" src="{{ asset('img/developers/Anggie-Anaya.png') }}" alt="Anggie Lizeth Anaya Perdomo" class="w-40 h-40 rounded-full object-cover object-top shadow-lg border-4 border-compost-200 cursor-pointer hover:scale-105 transition-transform duration-300 developer-image" onclick="openImageModal(this.src)" onerror="this.style.display='none'; this.nextElementSibling.classList.add('show');" loading="eager" decoding="async">
+                            <div class="w-40 h-40 bg-gradient-to-br from-compost-600 to-compost-700 rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-105 transition-transform duration-300 developer-placeholder absolute top-0 left-1/2 transform -translate-x-1/2" id="dev3-placeholder">
                                 <i class="fas fa-user text-white text-5xl"></i>
                             </div>
                         </div>
@@ -189,7 +189,7 @@
                         
                         <!-- Name -->
                         <h3 class="text-xl font-bold text-compost-800 text-center mb-6 break-words">
-                            [Nombre del Desarrollador]
+                            Anggie Lizeth Anaya Perdomo
                         </h3>
                         
                         <!-- Social Links -->
@@ -197,20 +197,20 @@
                             <a href="#" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
                                 <i class="fab fa-linkedin-in text-sm"></i>
                             </a>
-                            <a href="#" target="_blank" class="w-10 h-10 bg-gray-800 hover:bg-gray-900 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
+                            <a href="https://github.com/anggieanaya16" target="_blank" class="w-10 h-10 bg-gray-800 hover:bg-gray-900 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
                                 <i class="fab fa-github text-sm"></i>
                             </a>
                         </div>
                     </div>
                 </div>
 
-                <!-- Developer 4: Placeholder -->
+                <!-- Developer 4: Juan Andres Almanza Salinas  -->
                 <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-100 overflow-hidden developer-card">
                     <div class="p-6">
                         <!-- Profile Image -->
                         <div class="flex justify-center mb-6 relative">
-                            <img id="dev4-img" src="{{ asset('img/developers/desarrollador-4.jpeg') }}" alt="Desarrollador 4" class="w-40 h-40 rounded-full object-cover object-top shadow-lg border-4 border-compost-200 cursor-pointer hover:scale-105 transition-transform duration-300 developer-image" onclick="openImageModal(this.src)" onerror="this.style.display='none'; this.nextElementSibling.classList.add('show');" style="display: none;" loading="eager" decoding="async">
-                            <div class="w-40 h-40 bg-gradient-to-br from-compost-400 to-compost-500 rounded-full flex items-center justify-center shadow-lg opacity-60 cursor-pointer hover:scale-105 transition-transform duration-300 developer-placeholder show" id="dev4-placeholder">
+                            <img id="dev4-img" src="{{ asset('img/developers/Juan-Almanza.png') }}" alt="Juan Andres Almanza Salinas" class="w-40 h-40 rounded-full object-cover object-top shadow-lg border-4 border-compost-200 cursor-pointer hover:scale-105 transition-transform duration-300 developer-image" onclick="openImageModal(this.src)" onerror="this.style.display='none'; this.nextElementSibling.classList.add('show');" loading="eager" decoding="async">
+                            <div class="w-40 h-40 bg-gradient-to-br from-compost-600 to-compost-700 rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-105 transition-transform duration-300 developer-placeholder absolute top-0 left-1/2 transform -translate-x-1/2" id="dev4-placeholder">
                                 <i class="fas fa-user text-white text-5xl"></i>
                             </div>
                         </div>
@@ -224,7 +224,7 @@
                         
                         <!-- Name -->
                         <h3 class="text-xl font-bold text-compost-800 text-center mb-6 break-words">
-                            [Nombre del Desarrollador]
+                            Juan Andres Almanza Salinas 
                         </h3>
                         
                         <!-- Social Links -->
@@ -232,7 +232,7 @@
                             <a href="#" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
                                 <i class="fab fa-linkedin-in text-sm"></i>
                             </a>
-                            <a href="#" target="_blank" class="w-10 h-10 bg-gray-800 hover:bg-gray-900 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
+                            <a href="https://github.com/Almanza310" target="_blank" class="w-10 h-10 bg-gray-800 hover:bg-gray-900 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
                                 <i class="fab fa-github text-sm"></i>
                             </a>
                         </div>
