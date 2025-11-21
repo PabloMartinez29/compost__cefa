@@ -550,7 +550,6 @@
     
     <script>
         function toggleSubmenu(id, arrowId) {
-            console.log('toggleSubmenu called with:', id, arrowId);
             const submenu = document.getElementById(id);
             const arrow = document.getElementById(arrowId);
 
