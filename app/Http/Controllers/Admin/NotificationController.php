@@ -14,7 +14,7 @@ class NotificationController extends Controller
      */
     public function getNotifications()
     {
-        $notifications = Notification::with(['fromUser', 'organic'])
+        $notifications = Notification::with(['fromUser', 'organic', 'fertilizer', 'composting', 'machinery', 'maintenance', 'supplier', 'usageControl'])
             ->where('user_id', auth()->id())
             ->pending()
             ->unread()
@@ -43,14 +43,41 @@ class NotificationController extends Controller
         ]);
 
         // Crear notificación de respuesta para el aprendiz
-        Notification::create([
+        $notificationData = [
             'user_id' => $notification->from_user_id, // El aprendiz que hizo la solicitud
             'from_user_id' => auth()->id(), // El administrador
-            'organic_id' => $notification->organic_id,
             'type' => 'delete_request',
             'status' => 'approved',
-            'message' => 'Su solicitud de eliminación ha sido APROBADA. Ahora puede eliminar el registro #' . str_pad($notification->organic_id, 3, '0', STR_PAD_LEFT)
-        ]);
+        ];
+
+        // Agregar el ID correspondiente según el tipo de registro
+        if ($notification->organic_id) {
+            $notificationData['organic_id'] = $notification->organic_id;
+            $notificationData['message'] = 'Su solicitud de eliminación ha sido APROBADA. Ahora puede eliminar el registro #' . str_pad($notification->organic_id, 3, '0', STR_PAD_LEFT);
+        } elseif ($notification->fertilizer_id) {
+            $notificationData['fertilizer_id'] = $notification->fertilizer_id;
+            $notificationData['message'] = 'Su solicitud de eliminación ha sido APROBADA. Ahora puede eliminar el registro de abono #' . str_pad($notification->fertilizer_id, 3, '0', STR_PAD_LEFT);
+        } elseif ($notification->composting_id) {
+            $notificationData['composting_id'] = $notification->composting_id;
+            $notificationData['message'] = 'Su solicitud de eliminación ha sido APROBADA. Ahora puede eliminar el registro #' . str_pad($notification->composting_id, 3, '0', STR_PAD_LEFT);
+        } elseif ($notification->tracking_id) {
+            $notificationData['tracking_id'] = $notification->tracking_id;
+            $notificationData['message'] = 'Su solicitud de eliminación ha sido APROBADA. Ahora puede eliminar el seguimiento #' . str_pad($notification->tracking_id, 3, '0', STR_PAD_LEFT);
+        } elseif ($notification->machinery_id) {
+            $notificationData['machinery_id'] = $notification->machinery_id;
+            $notificationData['message'] = 'Su solicitud de eliminación ha sido APROBADA. Ahora puede eliminar el registro #' . str_pad($notification->machinery_id, 3, '0', STR_PAD_LEFT);
+        } elseif ($notification->maintenance_id) {
+            $notificationData['maintenance_id'] = $notification->maintenance_id;
+            $notificationData['message'] = 'Su solicitud de eliminación ha sido APROBADA. Ahora puede eliminar el registro #' . str_pad($notification->maintenance_id, 3, '0', STR_PAD_LEFT);
+        } elseif ($notification->supplier_id) {
+            $notificationData['supplier_id'] = $notification->supplier_id;
+            $notificationData['message'] = 'Su solicitud de eliminación ha sido APROBADA. Ahora puede eliminar el registro #' . str_pad($notification->supplier_id, 3, '0', STR_PAD_LEFT);
+        } elseif ($notification->usage_control_id) {
+            $notificationData['usage_control_id'] = $notification->usage_control_id;
+            $notificationData['message'] = 'Su solicitud de eliminación ha sido APROBADA. Ahora puede eliminar el registro #' . str_pad($notification->usage_control_id, 3, '0', STR_PAD_LEFT);
+        }
+
+        Notification::create($notificationData);
 
         return response()->json([
             'success' => true,
@@ -77,14 +104,41 @@ class NotificationController extends Controller
         ]);
 
         // Crear notificación de respuesta para el aprendiz
-        Notification::create([
+        $notificationData = [
             'user_id' => $notification->from_user_id, // El aprendiz que hizo la solicitud
             'from_user_id' => auth()->id(), // El administrador
-            'organic_id' => $notification->organic_id,
             'type' => 'delete_request',
             'status' => 'rejected',
-            'message' => 'Su solicitud de eliminación ha sido RECHAZADA. No puede eliminar el registro #' . str_pad($notification->organic_id, 3, '0', STR_PAD_LEFT)
-        ]);
+        ];
+
+        // Agregar el ID correspondiente según el tipo de registro
+        if ($notification->organic_id) {
+            $notificationData['organic_id'] = $notification->organic_id;
+            $notificationData['message'] = 'Su solicitud de eliminación ha sido RECHAZADA. No puede eliminar el registro #' . str_pad($notification->organic_id, 3, '0', STR_PAD_LEFT);
+        } elseif ($notification->fertilizer_id) {
+            $notificationData['fertilizer_id'] = $notification->fertilizer_id;
+            $notificationData['message'] = 'Su solicitud de eliminación ha sido RECHAZADA. No puede eliminar el registro de abono #' . str_pad($notification->fertilizer_id, 3, '0', STR_PAD_LEFT);
+        } elseif ($notification->composting_id) {
+            $notificationData['composting_id'] = $notification->composting_id;
+            $notificationData['message'] = 'Su solicitud de eliminación ha sido RECHAZADA. No puede eliminar el registro #' . str_pad($notification->composting_id, 3, '0', STR_PAD_LEFT);
+        } elseif ($notification->tracking_id) {
+            $notificationData['tracking_id'] = $notification->tracking_id;
+            $notificationData['message'] = 'Su solicitud de eliminación ha sido RECHAZADA. No puede eliminar el seguimiento #' . str_pad($notification->tracking_id, 3, '0', STR_PAD_LEFT);
+        } elseif ($notification->machinery_id) {
+            $notificationData['machinery_id'] = $notification->machinery_id;
+            $notificationData['message'] = 'Su solicitud de eliminación ha sido RECHAZADA. No puede eliminar el registro #' . str_pad($notification->machinery_id, 3, '0', STR_PAD_LEFT);
+        } elseif ($notification->maintenance_id) {
+            $notificationData['maintenance_id'] = $notification->maintenance_id;
+            $notificationData['message'] = 'Su solicitud de eliminación ha sido RECHAZADA. No puede eliminar el registro #' . str_pad($notification->maintenance_id, 3, '0', STR_PAD_LEFT);
+        } elseif ($notification->supplier_id) {
+            $notificationData['supplier_id'] = $notification->supplier_id;
+            $notificationData['message'] = 'Su solicitud de eliminación ha sido RECHAZADA. No puede eliminar el registro #' . str_pad($notification->supplier_id, 3, '0', STR_PAD_LEFT);
+        } elseif ($notification->usage_control_id) {
+            $notificationData['usage_control_id'] = $notification->usage_control_id;
+            $notificationData['message'] = 'Su solicitud de eliminación ha sido RECHAZADA. No puede eliminar el registro #' . str_pad($notification->usage_control_id, 3, '0', STR_PAD_LEFT);
+        }
+
+        Notification::create($notificationData);
 
         return response()->json([
             'success' => true,

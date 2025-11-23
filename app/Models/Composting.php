@@ -172,6 +172,11 @@ class Composting extends Model
      */
     public function getProcessProgressAttribute(): float
     {
+        // Si la pila está completada o han pasado 45 días, retornar 100%
+        if ($this->status === 'Completada' || $this->days_elapsed >= 45) {
+            return 100;
+        }
+        
         // Obtener el día máximo registrado en los seguimientos
         $maxTrackingDay = 0;
         if ($this->trackings->count() > 0) {
@@ -189,11 +194,14 @@ class Composting extends Model
      */
     public function getCurrentPhaseAttribute(): string
     {
+        // Si la pila está completada o han pasado 45 días, retornar "Proceso Completado"
+        if ($this->status === 'Completada' || $this->days_elapsed >= 45) {
+            return 'Proceso Completado';
+        }
+        
         $daysElapsed = max(0, $this->days_elapsed);
         
-        if ($daysElapsed >= 45) {
-            return 'Proceso Completado';
-        } elseif ($daysElapsed <= 7) {
+        if ($daysElapsed <= 7) {
             return 'Fase Inicial (Mesófila)';
         } elseif ($daysElapsed <= 21) {
             return 'Fase Termófila (Alta temperatura)';
@@ -209,11 +217,14 @@ class Composting extends Model
      */
     public function getProgressBarColorAttribute(): string
     {
+        // Si la pila está completada o han pasado 45 días, retornar verde completo
+        if ($this->status === 'Completada' || $this->days_elapsed >= 45) {
+            return 'bg-green-600'; // Verde completo para proceso completado
+        }
+        
         $daysElapsed = max(0, $this->days_elapsed);
         
-        if ($daysElapsed >= 45) {
-            return 'bg-green-600'; // Verde completo para proceso completado
-        } elseif ($daysElapsed <= 7) {
+        if ($daysElapsed <= 7) {
             return 'bg-green-400'; // Verde claro para fase inicial
         } elseif ($daysElapsed <= 21) {
             return 'bg-orange-500'; // Naranja para fase termófila (alta temperatura)
@@ -229,6 +240,12 @@ class Composting extends Model
      */
     public function getTrackingProgressAttribute(): string
     {
+        // Si la pila está completada o han pasado 45 días, mostrar 45 de 45 días
+        if ($this->status === 'Completada' || $this->days_elapsed >= 45) {
+            $totalTrackings = $this->trackings->count();
+            return "45 de 45 días ({$totalTrackings} seguimientos registrados)";
+        }
+        
         // Obtener el día máximo registrado en los seguimientos
         $maxTrackingDay = 0;
         if ($this->trackings->count() > 0) {

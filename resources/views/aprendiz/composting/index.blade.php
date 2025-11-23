@@ -254,14 +254,48 @@
                                             </button>
                                         @endif
                                     @else
-                                        <button onclick="requestEditPermission({{ $composting->id }})" 
-                                           class="inline-flex items-center text-gray-400 cursor-not-allowed" title="Sin permisos">
-                                            <i class="fas fa-lock"></i>
-                                        </button>
-                                        <button type="button" 
-                                           class="inline-flex items-center text-gray-400 cursor-not-allowed" title="Sin permisos">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
+                                        {{-- Si la pila fue creada por un admin, el aprendiz puede solicitar permiso para eliminar --}}
+                                        @if($composting->creator && $composting->creator->role === 'admin')
+                                            @php
+                                                $isApproved = isset($approvedCompostingIds) && in_array($composting->id, $approvedCompostingIds);
+                                                $isPending = isset($pendingCompostingIds) && in_array($composting->id, $pendingCompostingIds);
+                                                $isRejected = isset($rejectedCompostingIds) && in_array($composting->id, $rejectedCompostingIds);
+                                            @endphp
+
+                                            @if($isRejected)
+                                                <button type="button" class="inline-flex items-center text-red-600 hover:text-red-800" title="Solicitud rechazada"
+                                                    onclick="showRejectedAlert({{ $composting->id }})">
+                                                    <i class="fas fa-ban text-lg"></i>
+                                                </button>
+                                            @elseif($isApproved)
+                                                <form id="delete-form-{{ $composting->id }}" action="{{ route('aprendiz.composting.destroy', $composting) }}" method="POST" class="inline-flex items-center" style="margin: 0; padding: 0; margin-left: 0.5rem;">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="button" class="inline-flex items-center text-red-500 hover:text-red-700" title="Eliminar"
+                                                        onclick="confirmDelete('delete-form-{{ $composting->id }}')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            @elseif($isPending)
+                                                <button type="button" class="inline-flex items-center text-yellow-500 cursor-default" title="Permiso pendiente de aprobación">
+                                                    <i class="fas fa-hourglass-half"></i>
+                                                </button>
+                                            @else
+                                                <button id="deleteBtn{{ $composting->id }}" onclick="requestDeletePermission({{ $composting->id }})" 
+                                                   class="inline-flex items-center text-red-500 hover:text-red-700" title="Solicitar Eliminación">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            @endif
+                                        @else
+                                            <button onclick="requestEditPermission({{ $composting->id }})" 
+                                               class="inline-flex items-center text-gray-400 cursor-not-allowed" title="Sin permisos">
+                                                <i class="fas fa-lock"></i>
+                                            </button>
+                                            <button type="button" 
+                                               class="inline-flex items-center text-gray-400 cursor-not-allowed" title="Sin permisos">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        @endif
                                     @endif
                                 </div>
                             </td>

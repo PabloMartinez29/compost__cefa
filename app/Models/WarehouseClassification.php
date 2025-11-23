@@ -104,4 +104,18 @@ class WarehouseClassification extends Model
 
         return $inventory;
     }
+
+    // Método para validar si hay suficiente inventario disponible
+    public static function hasEnoughInventory($type, $weight)
+    {
+        $currentInventory = self::getCurrentInventory($type);
+        return $currentInventory >= $weight;
+    }
+
+    // Método para obtener el inventario disponible (no puede ser negativo)
+    public static function getAvailableInventory($type)
+    {
+        $inventory = self::getCurrentInventory($type);
+        return max(0, $inventory); // Retorna 0 si es negativo
+    }
 }

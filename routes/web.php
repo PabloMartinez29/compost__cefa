@@ -108,6 +108,7 @@ Route::middleware(['auth','role:admin'])->group(function(){
     
     // PDF Routes for Tracking (Admin)
     Route::get('admin/tracking/download/all-pdf', [AdminTrackingController::class, 'downloadAllTrackingsPDF'])->name('admin.tracking.download.all-pdf');
+    Route::get('admin/tracking/composting/{composting}/download/pdf', [AdminTrackingController::class, 'downloadCompostingTrackingsPDF'])->name('admin.tracking.download.composting-pdf');
     Route::get('admin/tracking/{tracking}/download/pdf', [AdminTrackingController::class, 'downloadTrackingPDF'])->name('admin.tracking.download.pdf');
     
     // User Management Routes
@@ -240,7 +241,8 @@ Route::middleware(['auth', 'role:aprendiz'])->group(function(){
 
     // Warehouse Classification Routes for Apprentices
     Route::get('aprendiz/warehouse', [AprendizWarehouseController::class, 'index'])->name('aprendiz.warehouse.index');
-    Route::get('aprendiz/warehouse/{type}', [AprendizWarehouseController::class, 'inventory'])->name('aprendiz.warehouse.inventory');
+    Route::get('aprendiz/warehouse/{warehouse}', [AprendizWarehouseController::class, 'show'])->name('aprendiz.warehouse.show');
+    Route::get('aprendiz/warehouse/inventory/{type}', [AprendizWarehouseController::class, 'inventory'])->name('aprendiz.warehouse.inventory');
     
           // Composting Routes for Apprentices
           Route::resource('aprendiz/composting', CompostingController::class)->names([
@@ -275,9 +277,11 @@ Route::middleware(['auth', 'role:aprendiz'])->group(function(){
           
           // Additional tracking routes
           Route::get('aprendiz/tracking/composting/{composting}', [TrackingController::class, 'getByComposting'])->name('aprendiz.tracking.by-composting');
+          Route::post('aprendiz/tracking/{tracking}/request-delete-permission', [TrackingController::class, 'requestDeletePermission'])->name('aprendiz.tracking.request-delete-permission');
           
           // PDF Routes for Tracking (Apprentices)
           Route::get('aprendiz/tracking/download/all-pdf', [TrackingController::class, 'downloadAllTrackingsPDF'])->name('aprendiz.tracking.download.all-pdf');
+          Route::get('aprendiz/tracking/composting/{composting}/download/pdf', [TrackingController::class, 'downloadCompostingTrackingsPDF'])->name('aprendiz.tracking.download.composting-pdf');
           Route::get('aprendiz/tracking/{tracking}/download/pdf', [TrackingController::class, 'downloadTrackingPDF'])->name('aprendiz.tracking.download.pdf');
           
           // Fertilizer Routes for Apprentices
@@ -294,6 +298,7 @@ Route::middleware(['auth', 'role:aprendiz'])->group(function(){
           // Rutas para descargar PDFs de abonos para aprendiz
           Route::get('aprendiz/fertilizer/download/all-pdf', [\App\Http\Controllers\Aprendiz\FertilizerController::class, 'downloadAllFertilizersPDF'])->name('aprendiz.fertilizer.download.all-pdf');
           Route::get('aprendiz/fertilizer/{fertilizer}/download/pdf', [\App\Http\Controllers\Aprendiz\FertilizerController::class, 'downloadFertilizerPDF'])->name('aprendiz.fertilizer.download.pdf');
+          Route::post('aprendiz/fertilizer/{fertilizer}/request-delete', [\App\Http\Controllers\Aprendiz\FertilizerController::class, 'requestDeletePermission'])->name('aprendiz.fertilizer.request-delete');
           
           // Machinery Routes for Apprentices - Identificación y Especificaciones
           Route::resource('aprendiz/machinery/machineries', AprendizMachineryController::class)->names([

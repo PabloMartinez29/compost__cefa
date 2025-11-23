@@ -181,16 +181,16 @@
                 </div>
 
                 <!-- Botones de acción -->
-                <div class="flex flex-col sm:flex-row gap-4 pt-8 border-t border-gray-300">
+                <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-300">
                     <a href="{{ route('aprendiz.machinery.supplier.index') }}" 
-                       class="flex-1 sm:flex-none px-8 py-4 bg-soft-gray-100 text-soft-gray-700 rounded-xl hover:bg-soft-gray-200 transition-all duration-300 text-center font-semibold flex items-center justify-center">
-                        <i class="fas fa-arrow-left mr-2"></i>
-                        Volver a la Lista
+                       class="flex-1 sm:flex-none px-4 py-2 bg-soft-gray-100 text-soft-gray-700 rounded-lg hover:bg-soft-gray-200 transition-all duration-200 text-center font-medium flex items-center justify-center">
+                        <i class="fas fa-times mr-2"></i>
+                        Cancelar
                     </a>
                     <button type="submit" 
-                            class="flex-1 sm:flex-none px-8 py-4 bg-gradient-to-r from-soft-green-400 to-soft-green-500 text-white rounded-xl hover:from-soft-green-500 hover:to-soft-green-600 transition-all duration-300 shadow-lg hover:shadow-xl text-center font-semibold flex items-center justify-center">
+                            class="flex-1 sm:flex-none px-4 py-2 bg-soft-green-400 text-white rounded-lg hover:bg-soft-green-500 transition-all duration-200 shadow-md hover:shadow-lg text-center font-medium flex items-center justify-center">
                         <i class="fas fa-save mr-2"></i>
-                        Guardar Registro
+                        Guardar
                     </button>
                 </div>
             </form>

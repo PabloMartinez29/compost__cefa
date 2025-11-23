@@ -16,8 +16,7 @@ class WarehouseController extends Controller
         $inventory = WarehouseClassification::getInventoryByType();
         $recentMovements = WarehouseClassification::with([])
             ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get();
+            ->paginate(10);
 
         return view('aprendiz.warehouse.index', compact('inventory', 'recentMovements'));
     }
@@ -30,7 +29,7 @@ class WarehouseController extends Controller
         $inventory = WarehouseClassification::getCurrentInventory($type);
         $movements = WarehouseClassification::where('type', $type)
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(5);
 
         $typeInSpanish = [
             'Kitchen' => 'Cocina',
@@ -43,5 +42,13 @@ class WarehouseController extends Controller
         ];
 
         return view('aprendiz.warehouse.inventory', compact('inventory', 'movements', 'type', 'typeInSpanish'));
+    }
+
+    /**
+     * Show the specified resource.
+     */
+    public function show(WarehouseClassification $warehouse)
+    {
+        return view('aprendiz.warehouse.show', compact('warehouse'));
     }
 }

@@ -265,7 +265,7 @@
         <!-- Modal Footer -->
         <div class="px-6 py-4 border-t border-gray-200 flex justify-end">
             <button onclick="window.location.href='{{ route('aprendiz.machinery.index') }}'" 
-                    class="waste-btn">
+                    class="waste-btn-secondary">
                 <i class="fas fa-times mr-2"></i>
                 Cerrar
             </button>

@@ -33,9 +33,7 @@ class TrackingController extends Controller
         // Calcular estadísticas
         $totalPiles = $compostings->count();
         $activePiles = $compostings->whereNull('end_date')->count();
-        $totalTrackings = $compostings->sum(function($composting) {
-            return $composting->trackings->count();
-        });
+        $totalTrackings = Tracking::count();
 
         return view('admin.tracking.index', compact('compostings', 'totalPiles', 'activePiles', 'totalTrackings'));
     }
@@ -154,7 +152,8 @@ class TrackingController extends Controller
                 'ph' => $request->ph ?: null,
                 'water' => $request->water ?: null,
                 'lime' => $request->lime ?: null,
-                'others' => $request->others
+                'others' => $request->others,
+                'created_by' => auth()->id()
             ]);
 
         \Log::info('Tracking created successfully with ID: ' . $tracking->id);
@@ -184,6 +183,57 @@ class TrackingController extends Controller
     public function show(Tracking $tracking)
     {
         // Permitir ver seguimientos de cualquier pila
+        $tracking->load(['composting.ingredients.organic', 'composting']);
+        
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'tracking' => [
+                    'id' => $tracking->id,
+                    'composting_id' => $tracking->composting_id,
+                    'pile_num' => $tracking->composting->formatted_pile_num,
+                    'day' => $tracking->day,
+                    'formatted_day' => $tracking->formatted_day ?? 'Día ' . $tracking->day,
+                    'date' => $tracking->date->format('Y-m-d'),
+                    'formatted_date' => $tracking->formatted_date ?? $tracking->date->format('d/m/Y'),
+                    'activity' => $tracking->activity,
+                    'work_hours' => $tracking->work_hours,
+                    'temp_internal' => $tracking->temp_internal,
+                    'formatted_temp_internal' => $tracking->formatted_temp_internal ?? ($tracking->temp_internal ? $tracking->temp_internal . '°C' : 'N/A'),
+                    'temp_time' => $tracking->temp_time,
+                    'formatted_temp_time' => $tracking->formatted_temp_time ?? ($tracking->temp_time ? date('H:i', strtotime($tracking->temp_time)) : 'N/A'),
+                    'temp_env' => $tracking->temp_env,
+                    'formatted_temp_env' => $tracking->formatted_temp_env ?? ($tracking->temp_env ? $tracking->temp_env . '°C' : 'N/A'),
+                    'hum_pile' => $tracking->hum_pile,
+                    'formatted_hum_pile' => $tracking->formatted_hum_pile ?? ($tracking->hum_pile ? $tracking->hum_pile . '%' : 'N/A'),
+                    'hum_env' => $tracking->hum_env,
+                    'formatted_hum_env' => $tracking->formatted_hum_env ?? ($tracking->hum_env ? $tracking->hum_env . '%' : 'N/A'),
+                    'ph' => $tracking->ph,
+                    'formatted_ph' => $tracking->formatted_ph ?? ($tracking->ph ? $tracking->ph : 'N/A'),
+                    'water' => $tracking->water,
+                    'formatted_water' => $tracking->formatted_water ?? ($tracking->water ? $tracking->water . 'L' : 'N/A'),
+                    'lime' => $tracking->lime,
+                    'formatted_lime' => $tracking->formatted_lime ?? ($tracking->lime ? $tracking->lime . 'Kg' : 'N/A'),
+                    'others' => $tracking->others,
+                    'composting' => [
+                        'id' => $tracking->composting->id,
+                        'formatted_pile_num' => $tracking->composting->formatted_pile_num,
+                        'formatted_start_date' => $tracking->composting->formatted_start_date,
+                        'formatted_total_kg' => $tracking->composting->formatted_total_kg,
+                        'status' => $tracking->composting->status,
+                        'end_date' => $tracking->composting->end_date,
+                        'ingredients' => $tracking->composting->ingredients->map(function($ingredient) {
+                            return [
+                                'type' => $ingredient->organic->type_in_spanish ?? 'N/A',
+                                'amount' => number_format($ingredient->amount, 2) . ' Kg',
+                                'notes' => $ingredient->notes
+                            ];
+                        })
+                    ],
+                    'missing_days' => $tracking->composting->missing_days
+                ]
+            ]);
+        }
+        
         return view('admin.tracking.show', compact('tracking'));
     }
 
@@ -198,6 +248,34 @@ class TrackingController extends Controller
         $activeCompostings = Composting::whereNull('end_date')
             ->orderBy('pile_num', 'asc')
             ->get();
+
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'tracking' => [
+                    'id' => $tracking->id,
+                    'composting_id' => $tracking->composting_id,
+                    'day' => $tracking->day,
+                    'date' => $tracking->date->format('Y-m-d'),
+                    'activity' => $tracking->activity,
+                    'work_hours' => $tracking->work_hours,
+                    'temp_internal' => $tracking->temp_internal,
+                    'temp_time' => $tracking->temp_time ? date('H:i', strtotime($tracking->temp_time)) : '',
+                    'temp_env' => $tracking->temp_env,
+                    'hum_pile' => $tracking->hum_pile,
+                    'hum_env' => $tracking->hum_env,
+                    'ph' => $tracking->ph,
+                    'water' => $tracking->water,
+                    'lime' => $tracking->lime,
+                    'others' => $tracking->others
+                ],
+                'activeCompostings' => $activeCompostings->map(function($composting) {
+                    return [
+                        'id' => $composting->id,
+                        'formatted_pile_num' => $composting->formatted_pile_num
+                    ];
+                })
+            ]);
+        }
 
         return view('admin.tracking.edit', compact('tracking', 'activeCompostings'));
     }
@@ -339,7 +417,27 @@ class TrackingController extends Controller
         
         $trackings = $composting->trackings()
             ->orderBy('day', 'asc')
-            ->get();
+            ->get()
+            ->map(function($tracking) {
+                return [
+                    'id' => $tracking->id,
+                    'composting_id' => $tracking->composting_id,
+                    'day' => $tracking->day,
+                    'date' => $tracking->date->format('Y-m-d'),
+                    'activity' => $tracking->activity,
+                    'work_hours' => $tracking->work_hours,
+                    'temp_internal' => $tracking->temp_internal,
+                    'temp_time' => $tracking->temp_time ? $tracking->temp_time->format('H:i') : null,
+                    'temp_env' => $tracking->temp_env,
+                    'hum_pile' => $tracking->hum_pile,
+                    'hum_env' => $tracking->hum_env,
+                    'ph' => $tracking->ph,
+                    'water' => $tracking->water,
+                    'lime' => $tracking->lime,
+                    'others' => $tracking->others,
+                    'created_by' => $tracking->created_by
+                ];
+            });
 
         // Obtener los días faltantes (días sin seguimiento registrado)
         $missingDays = $composting->missing_days;
@@ -383,6 +481,26 @@ class TrackingController extends Controller
             ]);
         
         return $pdf->download('todos_los_seguimientos_' . date('Y-m-d') . '.pdf');
+    }
+
+    /**
+     * Generate PDF for all trackings of a specific composting pile
+     */
+    public function downloadCompostingTrackingsPDF(Composting $composting)
+    {
+        $composting->load('trackings');
+        $trackings = $composting->trackings()->orderBy('day', 'asc')->get();
+        
+        $pdf = PDF::loadView('admin.tracking.pdf.all-trackings', compact('trackings'))
+            ->setPaper('a4', 'landscape')
+            ->setOptions([
+                'defaultFont' => 'Arial',
+                'isRemoteEnabled' => false,
+                'isHtml5ParserEnabled' => true,
+                'isPhpEnabled' => false,
+            ]);
+        
+        return $pdf->download('seguimientos_' . str_replace(' ', '_', $composting->formatted_pile_num) . '_' . date('Y-m-d') . '.pdf');
     }
 
     /**

@@ -16,21 +16,15 @@
     <!-- Header -->
     <div class="waste-header animate-fade-in-up">
         <div class="flex items-center justify-between">
-            <div class="flex items-center">
-                <a href="{{ route('aprendiz.machinery.show', $machinery) }}" 
-                   class="mr-4 p-2 text-gray-600 hover:text-green-600 rounded-lg hover:bg-green-50 transition-colors">
-                    <i class="fas fa-arrow-left text-xl"></i>
-                </a>
-                <div>
-                    <h1 class="waste-title">
-                        <i class="fas fa-edit waste-icon"></i>
-                        Editar Maquinaria
-                    </h1>
-                    <p class="waste-subtitle">
-                        <i class="fas fa-user-shield text-green-400 mr-2"></i>
-                        {{ Auth::user()->name }} - Modificando: {{ $machinery->name }}
-                    </p>
-                </div>
+            <div>
+                <h1 class="waste-title">
+                    <i class="fas fa-edit waste-icon"></i>
+                    Editar Maquinaria
+                </h1>
+                <p class="waste-subtitle">
+                    <i class="fas fa-user-shield text-green-400 mr-2"></i>
+                    {{ Auth::user()->name }} - Maquinaria #{{ str_pad($machinery->id, 3, '0', STR_PAD_LEFT) }}
+                </p>
             </div>
             <div class="text-right">
                 <div class="text-green-400 font-bold text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
@@ -253,16 +247,16 @@
                 </div>
 
                 <!-- Botones de acción -->
-                <div class="flex flex-col sm:flex-row gap-4 pt-8 border-t border-gray-300">
-                    <a href="{{ route('aprendiz.machinery.show', $machinery) }}" 
-                       class="flex-1 sm:flex-none px-8 py-4 bg-soft-gray-100 text-soft-gray-700 rounded-xl hover:bg-soft-gray-200 transition-all duration-300 text-center font-semibold flex items-center justify-center">
-                        <i class="fas fa-arrow-left mr-2"></i>
-                        Volver a Detalles
+                <!-- Form Actions -->
+                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <a href="{{ route('aprendiz.machinery.index') }}" 
+                       class="waste-btn-secondary">
+                        <i class="fas fa-times mr-2"></i>
+                        Cancelar
                     </a>
-                    <button type="submit" 
-                            class="flex-1 sm:flex-none px-8 py-4 bg-gradient-to-r from-soft-green-400 to-soft-green-500 text-white rounded-xl hover:from-soft-green-500 hover:to-soft-green-600 transition-all duration-300 shadow-lg hover:shadow-xl text-center font-semibold flex items-center justify-center">
+                    <button type="submit" class="waste-btn">
                         <i class="fas fa-save mr-2"></i>
-                        Guardar Cambios
+                        Guardar
                     </button>
                 </div>
             </form>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Aprendiz;
 use App\Http\Controllers\Controller;
 use App\Models\Fertilizer;
 use App\Models\Composting;
+use App\Models\Notification;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
@@ -15,15 +16,72 @@ class FertilizerController extends Controller
      */
     public function index()
     {
-        $fertilizers = Fertilizer::with('composting')->orderBy('date', 'desc')->orderBy('time', 'desc')->get();
+        $fertilizers = Fertilizer::with('composting.creator')->orderBy('date', 'desc')->orderBy('time', 'desc')->get();
         
         // Statistics
         $totalAmount = Fertilizer::sum('amount');
         $totalRecords = Fertilizer::count();
         $todayRecords = Fertilizer::whereDate('date', today())->count();
         $todayAmount = Fertilizer::whereDate('date', today())->sum('amount');
+
+        // Verificar notificaciones recientes
+        $userId = auth()->check() ? auth()->id() : null;
+        $recentNotifications = Notification::where('user_id', $userId)
+            ->whereIn('status', ['approved', 'rejected'])
+            ->whereNull('read_at')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        // Marcar las no leídas como leídas al mostrarlas
+        foreach ($recentNotifications as $notification) {
+            $notification->update(['read_at' => now()]);
+        }
+
+        // IDs de abonos con aprobación vigente para eliminar
+        $approvedFertilizerIds = Notification::where('user_id', $userId)
+            ->where('type', 'delete_request')
+            ->where('status', 'approved')
+            ->whereNotNull('fertilizer_id')
+            ->pluck('fertilizer_id')
+            ->toArray();
+
+        // IDs de abonos con solicitud pendiente
+        $pendingFertilizerIds = Notification::where('from_user_id', $userId)
+            ->where('type', 'delete_request')
+            ->where('status', 'pending')
+            ->whereNotNull('fertilizer_id')
+            ->pluck('fertilizer_id')
+            ->toArray();
+
+        // IDs de abonos con solicitud rechazada
+        $rejectedFertilizerIds = Notification::where('user_id', $userId)
+            ->where('type', 'delete_request')
+            ->where('status', 'rejected')
+            ->whereNotNull('fertilizer_id')
+            ->pluck('fertilizer_id')
+            ->toArray();
         
-        return view('aprendiz.fertilizer.index', compact('fertilizers', 'totalAmount', 'totalRecords', 'todayRecords', 'todayAmount'));
+        // También verificar notificaciones pendientes que fueron rechazadas
+        $rejectedFromPending = Notification::where('from_user_id', $userId)
+            ->where('type', 'delete_request')
+            ->where('status', 'rejected')
+            ->whereNotNull('fertilizer_id')
+            ->pluck('fertilizer_id')
+            ->toArray();
+        
+        $rejectedFertilizerIds = array_unique(array_merge($rejectedFertilizerIds, $rejectedFromPending));
+        
+        return view('aprendiz.fertilizer.index', compact(
+            'fertilizers',
+            'totalAmount',
+            'totalRecords',
+            'todayRecords',
+            'todayAmount',
+            'recentNotifications',
+            'approvedFertilizerIds',
+            'pendingFertilizerIds',
+            'rejectedFertilizerIds'
+        ));
     }
 
     /**
@@ -126,6 +184,30 @@ class FertilizerController extends Controller
     public function edit(Fertilizer $fertilizer)
     {
         $fertilizer->load('composting');
+        
+        // Si es una petición AJAX, devolver JSON
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'fertilizer' => [
+                    'id' => $fertilizer->id,
+                    'date' => $fertilizer->date->format('Y-m-d'),
+                    'time' => $fertilizer->time,
+                    'composting_id' => $fertilizer->composting_id,
+                    'composting' => $fertilizer->composting ? [
+                        'id' => $fertilizer->composting->id,
+                        'formatted_pile_num' => $fertilizer->composting->formatted_pile_num,
+                    ] : null,
+                    'requester' => $fertilizer->requester,
+                    'destination' => $fertilizer->destination,
+                    'received_by' => $fertilizer->received_by,
+                    'delivered_by' => $fertilizer->delivered_by,
+                    'type' => $fertilizer->type,
+                    'amount' => $fertilizer->amount,
+                    'notes' => $fertilizer->notes,
+                ]
+            ]);
+        }
+        
         return view('aprendiz.fertilizer.edit', compact('fertilizer'));
     }
 
@@ -156,9 +238,97 @@ class FertilizerController extends Controller
      */
     public function destroy(Fertilizer $fertilizer)
     {
+        $currentUserId = auth()->check() ? auth()->id() : null;
+        
+        // Verificar que el registro pertenece al usuario (a través del composting)
+        $fertilizer->load('composting');
+        if ($fertilizer->composting && $fertilizer->composting->created_by !== $currentUserId) {
+            return redirect()->route('aprendiz.fertilizer.index')
+                ->with('permission_required', 'No tiene permisos para eliminar este registro.');
+        }
+        
+        // Verificar que hay una solicitud aprobada
+        $approvedNotification = Notification::where('user_id', $currentUserId)
+            ->where('fertilizer_id', $fertilizer->id)
+            ->where('type', 'delete_request')
+            ->where('status', 'approved')
+            ->orderBy('created_at', 'desc')
+            ->first();
+        
+        if (!$approvedNotification) {
+            return redirect()->route('aprendiz.fertilizer.index')
+                ->with('permission_required', 'No tiene permiso para eliminar este registro. Debe solicitar permiso primero y esperar la aprobación del administrador.');
+        }
+
+        // Marcar la notificación como procesada
+        $approvedNotification->update(['read_at' => now()]);
+
         $fertilizer->delete();
 
         return redirect()->route('aprendiz.fertilizer.index')->with('success', '¡Registro de abono eliminado exitosamente!');
+    }
+
+    /**
+     * Solicitar permiso para eliminar un registro
+     */
+    public function requestDeletePermission(Fertilizer $fertilizer)
+    {
+        // Verificar que el registro pertenece al usuario (a través del composting)
+        $currentUserId = auth()->check() ? auth()->id() : null;
+        $fertilizer->load('composting');
+        
+        if (!$fertilizer->composting || $fertilizer->composting->created_by !== $currentUserId) {
+            return redirect()->route('aprendiz.fertilizer.index')
+                ->with('permission_required', 'No puede solicitar permisos para registros que no le pertenecen.');
+        }
+
+        // Evitar solicitudes duplicadas si ya hay una pendiente o aprobada
+        $existing = Notification::where('from_user_id', $currentUserId)
+            ->where('fertilizer_id', $fertilizer->id)
+            ->where('type', 'delete_request')
+            ->whereIn('status', ['pending', 'approved'])
+            ->first();
+        
+        if ($existing && $existing->status === 'pending') {
+            return redirect()->route('aprendiz.fertilizer.index')
+                ->with('permission_required', 'Su solicitud de eliminación ya está pendiente de aprobación del administrador.');
+        }
+        
+        if ($existing && $existing->status === 'approved') {
+            return redirect()->route('aprendiz.fertilizer.index')
+                ->with('success', 'Su solicitud ya fue aprobada. Ahora puede eliminar el registro.');
+        }
+
+        // Si hay una solicitud rechazada, eliminarla para permitir nueva solicitud
+        $rejected = Notification::where('from_user_id', $currentUserId)
+            ->where('fertilizer_id', $fertilizer->id)
+            ->where('type', 'delete_request')
+            ->where('status', 'rejected')
+            ->first();
+        
+        if ($rejected) {
+            $rejected->delete();
+        }
+
+        // Buscar todos los administradores y crear notificaciones para cada uno
+        $admins = \App\Models\User::where('role', 'admin')->get();
+        
+        if ($admins->count() > 0) {
+            foreach ($admins as $admin) {
+                // Crear notificación para cada administrador
+                Notification::create([
+                    'user_id' => $admin->id,
+                    'from_user_id' => $currentUserId,
+                    'fertilizer_id' => $fertilizer->id,
+                    'type' => 'delete_request',
+                    'status' => 'pending',
+                    'message' => (auth()->check() ? auth()->user()->name : 'Usuario') . ' solicita permiso para eliminar el registro de abono #' . str_pad($fertilizer->id, 3, '0', STR_PAD_LEFT)
+                ]);
+            }
+        }
+
+        return redirect()->route('aprendiz.fertilizer.index')
+            ->with('success', 'Solicitud de eliminación enviada al administrador. Recibirá una notificación cuando sea aprobada.');
     }
 
     /**

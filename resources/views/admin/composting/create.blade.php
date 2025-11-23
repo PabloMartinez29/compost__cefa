@@ -23,12 +23,6 @@
                     {{ Auth::user()->name }} - Registro de Nueva Pila
                 </p>
             </div>
-            <div class="text-right">
-                <a href="{{ route('admin.composting.index') }}" class="bg-gray-400 text-gray-800 border border-gray-500 hover:bg-gray-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
-                    <i class="fas fa-arrow-left mr-2"></i>
-                    Volver
-                </a>
-            </div>
         </div>
     </div>
 
@@ -187,14 +181,16 @@
             </div>
 
             <!-- Botones de Acción -->
-            <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-                <a href="{{ route('admin.composting.index') }}" class="waste-btn-secondary">
+            <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-300">
+                <a href="{{ route('admin.composting.index') }}" 
+                   class="flex-1 sm:flex-none px-4 py-2 bg-soft-gray-100 text-soft-gray-700 rounded-lg hover:bg-soft-gray-200 transition-all duration-200 text-center font-medium flex items-center justify-center">
                     <i class="fas fa-times mr-2"></i>
                     Cancelar
                 </a>
-                <button type="submit" class="waste-btn">
+                <button type="submit" 
+                        class="flex-1 sm:flex-none px-4 py-2 bg-soft-green-400 text-white rounded-lg hover:bg-soft-green-500 transition-all duration-200 shadow-md hover:shadow-lg text-center font-medium flex items-center justify-center">
                     <i class="fas fa-save mr-2"></i>
-                    Guardar Pila
+                    Guardar
                 </button>
             </div>
         </form>

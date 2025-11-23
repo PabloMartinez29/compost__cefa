@@ -318,6 +318,115 @@
     </div>
 </div>
 
+<!-- Modal de edición -->
+<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop-blur hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <!-- Modal Header -->
+        <div class="waste-header">
+            <div class="text-center">
+                <h3 class="waste-title text-xl justify-center">
+                    <i class="fas fa-edit waste-icon"></i>
+                    Editar Uso del Equipo
+                </h3>
+                <p class="waste-subtitle">
+                    <i class="fas fa-user-shield text-green-400 mr-2"></i>
+                    <span id="editUserInfo">{{ Auth::user()->name }} - Registro #<span id="editUsageControlId"></span></span>
+                </p>
+            </div>
+            <button id="closeEditModal" class="absolute top-4 right-4 text-gray-600 hover:text-gray-800">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6">
+            <form id="editForm" method="POST">
+                @csrf
+                @method('PUT')
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Maquinaria -->
+                    <div class="waste-form-group md:col-span-2">
+                        <label for="edit_machinery_id" class="waste-form-label">Maquinaria *</label>
+                        <div class="relative">
+                            <select id="edit_machinery_id" name="machinery_id" required class="waste-form-select">
+                                <option value="">Seleccionar maquinaria</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                        </div>
+                    </div>
+
+                    <!-- Responsable -->
+                    <div class="waste-form-group md:col-span-2">
+                        <label for="edit_responsible" class="waste-form-label">Responsable *</label>
+                        <input type="text" id="edit_responsible" name="responsible" maxlength="150" required
+                               placeholder="Nombre del responsable"
+                               class="waste-form-input" />
+                    </div>
+
+                    <!-- Fecha/Hora Inicio -->
+                    <div class="waste-form-group">
+                        <label for="edit_start_date" class="waste-form-label">Fecha/Hora Inicio *</label>
+                        <input type="datetime-local" id="edit_start_date" name="start_date" required
+                               class="waste-form-input" />
+                    </div>
+
+                    <!-- Fecha/Hora Fin -->
+                    <div class="waste-form-group">
+                        <label for="edit_end_date" class="waste-form-label">Fecha/Hora Fin</label>
+                        <input type="datetime-local" id="edit_end_date" name="end_date"
+                               class="waste-form-input" />
+                        <p class="text-gray-500 text-xs mt-1">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Campo opcional
+                        </p>
+                    </div>
+
+                    <!-- Total Horas -->
+                    <div class="waste-form-group">
+                        <label for="edit_hours" class="waste-form-label">Total Horas de Uso</label>
+                        <input type="number" id="edit_hours" name="hours" min="0" step="0.01"
+                               placeholder="0"
+                               readonly
+                               class="waste-form-input bg-gray-100 cursor-not-allowed" />
+                        <p class="text-gray-500 text-xs mt-1">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Se calcula automáticamente
+                        </p>
+                    </div>
+
+                    <!-- Observaciones -->
+                    <div class="waste-form-group md:col-span-2">
+                        <label for="edit_description" class="waste-form-label">Observaciones</label>
+                        <textarea id="edit_description" name="description" rows="4" maxlength="1000"
+                                  placeholder="Ingrese observaciones sobre el uso del equipo..."
+                                  class="waste-form-textarea"></textarea>
+                        <div class="flex justify-between mt-1">
+                            <p class="text-gray-500 text-xs">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Máximo 1000 caracteres
+                            </p>
+                            <p class="text-gray-500 text-xs" id="edit_char-count">0/1000</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <button type="button" id="cancelEditModal" class="waste-btn-secondary">
+                        <i class="fas fa-times mr-2"></i>
+                        Cancelar
+                    </button>
+                    <button type="submit" class="waste-btn">
+                        <i class="fas fa-save mr-2"></i>
+                        Guardar cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 // Funciones para el modal de imagen
 function openImageModal(imageSrc) {
@@ -347,14 +456,22 @@ document.addEventListener('keydown', function(e) {
 
 // Funciones para el modal de vista
 function openViewModal(usageControlId) {
-    fetch(`/admin/machinery/usage-control/${usageControlId}`, {
+    fetch(`/aprendiz/machinery/usage-control/${usageControlId}`, {
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
             'Accept': 'application/json'
         }
     })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la respuesta del servidor');
+            }
+            return response.json();
+        })
         .then(data => {
+            if (!data || !data.id) {
+                throw new Error('Datos inválidos recibidos del servidor');
+            }
             document.getElementById('viewRecordId').textContent = data.id.toString().padStart(3, '0');
             document.getElementById('viewMachinery').textContent = `${data.machinery_name} - ${data.machinery_brand} ${data.machinery_model}`;
             // Formatear fecha/hora en formato colombiano con AM/PM
@@ -408,7 +525,13 @@ function openViewModal(usageControlId) {
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error al cargar los datos del registro');
+            Swal.fire({
+                title: 'Error',
+                text: 'Error al cargar los datos del registro. Por favor, intente nuevamente.',
+                icon: 'error',
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'Entendido'
+            });
         });
 }
 
@@ -431,6 +554,36 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
+// Funciones para el modal de edición
+const editModal = document.getElementById('editModal');
+const closeEditBtn = document.getElementById('closeEditModal');
+const cancelEditBtn = document.getElementById('cancelEditModal');
+const editForm = document.getElementById('editForm');
+
+function openEditModal() {
+    editModal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeEditModal() {
+    editModal.classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+closeEditBtn.addEventListener('click', closeEditModal);
+cancelEditBtn.addEventListener('click', closeEditModal);
+editModal.addEventListener('click', (e) => {
+    if (e.target === editModal || e.target.closest('.modal-backdrop-blur') === editModal) {
+        closeEditModal();
+    }
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !editModal.classList.contains('hidden')) {
+        closeEditModal();
+    }
+});
+
 // Confirmación antes de editar
 function confirmEdit(usageControlId) {
     Swal.fire({
@@ -444,8 +597,128 @@ function confirmEdit(usageControlId) {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            window.location.href = `/admin/machinery/usage-control/${usageControlId}/edit`;
+            openEditUsageControlModal(usageControlId);
         }
+    });
+}
+
+// Función para calcular horas automáticamente
+function calculateHours() {
+    const startDateInput = document.getElementById('edit_start_date');
+    const endDateInput = document.getElementById('edit_end_date');
+    const hoursInput = document.getElementById('edit_hours');
+    
+    if (startDateInput.value && endDateInput.value) {
+        const start = new Date(startDateInput.value);
+        const end = new Date(endDateInput.value);
+        
+        if (end < start) {
+            Swal.fire({
+                title: 'Error de validación',
+                text: 'La fecha/hora de fin debe ser posterior o igual a la fecha/hora de inicio.',
+                icon: 'error',
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'Entendido'
+            });
+            endDateInput.value = startDateInput.value;
+            hoursInput.value = 0;
+            return;
+        }
+        
+        const diffMs = end - start;
+        const diffHours = diffMs / (1000 * 60 * 60);
+        hoursInput.value = Math.round(diffHours * 100) / 100;
+    } else {
+        hoursInput.value = 0;
+    }
+}
+
+// Función para abrir modal de edición con datos
+function openEditUsageControlModal(usageControlId) {
+    fetch(`/aprendiz/machinery/usage-control/${usageControlId}/edit`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+        .then(response => response.json())
+        .then(result => {
+            const data = result.usageControl;
+            const machineries = result.machineries || [];
+            
+            // Actualizar ID en el header
+            document.getElementById('editUsageControlId').textContent = data.id.toString().padStart(3, '0');
+            
+            // Configurar acción del formulario
+            editForm.action = `/aprendiz/machinery/usage-control/${usageControlId}`;
+            
+            // Llenar campos
+            document.getElementById('edit_responsible').value = data.responsible || '';
+            document.getElementById('edit_description').value = data.description || '';
+            document.getElementById('edit_hours').value = data.hours || 0;
+            
+            // Formatear fechas para datetime-local
+            if (data.start_date) {
+                const startDate = new Date(data.start_date);
+                const startLocal = new Date(startDate.getTime() - startDate.getTimezoneOffset() * 60000);
+                document.getElementById('edit_start_date').value = startLocal.toISOString().slice(0, 16);
+            }
+            
+            if (data.end_date) {
+                const endDate = new Date(data.end_date);
+                const endLocal = new Date(endDate.getTime() - endDate.getTimezoneOffset() * 60000);
+                document.getElementById('edit_end_date').value = endLocal.toISOString().slice(0, 16);
+            }
+            
+            // Llenar select de maquinarias
+            const select = document.getElementById('edit_machinery_id');
+            select.innerHTML = '<option value="">Seleccionar maquinaria</option>';
+            machineries.forEach(machinery => {
+                const option = document.createElement('option');
+                option.value = machinery.id;
+                option.textContent = `${machinery.name} - ${machinery.brand} ${machinery.model}`;
+                if (machinery.id == data.machinery_id) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+            
+            // Configurar eventos para calcular horas
+            const startDateInput = document.getElementById('edit_start_date');
+            const endDateInput = document.getElementById('edit_end_date');
+            
+            startDateInput.addEventListener('change', function() {
+                endDateInput.min = this.value;
+                calculateHours();
+            });
+            
+            endDateInput.addEventListener('change', calculateHours);
+            
+            // Contador de caracteres
+            const descriptionTextarea = document.getElementById('edit_description');
+            const charCount = document.getElementById('edit_char-count');
+            
+            function updateCharCount() {
+                const count = descriptionTextarea.value.length;
+                charCount.textContent = `${count}/1000`;
+                if (count > 900) {
+                    charCount.classList.add('text-red-500');
+                    charCount.classList.remove('text-gray-500');
+                } else {
+                    charCount.classList.remove('text-red-500');
+                    charCount.classList.add('text-gray-500');
+                }
+            }
+            
+            descriptionTextarea.addEventListener('input', updateCharCount);
+            updateCharCount();
+            
+            // Mostrar modal
+            openEditModal();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cargar los datos del registro');
     });
 }
 

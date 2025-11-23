@@ -245,29 +245,143 @@
 <!-- Modal para editar -->
 <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop-blur hidden z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <!-- Modal Header -->
         <div class="waste-header">
             <div class="text-center">
                 <h3 class="waste-title text-xl justify-center">
                     <i class="fas fa-edit waste-icon"></i>
                     Editar Registro de Abono
                 </h3>
+                <p class="waste-subtitle">
+                    <i class="fas fa-user-shield text-green-400 mr-2"></i>
+                    <span id="editUserInfo">{{ Auth::user()?->name ?? 'Usuario' }} - Registro #<span id="editFertilizerId"></span></span>
+                </p>
             </div>
+            <button id="closeEditModal" class="absolute top-4 right-4 text-gray-600 hover:text-gray-800">
+                <i class="fas fa-times text-xl"></i>
+            </button>
         </div>
+
+        <!-- Modal Body -->
         <div class="p-6">
             <form id="editForm" method="POST">
                 @csrf
                 @method('PUT')
-                <div id="editContent">
-                    <!-- Contenido se llenará con JavaScript -->
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Fecha -->
+                    <div class="waste-form-group">
+                        <label for="edit_date" class="waste-form-label">Fecha *</label>
+                        <input type="date" id="edit_date" name="date" required
+                               class="waste-form-input" />
+                    </div>
+
+                    <!-- Hora -->
+                    <div class="waste-form-group">
+                        <label for="edit_time" class="waste-form-label">Hora *</label>
+                        <input type="time" id="edit_time" name="time" required
+                               class="waste-form-input" />
+                    </div>
+
+                    <!-- Pila (solo lectura) -->
+                    <div class="waste-form-group md:col-span-2">
+                        <label for="edit_composting_id" class="waste-form-label">Pila</label>
+                        <input type="text" id="edit_composting_display" 
+                               readonly
+                               class="waste-form-input bg-gray-100 cursor-not-allowed" />
+                        <input type="hidden" id="edit_composting_id" name="composting_id" />
+                        <p class="text-gray-500 text-xs mt-1">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            La pila no se puede modificar después de crear el registro.
+                        </p>
+                    </div>
+
+                    <!-- Solicitante -->
+                    <div class="waste-form-group">
+                        <label for="edit_requester" class="waste-form-label">Solicitante *</label>
+                        <input type="text" id="edit_requester" name="requester" maxlength="150" required
+                               placeholder="Nombre del solicitante"
+                               class="waste-form-input" />
+                    </div>
+
+                    <!-- Destino -->
+                    <div class="waste-form-group">
+                        <label for="edit_destination" class="waste-form-label">Destino *</label>
+                        <input type="text" id="edit_destination" name="destination" maxlength="150" required
+                               placeholder="Lugar de destino"
+                               class="waste-form-input" />
+                    </div>
+
+                    <!-- Quién Recibe -->
+                    <div class="waste-form-group">
+                        <label for="edit_received_by" class="waste-form-label">Quién Recibe *</label>
+                        <input type="text" id="edit_received_by" name="received_by" maxlength="150" required
+                               placeholder="Nombre de quien recibe"
+                               class="waste-form-input" />
+                    </div>
+
+                    <!-- Quién Entrega -->
+                    <div class="waste-form-group">
+                        <label for="edit_delivered_by" class="waste-form-label">Quién Entrega *</label>
+                        <input type="text" id="edit_delivered_by" name="delivered_by" maxlength="150" required
+                               placeholder="Nombre de quien entrega"
+                               class="waste-form-input" />
+                    </div>
+
+                    <!-- Tipo de Abono -->
+                    <div class="waste-form-group">
+                        <label class="waste-form-label">Tipo de Abono *</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-green-50 transition-all duration-200">
+                                <input type="radio" name="type" value="Liquid" id="edit_type_liquid"
+                                       class="sr-only peer">
+                                <div class="w-4 h-4 border-2 border-gray-300 rounded-full peer-checked:border-green-500 peer-checked:bg-green-500 mr-3 flex items-center justify-center">
+                                    <div class="w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100"></div>
+                                </div>
+                                <span class="text-sm font-medium text-gray-700 peer-checked:text-green-700">Líquido</span>
+                            </label>
+                            <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-green-50 transition-all duration-200">
+                                <input type="radio" name="type" value="Solid" id="edit_type_solid"
+                                       class="sr-only peer">
+                                <div class="w-4 h-4 border-2 border-gray-300 rounded-full peer-checked:border-green-500 peer-checked:bg-green-500 mr-3 flex items-center justify-center">
+                                    <div class="w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100"></div>
+                                </div>
+                                <span class="text-sm font-medium text-gray-700 peer-checked:text-green-700">Sólido</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Cantidad -->
+                    <div class="waste-form-group">
+                        <label for="edit_amount" class="waste-form-label">Cantidad (KG/L) *</label>
+                        <div class="relative">
+                            <input type="number" id="edit_amount" name="amount" step="0.01" min="0.01" required
+                                   placeholder="0.00"
+                                   class="waste-form-input pr-16" />
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-4">
+                                <span class="text-gray-500 text-sm font-medium" id="edit_amountUnit">Kg</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notas -->
+                    <div class="waste-form-group md:col-span-2">
+                        <label for="edit_notes" class="waste-form-label">Notas</label>
+                        <textarea id="edit_notes" name="notes" rows="4"
+                                  placeholder="Observaciones adicionales sobre la entrega..."
+                                  class="waste-form-textarea"></textarea>
+                    </div>
                 </div>
-                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200 mt-6">
-                    <button type="button" onclick="closeEditModal()" class="waste-btn-secondary">
+
+                <!-- Form Actions -->
+                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <button type="button" id="cancelEditModal" class="waste-btn-secondary">
                         <i class="fas fa-times mr-2"></i>
                         Cancelar
                     </button>
                     <button type="submit" class="waste-btn">
                         <i class="fas fa-save mr-2"></i>
-                        Actualizar
+                        Guardar cambios
                     </button>
                 </div>
             </form>
@@ -513,19 +627,49 @@ function openViewModal(fertilizerId) {
     })
     .then(response => response.json())
     .then(data => {
+        document.getElementById('viewRecordId').textContent = data.id.toString().padStart(3, '0');
         document.getElementById('viewContent').innerHTML = `
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><strong>ID:</strong> #${data.id.toString().padStart(3, '0')}</div>
-                <div><strong>Fecha:</strong> ${data.formatted_date}</div>
-                <div><strong>Hora:</strong> ${data.time}</div>
-                <div><strong>Pila:</strong> ${data.composting ? data.composting.formatted_pile_num : 'N/A'}</div>
-                <div><strong>Tipo:</strong> ${data.type_in_spanish}</div>
-                <div><strong>Cantidad:</strong> ${data.formatted_amount}</div>
-                <div><strong>Solicitante:</strong> ${data.requester}</div>
-                <div><strong>Destino:</strong> ${data.destination}</div>
-                <div><strong>Recibido Por:</strong> ${data.received_by}</div>
-                <div><strong>Entregado Por:</strong> ${data.delivered_by}</div>
-                <div class="md:col-span-2"><strong>Notas:</strong> ${data.notes || 'Sin notas'}</div>
+                <div class="waste-form-group">
+                    <label class="waste-form-label">Fecha</label>
+                    <div class="waste-form-input bg-gray-50">${data.formatted_date}</div>
+                </div>
+                <div class="waste-form-group">
+                    <label class="waste-form-label">Hora</label>
+                    <div class="waste-form-input bg-gray-50">${data.time}</div>
+                </div>
+                <div class="waste-form-group">
+                    <label class="waste-form-label">Pila</label>
+                    <div class="waste-form-input bg-gray-50">${data.composting ? data.composting.formatted_pile_num : 'N/A'}</div>
+                </div>
+                <div class="waste-form-group">
+                    <label class="waste-form-label">Tipo</label>
+                    <div class="waste-form-input bg-gray-50">${data.type_in_spanish}</div>
+                </div>
+                <div class="waste-form-group">
+                    <label class="waste-form-label">Cantidad</label>
+                    <div class="waste-form-input bg-gray-50 font-semibold">${data.formatted_amount}</div>
+                </div>
+                <div class="waste-form-group">
+                    <label class="waste-form-label">Solicitante</label>
+                    <div class="waste-form-input bg-gray-50">${data.requester}</div>
+                </div>
+                <div class="waste-form-group">
+                    <label class="waste-form-label">Destino</label>
+                    <div class="waste-form-input bg-gray-50">${data.destination}</div>
+                </div>
+                <div class="waste-form-group">
+                    <label class="waste-form-label">Recibido Por</label>
+                    <div class="waste-form-input bg-gray-50">${data.received_by}</div>
+                </div>
+                <div class="waste-form-group">
+                    <label class="waste-form-label">Entregado Por</label>
+                    <div class="waste-form-input bg-gray-50">${data.delivered_by}</div>
+                </div>
+                <div class="waste-form-group md:col-span-2">
+                    <label class="waste-form-label">Notas</label>
+                    <div class="waste-form-textarea bg-gray-50" style="min-height: 100px;">${data.notes || 'Sin notas'}</div>
+                </div>
             </div>
         `;
         document.getElementById('viewModal').classList.remove('hidden');
@@ -542,13 +686,93 @@ function closeViewModal() {
     document.body.style.overflow = 'auto';
 }
 
-function openEditModal(fertilizerId) {
-    window.location.href = `/admin/fertilizer/${fertilizerId}/edit`;
+// Funciones para el modal de edición
+const editModal = document.getElementById('editModal');
+const closeEditBtn = document.getElementById('closeEditModal');
+const cancelEditBtn = document.getElementById('cancelEditModal');
+const editForm = document.getElementById('editForm');
+
+function showEditModal() {
+    editModal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
 }
 
 function closeEditModal() {
-    document.getElementById('editModal').classList.add('hidden');
+    editModal.classList.add('hidden');
     document.body.style.overflow = 'auto';
+}
+
+closeEditBtn.addEventListener('click', closeEditModal);
+cancelEditBtn.addEventListener('click', closeEditModal);
+editModal.addEventListener('click', (e) => {
+    if (e.target === editModal || e.target.closest('.modal-backdrop-blur') === editModal) {
+        closeEditModal();
+    }
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !editModal.classList.contains('hidden')) {
+        closeEditModal();
+    }
+});
+
+// Función para abrir modal de edición con datos
+function openEditModal(fertilizerId) {
+    fetch(`/admin/fertilizer/${fertilizerId}/edit`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json'
+        }
+    })
+        .then(response => response.json())
+        .then(result => {
+            const data = result.fertilizer;
+            
+            // Actualizar ID en el header
+            document.getElementById('editFertilizerId').textContent = data.id.toString().padStart(3, '0');
+            
+            // Configurar acción del formulario
+            editForm.action = `/admin/fertilizer/${fertilizerId}`;
+            
+            // Llenar campos
+            document.getElementById('edit_date').value = data.date || '';
+            document.getElementById('edit_time').value = data.time || '';
+            document.getElementById('edit_composting_id').value = data.composting_id || '';
+            document.getElementById('edit_composting_display').value = data.composting ? data.composting.formatted_pile_num : 'N/A';
+            document.getElementById('edit_requester').value = data.requester || '';
+            document.getElementById('edit_destination').value = data.destination || '';
+            document.getElementById('edit_received_by').value = data.received_by || '';
+            document.getElementById('edit_delivered_by').value = data.delivered_by || '';
+            document.getElementById('edit_amount').value = data.amount || '';
+            document.getElementById('edit_notes').value = data.notes || '';
+            
+            // Seleccionar tipo de abono
+            if (data.type === 'Liquid') {
+                document.getElementById('edit_type_liquid').checked = true;
+                document.getElementById('edit_amountUnit').textContent = 'L';
+            } else {
+                document.getElementById('edit_type_solid').checked = true;
+                document.getElementById('edit_amountUnit').textContent = 'Kg';
+            }
+            
+            // Actualizar unidad cuando cambie el tipo
+            document.querySelectorAll('input[name="type"]').forEach(radio => {
+                radio.addEventListener('change', function() {
+                    if (this.value === 'Liquid') {
+                        document.getElementById('edit_amountUnit').textContent = 'L';
+                    } else {
+                        document.getElementById('edit_amountUnit').textContent = 'Kg';
+                    }
+                });
+            });
+            
+            // Mostrar modal
+            showEditModal();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cargar los datos del registro');
+        });
 }
 
 function confirmDelete(event, form) {

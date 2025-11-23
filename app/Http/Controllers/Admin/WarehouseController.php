@@ -15,8 +15,7 @@ class WarehouseController extends Controller
         $inventory = WarehouseClassification::getInventoryByType();
         $recentMovements = WarehouseClassification::with([])
             ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get();
+            ->paginate(10);
 
         return view('admin.warehouse.index', compact('inventory', 'recentMovements'));
     }
@@ -35,7 +34,7 @@ class WarehouseController extends Controller
         $inventory = WarehouseClassification::getCurrentInventory($type);
         $movements = WarehouseClassification::where('type', $type)
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->paginate(5);
 
         $typeInSpanish = [
             'Kitchen' => 'Cocina',

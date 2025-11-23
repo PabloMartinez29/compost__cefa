@@ -126,6 +126,30 @@ class FertilizerController extends Controller
     public function edit(Fertilizer $fertilizer)
     {
         $fertilizer->load('composting');
+        
+        // Si es una petición AJAX, devolver JSON
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'fertilizer' => [
+                    'id' => $fertilizer->id,
+                    'date' => $fertilizer->date->format('Y-m-d'),
+                    'time' => $fertilizer->time,
+                    'composting_id' => $fertilizer->composting_id,
+                    'composting' => $fertilizer->composting ? [
+                        'id' => $fertilizer->composting->id,
+                        'formatted_pile_num' => $fertilizer->composting->formatted_pile_num,
+                    ] : null,
+                    'requester' => $fertilizer->requester,
+                    'destination' => $fertilizer->destination,
+                    'received_by' => $fertilizer->received_by,
+                    'delivered_by' => $fertilizer->delivered_by,
+                    'type' => $fertilizer->type,
+                    'amount' => $fertilizer->amount,
+                    'notes' => $fertilizer->notes,
+                ]
+            ]);
+        }
+        
         return view('admin.fertilizer.edit', compact('fertilizer'));
     }
 

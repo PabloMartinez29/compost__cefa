@@ -21,7 +21,8 @@ class Tracking extends Model
         'ph',
         'water',
         'lime',
-        'others'
+        'others',
+        'created_by'
     ];
 
     protected $casts = [

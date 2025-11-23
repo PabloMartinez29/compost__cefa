@@ -355,19 +355,17 @@
             </div>
 
             <!-- Botones -->
-            <div class="bg-gradient-to-r from-soft-gray-50 to-soft-gray-100 rounded-lg p-6 border border-soft-gray-200 mt-8">
-                <div class="flex items-center justify-end space-x-4">
-                    <a href="{{ route('admin.tracking.index') }}" 
-                       class="bg-soft-gray-600 hover:bg-soft-gray-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center">
-                        <i class="fas fa-times mr-2"></i>
-                        Cancelar
-                    </a>
-                    <button type="submit" 
-                            class="bg-gradient-to-r from-soft-green-600 to-soft-green-700 hover:from-soft-green-700 hover:to-soft-green-800 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center">
-                        <i class="fas fa-save mr-2"></i>
-                        Actualizar Seguimiento
-                    </button>
-                </div>
+            <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-300">
+                <a href="{{ route('admin.tracking.index') }}" 
+                   class="flex-1 sm:flex-none px-4 py-2 bg-soft-gray-100 text-soft-gray-700 rounded-lg hover:bg-soft-gray-200 transition-all duration-200 text-center font-medium flex items-center justify-center">
+                    <i class="fas fa-times mr-2"></i>
+                    Cancelar
+                </a>
+                <button type="submit" 
+                        class="flex-1 sm:flex-none px-4 py-2 bg-soft-green-400 text-white rounded-lg hover:bg-soft-green-500 transition-all duration-200 shadow-md hover:shadow-lg text-center font-medium flex items-center justify-center">
+                    <i class="fas fa-save mr-2"></i>
+                    Guardar
+                </button>
             </div>
         </form>
     </div>

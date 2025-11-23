@@ -39,18 +39,6 @@
             margin-bottom: 20px;
             border: 1px solid #e5e7eb;
         }
-        .fertilizer-icon {
-            width: 60px;
-            height: 60px;
-            background-color: #10b981;
-            border-radius: 50%;
-            display: inline-block;
-            text-align: center;
-            line-height: 60px;
-            margin: 0 auto 20px;
-            color: white;
-            font-size: 24px;
-        }
         .fertilizer-info {
             text-align: center;
             margin-bottom: 20px;
@@ -78,12 +66,11 @@
             color: #d97706;
         }
         .details-grid {
-            display: table;
             width: 100%;
             margin-top: 20px;
+            border-collapse: collapse;
         }
         .detail-section {
-            display: table-cell;
             width: 50%;
             background: #f9fafb;
             padding: 15px;
@@ -138,70 +125,68 @@
 
     <div class="fertilizer-card">
         <div class="fertilizer-info">
-            <div class="fertilizer-icon">
-                <i class="fas fa-seedling"></i>
-            </div>
             <div class="fertilizer-id">Registro #{{ str_pad($fertilizer->id, 3, '0', STR_PAD_LEFT) }}</div>
             <div class="fertilizer-type type-{{ strtolower($fertilizer->type) }}">{{ $fertilizer->type_in_spanish }}</div>
         </div>
 
-        <div class="details-grid">
-            <div class="detail-section">
-                <h3>Información del Registro</h3>
-                <div class="detail-item">
-                    <span class="detail-label">Fecha:</span>
-                    <span class="detail-value">{{ $fertilizer->formatted_date }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Hora:</span>
-                    <span class="detail-value">{{ $fertilizer->time }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Tipo:</span>
-                    <span class="detail-value">{{ $fertilizer->type_in_spanish }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Cantidad:</span>
-                    <span class="detail-value">{{ $fertilizer->formatted_amount }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Pila de Compostaje:</span>
-                    <span class="detail-value">{{ $fertilizer->composting ? $fertilizer->composting->formatted_pile_num : 'N/A' }}</span>
-                </div>
-            </div>
-
-            <div class="detail-section">
-                <h3>Información Adicional</h3>
-                <div class="detail-item">
-                    <span class="detail-label">Solicitante:</span>
-                    <span class="detail-value">{{ $fertilizer->requester }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Destino:</span>
-                    <span class="detail-value">{{ $fertilizer->destination }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Recibido por:</span>
-                    <span class="detail-value">{{ $fertilizer->received_by }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Entregado por:</span>
-                    <span class="detail-value">{{ $fertilizer->delivered_by }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Fecha de registro:</span>
-                    <span class="detail-value">{{ $fertilizer->created_at->format('d/m/Y H:i:s') }}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Última actualización:</span>
-                    <span class="detail-value">{{ $fertilizer->updated_at->format('d/m/Y H:i:s') }}</span>
-                </div>
-            </div>
-        </div>
+        <table class="details-grid">
+            <tr>
+                <td class="detail-section">
+                    <h3>Información del Registro</h3>
+                    <div class="detail-item">
+                        <span class="detail-label">Fecha:</span>
+                        <span class="detail-value">{{ $fertilizer->formatted_date }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Hora:</span>
+                        <span class="detail-value">{{ $fertilizer->time }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Tipo:</span>
+                        <span class="detail-value">{{ $fertilizer->type_in_spanish }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Cantidad:</span>
+                        <span class="detail-value">{{ $fertilizer->formatted_amount }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Pila de Compostaje:</span>
+                        <span class="detail-value">{{ $fertilizer->composting ? $fertilizer->composting->formatted_pile_num : 'N/A' }}</span>
+                    </div>
+                </td>
+                <td class="detail-section">
+                    <h3>Información Adicional</h3>
+                    <div class="detail-item">
+                        <span class="detail-label">Solicitante:</span>
+                        <span class="detail-value">{{ $fertilizer->requester }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Destino:</span>
+                        <span class="detail-value">{{ $fertilizer->destination }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Recibido por:</span>
+                        <span class="detail-value">{{ $fertilizer->received_by }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Entregado por:</span>
+                        <span class="detail-value">{{ $fertilizer->delivered_by }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Fecha de registro:</span>
+                        <span class="detail-value">{{ $fertilizer->created_at->format('d/m/Y H:i:s') }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Última actualización:</span>
+                        <span class="detail-value">{{ $fertilizer->updated_at->format('d/m/Y H:i:s') }}</span>
+                    </div>
+                </td>
+            </tr>
+        </table>
 
         @if($fertilizer->notes)
-        <div class="detail-section" style="width: 100%; margin-top: 15px;">
-            <h3>Notas</h3>
+        <div style="width: 100%; margin-top: 15px; background: #f9fafb; padding: 15px; border-left: 4px solid #10b981;">
+            <h3 style="color: #10b981; margin-bottom: 15px; font-size: 14px; font-weight: bold; text-transform: uppercase;">Notas</h3>
             <p style="color: #1f2937; font-size: 12px;">{{ $fertilizer->notes }}</p>
         </div>
         @endif

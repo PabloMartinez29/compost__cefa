@@ -89,6 +89,12 @@ class OrganicController extends Controller
             // Cargar la relación del creador
             $organic->load('creator');
             
+            // Verificar si la imagen existe antes de generar la URL
+            $imgUrl = null;
+            if ($organic->img && file_exists(public_path($organic->img))) {
+                $imgUrl = asset($organic->img);
+            }
+            
             return response()->json([
                 'id' => $organic->id,
                 'date' => $organic->date->format('Y-m-d'),
@@ -101,7 +107,7 @@ class OrganicController extends Controller
                 'received_by' => $organic->received_by,
                 'notes' => $organic->notes,
                 'img' => $organic->img,
-                'img_url' => $organic->img ? asset($organic->img) : null,
+                'img_url' => $imgUrl,
                 'created_at' => $organic->created_at->format('Y-m-d H:i:s'),
                 'created_at_formatted' => $organic->created_at->format('d/m/Y H:i:s'),
                 'created_by_info' => $organic->created_by_info,
@@ -159,6 +165,7 @@ class OrganicController extends Controller
      */
     public function destroy(Organic $organic)
     {
+        // Los administradores pueden eliminar sin restricción de inventario
         // Restar del inventario de bodega antes de eliminar
         \App\Models\WarehouseClassification::create([
             'date' => now()->toDateString(),
