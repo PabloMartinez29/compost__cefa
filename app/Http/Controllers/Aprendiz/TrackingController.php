@@ -33,11 +33,52 @@ class TrackingController extends Controller
         // Calcular estadísticas
         $totalPiles = $compostings->count();
         $activePiles = $compostings->whereNull('end_date')->count();
-        $totalTrackings = $compostings->sum(function($composting) {
-            return $composting->trackings->count();
-        });
+        $totalTrackings = Tracking::count();
 
-        return view('aprendiz.tracking.index', compact('compostings', 'totalPiles', 'activePiles', 'totalTrackings'));
+        // IDs de seguimientos con aprobación vigente para eliminar
+        $userId = auth()->check() ? auth()->id() : null;
+        $approvedTrackingIds = \App\Models\Notification::where('user_id', $userId)
+            ->where('type', 'delete_request')
+            ->where('status', 'approved')
+            ->whereNotNull('tracking_id')
+            ->pluck('tracking_id')
+            ->toArray();
+
+        // IDs de seguimientos con solicitud pendiente
+        $pendingTrackingIds = \App\Models\Notification::where('from_user_id', $userId)
+            ->where('type', 'delete_request')
+            ->where('status', 'pending')
+            ->whereNotNull('tracking_id')
+            ->pluck('tracking_id')
+            ->toArray();
+
+        // IDs de seguimientos con solicitud rechazada
+        $rejectedTrackingIds = \App\Models\Notification::where('user_id', $userId)
+            ->where('type', 'delete_request')
+            ->where('status', 'rejected')
+            ->whereNotNull('tracking_id')
+            ->pluck('tracking_id')
+            ->toArray();
+        
+        // También verificar notificaciones pendientes que fueron rechazadas
+        $rejectedFromPending = \App\Models\Notification::where('from_user_id', $userId)
+            ->where('type', 'delete_request')
+            ->where('status', 'rejected')
+            ->whereNotNull('tracking_id')
+            ->pluck('tracking_id')
+            ->toArray();
+        
+        $rejectedTrackingIds = array_unique(array_merge($rejectedTrackingIds, $rejectedFromPending));
+
+        return view('aprendiz.tracking.index', compact(
+            'compostings', 
+            'totalPiles', 
+            'activePiles', 
+            'totalTrackings',
+            'approvedTrackingIds',
+            'pendingTrackingIds',
+            'rejectedTrackingIds'
+        ));
     }
 
     /**
@@ -154,7 +195,8 @@ class TrackingController extends Controller
                 'ph' => $request->ph ?: null,
                 'water' => $request->water ?: null,
                 'lime' => $request->lime ?: null,
-                'others' => $request->others
+                'others' => $request->others,
+                'created_by' => auth()->id()
             ]);
 
         \Log::info('Tracking created successfully with ID: ' . $tracking->id);
@@ -184,6 +226,57 @@ class TrackingController extends Controller
     public function show(Tracking $tracking)
     {
         // Permitir ver seguimientos de cualquier pila
+        $tracking->load(['composting.ingredients.organic', 'composting']);
+        
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'tracking' => [
+                    'id' => $tracking->id,
+                    'composting_id' => $tracking->composting_id,
+                    'pile_num' => $tracking->composting->formatted_pile_num,
+                    'day' => $tracking->day,
+                    'formatted_day' => $tracking->formatted_day ?? 'Día ' . $tracking->day,
+                    'date' => $tracking->date->format('Y-m-d'),
+                    'formatted_date' => $tracking->formatted_date ?? $tracking->date->format('d/m/Y'),
+                    'activity' => $tracking->activity,
+                    'work_hours' => $tracking->work_hours,
+                    'temp_internal' => $tracking->temp_internal,
+                    'formatted_temp_internal' => $tracking->formatted_temp_internal ?? ($tracking->temp_internal ? $tracking->temp_internal . '°C' : 'N/A'),
+                    'temp_time' => $tracking->temp_time,
+                    'formatted_temp_time' => $tracking->formatted_temp_time ?? ($tracking->temp_time ? date('H:i', strtotime($tracking->temp_time)) : 'N/A'),
+                    'temp_env' => $tracking->temp_env,
+                    'formatted_temp_env' => $tracking->formatted_temp_env ?? ($tracking->temp_env ? $tracking->temp_env . '°C' : 'N/A'),
+                    'hum_pile' => $tracking->hum_pile,
+                    'formatted_hum_pile' => $tracking->formatted_hum_pile ?? ($tracking->hum_pile ? $tracking->hum_pile . '%' : 'N/A'),
+                    'hum_env' => $tracking->hum_env,
+                    'formatted_hum_env' => $tracking->formatted_hum_env ?? ($tracking->hum_env ? $tracking->hum_env . '%' : 'N/A'),
+                    'ph' => $tracking->ph,
+                    'formatted_ph' => $tracking->formatted_ph ?? ($tracking->ph ? $tracking->ph : 'N/A'),
+                    'water' => $tracking->water,
+                    'formatted_water' => $tracking->formatted_water ?? ($tracking->water ? $tracking->water . 'L' : 'N/A'),
+                    'lime' => $tracking->lime,
+                    'formatted_lime' => $tracking->formatted_lime ?? ($tracking->lime ? $tracking->lime . 'Kg' : 'N/A'),
+                    'others' => $tracking->others,
+                    'composting' => [
+                        'id' => $tracking->composting->id,
+                        'formatted_pile_num' => $tracking->composting->formatted_pile_num,
+                        'formatted_start_date' => $tracking->composting->formatted_start_date,
+                        'formatted_total_kg' => $tracking->composting->formatted_total_kg,
+                        'status' => $tracking->composting->status,
+                        'end_date' => $tracking->composting->end_date,
+                        'ingredients' => $tracking->composting->ingredients->map(function($ingredient) {
+                            return [
+                                'type' => $ingredient->organic->type_in_spanish ?? 'N/A',
+                                'amount' => number_format($ingredient->amount, 2) . ' Kg',
+                                'notes' => $ingredient->notes
+                            ];
+                        })
+                    ],
+                    'missing_days' => $tracking->composting->missing_days
+                ]
+            ]);
+        }
+        
         return view('aprendiz.tracking.show', compact('tracking'));
     }
 
@@ -198,6 +291,34 @@ class TrackingController extends Controller
         $activeCompostings = Composting::whereNull('end_date')
             ->orderBy('pile_num', 'asc')
             ->get();
+
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'tracking' => [
+                    'id' => $tracking->id,
+                    'composting_id' => $tracking->composting_id,
+                    'day' => $tracking->day,
+                    'date' => $tracking->date->format('Y-m-d'),
+                    'activity' => $tracking->activity,
+                    'work_hours' => $tracking->work_hours,
+                    'temp_internal' => $tracking->temp_internal,
+                    'temp_time' => $tracking->temp_time ? date('H:i', strtotime($tracking->temp_time)) : '',
+                    'temp_env' => $tracking->temp_env,
+                    'hum_pile' => $tracking->hum_pile,
+                    'hum_env' => $tracking->hum_env,
+                    'ph' => $tracking->ph,
+                    'water' => $tracking->water,
+                    'lime' => $tracking->lime,
+                    'others' => $tracking->others
+                ],
+                'activeCompostings' => $activeCompostings->map(function($composting) {
+                    return [
+                        'id' => $composting->id,
+                        'formatted_pile_num' => $composting->formatted_pile_num
+                    ];
+                })
+            ]);
+        }
 
         return view('aprendiz.tracking.edit', compact('tracking', 'activeCompostings'));
     }
@@ -311,7 +432,42 @@ class TrackingController extends Controller
      */
     public function destroy(Tracking $tracking)
     {
-        // Permitir eliminar seguimientos de cualquier pila
+        $currentUserId = auth()->check() ? auth()->id() : null;
+        
+        // Cargar la relación con composting y su creador
+        $tracking->load(['composting.creator']);
+        
+        // Verificar que el registro pertenece al usuario
+        $isOwner = $tracking->created_by === $currentUserId;
+        
+        // Verificar si la pila fue creada por un admin
+        $isPileCreatedByAdmin = $tracking->composting && $tracking->composting->creator && $tracking->composting->creator->role === 'admin';
+        
+        // Si el seguimiento pertenece al aprendiz pero la pila fue creada por admin, necesita permiso
+        // Si el seguimiento no pertenece al aprendiz, no puede eliminarlo
+        if (!$isOwner) {
+            return redirect()->route('aprendiz.tracking.index')
+                ->with('permission_required', 'No tiene permisos para eliminar este registro.');
+        }
+        
+        // Si la pila fue creada por admin, siempre necesita permiso aprobado
+        if ($isPileCreatedByAdmin) {
+            // Verificar que hay una solicitud aprobada
+            $approvedNotification = \App\Models\Notification::where('user_id', $currentUserId)
+                ->where('tracking_id', $tracking->id)
+                ->where('type', 'delete_request')
+                ->where('status', 'approved')
+                ->orderBy('created_at', 'desc')
+                ->first();
+            
+            if (!$approvedNotification) {
+                return redirect()->route('aprendiz.tracking.index')
+                    ->with('permission_required', 'No tiene permiso para eliminar este seguimiento. Debe solicitar permiso primero y esperar la aprobación del administrador.');
+            }
+            
+            // Marcar la notificación como procesada
+            $approvedNotification->update(['read_at' => now()]);
+        }
 
         DB::beginTransaction();
         try {
@@ -331,15 +487,118 @@ class TrackingController extends Controller
     }
 
     /**
+     * Solicitar permiso para eliminar un seguimiento
+     */
+    public function requestDeletePermission(Tracking $tracking)
+    {
+        $currentUserId = auth()->check() ? auth()->id() : null;
+        
+        // Cargar la relación con composting y su creador
+        $tracking->load(['composting.creator']);
+        
+        // Verificar que el registro pertenece al usuario
+        $isOwner = $tracking->created_by === $currentUserId;
+        
+        // Verificar si la pila fue creada por un admin
+        $isPileCreatedByAdmin = $tracking->composting && $tracking->composting->creator && $tracking->composting->creator->role === 'admin';
+        
+        // Solo puede solicitar permiso si es el dueño del seguimiento
+        // Y si la pila fue creada por admin, siempre necesita permiso
+        if (!$isOwner) {
+            return redirect()->route('aprendiz.tracking.index')
+                ->with('permission_required', 'No puede solicitar permisos para registros que no le pertenecen.');
+        }
+        
+        // Si la pila no fue creada por admin y el seguimiento es del aprendiz, puede eliminarlo directamente
+        // Pero si la pila fue creada por admin, siempre necesita permiso
+        if (!$isPileCreatedByAdmin) {
+            return redirect()->route('aprendiz.tracking.index')
+                ->with('info', 'Puede eliminar este seguimiento directamente ya que la pila no fue creada por un administrador.');
+        }
+
+        // Evitar solicitudes duplicadas si ya hay una pendiente o aprobada
+        $existing = \App\Models\Notification::where('from_user_id', $currentUserId)
+            ->where('tracking_id', $tracking->id)
+            ->where('type', 'delete_request')
+            ->whereIn('status', ['pending', 'approved'])
+            ->first();
+        
+        if ($existing && $existing->status === 'pending') {
+            return redirect()->route('aprendiz.tracking.index')
+                ->with('permission_required', 'Su solicitud de eliminación ya está pendiente de aprobación del administrador.');
+        }
+        
+        if ($existing && $existing->status === 'approved') {
+            return redirect()->route('aprendiz.tracking.index')
+                ->with('success', 'Su solicitud ya fue aprobada. Ahora puede eliminar el registro.');
+        }
+
+        // Si hay una solicitud rechazada, eliminarla para permitir nueva solicitud
+        $rejected = \App\Models\Notification::where('from_user_id', $currentUserId)
+            ->where('tracking_id', $tracking->id)
+            ->where('type', 'delete_request')
+            ->where('status', 'rejected')
+            ->first();
+        
+        if ($rejected) {
+            $rejected->delete();
+        }
+
+        // Buscar todos los administradores y crear notificaciones para cada uno
+        $admins = \App\Models\User::where('role', 'admin')->get();
+        
+        if ($admins->count() > 0) {
+            foreach ($admins as $admin) {
+                \App\Models\Notification::create([
+                    'user_id' => $admin->id,
+                    'from_user_id' => $currentUserId,
+                    'tracking_id' => $tracking->id,
+                    'type' => 'delete_request',
+                    'status' => 'pending',
+                    'message' => (auth()->check() ? auth()->user()->name : 'Usuario') . ' solicita permiso para eliminar el seguimiento Día ' . $tracking->day . ' de la pila ' . $tracking->composting->formatted_pile_num
+                ]);
+            }
+        }
+
+        return redirect()->route('aprendiz.tracking.index')
+            ->with('success', 'Solicitud de eliminación enviada al administrador. Recibirá una notificación cuando sea aprobada.');
+    }
+
+    /**
      * Obtener seguimientos de una pila específica (para AJAX)
      */
     public function getByComposting(Composting $composting)
     {
         // Permitir ver seguimientos de cualquier pila (tanto del usuario como del administrador)
         
+        // Cargar la relación con el creador de la pila
+        $composting->load('creator');
+        $isPileCreatedByAdmin = $composting->creator && $composting->creator->role === 'admin';
+        
         $trackings = $composting->trackings()
             ->orderBy('day', 'asc')
-            ->get();
+            ->get()
+            ->map(function($tracking) use ($isPileCreatedByAdmin) {
+                return [
+                    'id' => $tracking->id,
+                    'composting_id' => $tracking->composting_id,
+                    'day' => $tracking->day,
+                    'date' => $tracking->date->format('Y-m-d'),
+                    'activity' => $tracking->activity,
+                    'work_hours' => $tracking->work_hours,
+                    'temp_internal' => $tracking->temp_internal,
+                    'temp_time' => $tracking->temp_time ? $tracking->temp_time->format('H:i') : null,
+                    'temp_env' => $tracking->temp_env,
+                    'hum_pile' => $tracking->hum_pile,
+                    'hum_env' => $tracking->hum_env,
+                    'ph' => $tracking->ph,
+                    'water' => $tracking->water,
+                    'lime' => $tracking->lime,
+                    'others' => $tracking->others,
+                    'created_by' => $tracking->created_by,
+                    'pile_created_by_admin' => $isPileCreatedByAdmin
+                ];
+            });
 
         // Obtener los días faltantes (días sin seguimiento registrado)
         $missingDays = $composting->missing_days;
@@ -383,6 +642,26 @@ class TrackingController extends Controller
             ]);
         
         return $pdf->download('todos_los_seguimientos_' . date('Y-m-d') . '.pdf');
+    }
+
+    /**
+     * Generate PDF for all trackings of a specific composting pile
+     */
+    public function downloadCompostingTrackingsPDF(Composting $composting)
+    {
+        $composting->load('trackings');
+        $trackings = $composting->trackings()->orderBy('day', 'asc')->get();
+        
+        $pdf = PDF::loadView('aprendiz.tracking.pdf.all-trackings', compact('trackings'))
+            ->setPaper('a4', 'landscape')
+            ->setOptions([
+                'defaultFont' => 'Arial',
+                'isRemoteEnabled' => false,
+                'isHtml5ParserEnabled' => true,
+                'isPhpEnabled' => false,
+            ]);
+        
+        return $pdf->download('seguimientos_' . str_replace(' ', '_', $composting->formatted_pile_num) . '_' . date('Y-m-d') . '.pdf');
     }
 
     /**

@@ -193,6 +193,16 @@ class CompostingController extends Controller
                 // Restar del inventario de bodega
                 $organic = Organic::find($ingredientData['organic_id']);
                 if ($organic) {
+                    // Validar que hay suficiente inventario disponible
+                    $availableInventory = WarehouseClassification::getAvailableInventory($organic->type);
+                    $typeInSpanish = $organic->type_in_spanish;
+                    if ($ingredientData['amount'] > $availableInventory) {
+                        DB::rollback();
+                        return redirect()->back()
+                            ->withInput()
+                            ->with('error', "No hay suficiente inventario disponible para {$typeInSpanish}. Inventario disponible: " . number_format($availableInventory, 2) . " kg. Intenta usar: " . number_format($ingredientData['amount'], 2) . " kg.");
+                    }
+                    
                     \Log::info('Creating warehouse exit record for composting', [
                         'organic_id' => $ingredientData['organic_id'],
                         'organic_type' => $organic->type,
@@ -409,6 +419,17 @@ class CompostingController extends Controller
                 // Restar del inventario de bodega
                 $organic = Organic::find($ingredientData['organic_id']);
                 if ($organic) {
+                    // Validar que hay suficiente inventario disponible
+                    // Nota: Ya se devolvieron los ingredientes anteriores, así que el inventario incluye esas devoluciones
+                    $availableInventory = WarehouseClassification::getAvailableInventory($organic->type);
+                    $typeInSpanish = $organic->type_in_spanish;
+                    if ($ingredientData['amount'] > $availableInventory) {
+                        DB::rollback();
+                        return redirect()->back()
+                            ->withInput()
+                            ->with('error', "No hay suficiente inventario disponible para {$typeInSpanish}. Inventario disponible: " . number_format($availableInventory, 2) . " kg. Intenta usar: " . number_format($ingredientData['amount'], 2) . " kg.");
+                    }
+                    
                     WarehouseClassification::create([
                         'date' => $request->start_date,
                         'type' => $organic->type,
@@ -440,8 +461,12 @@ class CompostingController extends Controller
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
         
-        // Verificar que el registro pertenece al usuario
-        if ($composting->created_by !== $currentUserId) {
+        // Verificar que el registro pertenece al usuario O fue creado por un admin
+        $composting->load('creator');
+        $isOwner = $composting->created_by === $currentUserId;
+        $isCreatedByAdmin = $composting->creator && $composting->creator->role === 'admin';
+        
+        if (!$isOwner && !$isCreatedByAdmin) {
             return redirect()->route('aprendiz.composting.index')
                 ->with('permission_required', 'No tiene permisos para eliminar este registro.');
         }
@@ -514,13 +539,17 @@ class CompostingController extends Controller
         \Log::info('Request method: ' . request()->method());
         \Log::info('Request URL: ' . request()->url());
         
-        // Verificar que el registro pertenece al usuario
         $currentUserId = auth()->check() ? auth()->id() : null;
         \Log::info('Current User ID: ' . $currentUserId);
         \Log::info('Composting created_by: ' . $composting->created_by);
         
-        if ($composting->created_by !== $currentUserId) {
-            \Log::info('User is not the creator, redirecting with permission_required message');
+        // Verificar que el registro pertenece al usuario O fue creado por un admin
+        $composting->load('creator');
+        $isOwner = $composting->created_by === $currentUserId;
+        $isCreatedByAdmin = $composting->creator && $composting->creator->role === 'admin';
+        
+        if (!$isOwner && !$isCreatedByAdmin) {
+            \Log::info('User is not the creator and creator is not admin, redirecting with permission_required message');
             return redirect()->route('aprendiz.composting.index')
                 ->with('permission_required', 'No puede solicitar permisos para registros que no le pertenecen.');
         }

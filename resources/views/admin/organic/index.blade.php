@@ -141,7 +141,7 @@
                             <td class="font-mono">#{{ str_pad($organic->id, 3, '0', STR_PAD_LEFT) }}</td>
                             <td>{{ $organic->formatted_date }}</td>
                             <td>
-                                @if($organic->img)
+                                @if($organic->img && file_exists(public_path($organic->img)))
                                     @php
                                         $imageUrl = asset($organic->img);
                                     @endphp

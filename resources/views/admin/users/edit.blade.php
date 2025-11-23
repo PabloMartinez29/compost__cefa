@@ -14,106 +14,80 @@
                 </h1>
                 <p class="waste-subtitle">
                     <i class="fas fa-user-shield text-green-400 mr-2"></i>
-                    {{ Auth::user()->name }} - Panel de Administración
+                    {{ Auth::user()->name }} - Usuario #{{ str_pad($user->id, 3, '0', STR_PAD_LEFT) }}
                 </p>
             </div>
             <div class="text-right">
-                <a href="{{ route('admin.users.index') }}" class="waste-btn waste-btn-secondary">
-                    <i class="fas fa-arrow-left mr-2"></i>
-                    Volver a Usuarios
-                </a>
+                <div class="text-green-400 font-bold text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
             </div>
         </div>
     </div>
 
-    <!-- Form Card -->
-    <div class="waste-card animate-fade-in-up">
-        <form action="{{ route('admin.users.update', $user) }}" method="POST" class="space-y-6">
+    <!-- Form Container -->
+    <div class="max-w-2xl mx-auto">
+        <div class="waste-form animate-fade-in-up animate-delay-1">
+            <form action="{{ route('admin.users.update', $user) }}" method="POST">
             @csrf
             @method('PUT')
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <!-- Name Field -->
-                <div class="space-y-2">
-                    <label for="name" class="waste-label">
-                        <i class="fas fa-user mr-2"></i>
-                        Nombre Completo *
-                    </label>
+                <div class="waste-form-group">
+                    <label for="name" class="waste-form-label">Nombre Completo *</label>
                     <input type="text" 
                            id="name" 
                            name="name" 
                            value="{{ old('name', $user->name) }}"
-                           class="waste-input @error('name') border-red-500 @enderror"
+                           class="waste-form-input @error('name') border-red-500 @enderror"
                            placeholder="Ingrese el nombre completo"
                            required>
                     @error('name')
-                        <p class="text-red-500 text-sm mt-1">
-                            <i class="fas fa-exclamation-circle mr-1"></i>
-                            {{ $message }}
-                        </p>
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <!-- Email Field -->
-                <div class="space-y-2">
-                    <label for="email" class="waste-label">
-                        <i class="fas fa-envelope mr-2"></i>
-                        Correo Electrónico *
-                    </label>
+                <div class="waste-form-group">
+                    <label for="email" class="waste-form-label">Correo Electrónico *</label>
                     <input type="email" 
                            id="email" 
                            name="email" 
                            value="{{ old('email', $user->email) }}"
-                           class="waste-input @error('email') border-red-500 @enderror"
+                           class="waste-form-input @error('email') border-red-500 @enderror"
                            placeholder="usuario@ejemplo.com"
                            required>
                     @error('email')
-                        <p class="text-red-500 text-sm mt-1">
-                            <i class="fas fa-exclamation-circle mr-1"></i>
-                            {{ $message }}
-                        </p>
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <!-- Role Field -->
-                <div class="space-y-2">
-                    <label for="role" class="waste-label">
-                        <i class="fas fa-user-tag mr-2"></i>
-                        Rol del Usuario *
-                    </label>
-                    <select id="role" 
-                            name="role" 
-                            class="waste-input @error('role') border-red-500 @enderror"
-                            required>
-                        <option value="">Seleccione un rol</option>
-                        <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>
-                            <i class="fas fa-user-shield mr-2"></i>
-                            Administrador
-                        </option>
-                        <option value="aprendiz" {{ old('role', $user->role) == 'aprendiz' ? 'selected' : '' }}>
-                            <i class="fas fa-user-graduate mr-2"></i>
-                            Aprendiz
-                        </option>
-                    </select>
+                <div class="waste-form-group">
+                    <label for="role" class="waste-form-label">Rol del Usuario *</label>
+                    <div class="relative">
+                        <select id="role" 
+                                name="role" 
+                                class="waste-form-select @error('role') border-red-500 @enderror"
+                                required>
+                            <option value="">Seleccione un rol</option>
+                            <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Administrador</option>
+                            <option value="aprendiz" {{ old('role', $user->role) == 'aprendiz' ? 'selected' : '' }}>Aprendiz</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                    </div>
                     @error('role')
-                        <p class="text-red-500 text-sm mt-1">
-                            <i class="fas fa-exclamation-circle mr-1"></i>
-                            {{ $message }}
-                        </p>
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <!-- Password Field -->
-                <div class="space-y-2">
-                    <label for="password" class="waste-label">
-                        <i class="fas fa-lock mr-2"></i>
-                        Nueva Contraseña
-                    </label>
+                <div class="waste-form-group">
+                    <label for="password" class="waste-form-label">Nueva Contraseña</label>
                     <div class="relative">
                         <input type="password" 
                                id="password" 
                                name="password" 
-                               class="waste-input @error('password') border-red-500 @enderror pr-10"
+                               class="waste-form-input @error('password') border-red-500 @enderror pr-10"
                                placeholder="Dejar vacío para mantener la actual">
                         <button type="button" 
                                 onclick="togglePassword('password')"
@@ -121,29 +95,23 @@
                             <i class="fas fa-eye" id="password-eye"></i>
                         </button>
                     </div>
-                    <p class="text-sm text-gray-500">
+                    <p class="text-gray-500 text-sm mt-1">
                         <i class="fas fa-info-circle mr-1"></i>
                         Deje vacío si no desea cambiar la contraseña
                     </p>
                     @error('password')
-                        <p class="text-red-500 text-sm mt-1">
-                            <i class="fas fa-exclamation-circle mr-1"></i>
-                            {{ $message }}
-                        </p>
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
                 <!-- Confirm Password Field -->
-                <div class="space-y-2">
-                    <label for="password_confirmation" class="waste-label">
-                        <i class="fas fa-lock mr-2"></i>
-                        Confirmar Nueva Contraseña
-                    </label>
+                <div class="waste-form-group">
+                    <label for="password_confirmation" class="waste-form-label">Confirmar Nueva Contraseña</label>
                     <div class="relative">
                         <input type="password" 
                                id="password_confirmation" 
                                name="password_confirmation" 
-                               class="waste-input @error('password_confirmation') border-red-500 @enderror pr-10"
+                               class="waste-form-input @error('password_confirmation') border-red-500 @enderror pr-10"
                                placeholder="Repita la nueva contraseña">
                         <button type="button" 
                                 onclick="togglePassword('password_confirmation')"
@@ -152,10 +120,7 @@
                         </button>
                     </div>
                     @error('password_confirmation')
-                        <p class="text-red-500 text-sm mt-1">
-                            <i class="fas fa-exclamation-circle mr-1"></i>
-                            {{ $message }}
-                        </p>
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
             </div>
@@ -215,16 +180,16 @@
                 </div>
             </div>
 
-            <!-- Action Buttons -->
+            <!-- Form Actions -->
             <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
                 <a href="{{ route('admin.users.index') }}" 
-                   class="waste-btn waste-btn-secondary">
+                   class="waste-btn-secondary">
                     <i class="fas fa-times mr-2"></i>
                     Cancelar
                 </a>
-                <button type="submit" class="waste-btn waste-btn-primary">
+                <button type="submit" class="waste-btn">
                     <i class="fas fa-save mr-2"></i>
-                    Actualizar Usuario
+                    Guardar
                 </button>
             </div>
         </form>

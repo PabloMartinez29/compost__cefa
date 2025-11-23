@@ -148,6 +148,7 @@ class SupplierController extends Controller
         if (request()->ajax() || request()->wantsJson()) {
             return response()->json([
                 'id' => $supplier->id,
+                'machinery_id' => $supplier->machinery_id,
                 'machinery_name' => $supplier->machinery->name ?? 'N/A',
                 'maker' => $supplier->maker,
                 'supplier' => $supplier->supplier,
@@ -175,6 +176,31 @@ class SupplierController extends Controller
         // Mostrar todas las maquinarias, incluyendo la que ya tiene este proveedor
         // para permitir cambiar de maquinaria si es necesario
         $machineries = Machinery::orderBy('name')->get();
+        
+        // Si es una petición AJAX, devolver JSON con maquinarias
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'supplier' => [
+                    'id' => $supplier->id,
+                    'machinery_id' => $supplier->machinery_id,
+                    'maker' => $supplier->maker,
+                    'supplier' => $supplier->supplier,
+                    'origin' => $supplier->origin,
+                    'purchase_date' => $supplier->purchase_date->format('Y-m-d'),
+                    'phone' => $supplier->phone,
+                    'email' => $supplier->email,
+                ],
+                'machineries' => $machineries->map(function($machinery) {
+                    return [
+                        'id' => $machinery->id,
+                        'name' => $machinery->name,
+                        'brand' => $machinery->brand,
+                        'model' => $machinery->model,
+                    ];
+                })
+            ]);
+        }
+        
         return view('aprendiz.machinery.suppliers.edit', compact('supplier', 'machineries'));
     }
 

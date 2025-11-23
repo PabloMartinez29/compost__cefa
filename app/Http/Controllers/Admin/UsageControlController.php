@@ -158,6 +158,30 @@ class UsageControlController extends Controller
     {
         // En edición, mostrar todas las maquinarias para permitir cambios
         $machineries = Machinery::orderBy('name')->get();
+        
+        // Si es una petición AJAX, devolver JSON con maquinarias
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'usageControl' => [
+                    'id' => $usageControl->id,
+                    'machinery_id' => $usageControl->machinery_id,
+                    'responsible' => $usageControl->responsible,
+                    'start_date' => $usageControl->start_date ? $usageControl->start_date->format('Y-m-d\TH:i') : null,
+                    'end_date' => $usageControl->end_date ? $usageControl->end_date->format('Y-m-d\TH:i') : null,
+                    'hours' => $usageControl->hours,
+                    'description' => $usageControl->description,
+                ],
+                'machineries' => $machineries->map(function($machinery) {
+                    return [
+                        'id' => $machinery->id,
+                        'name' => $machinery->name,
+                        'brand' => $machinery->brand,
+                        'model' => $machinery->model,
+                    ];
+                })
+            ]);
+        }
+        
         return view('admin.machinery.usage-controls.edit', compact('usageControl', 'machineries'));
     }
 

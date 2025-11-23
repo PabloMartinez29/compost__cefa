@@ -123,6 +123,16 @@ class CompostingController extends Controller
                 // Restar del inventario de bodega
                 $organic = Organic::find($ingredientData['organic_id']);
                 if ($organic) {
+                    // Validar que hay suficiente inventario disponible
+                    $availableInventory = WarehouseClassification::getAvailableInventory($organic->type);
+                    $typeInSpanish = $organic->type_in_spanish;
+                    if ($ingredientData['amount'] > $availableInventory) {
+                        DB::rollback();
+                        return redirect()->back()
+                            ->withInput()
+                            ->with('error', "No hay suficiente inventario disponible para {$typeInSpanish}. Inventario disponible: " . number_format($availableInventory, 2) . " kg. Intenta usar: " . number_format($ingredientData['amount'], 2) . " kg.");
+                    }
+                    
                     Log::info('Creating warehouse exit record for composting', [
                         'organic_id' => $ingredientData['organic_id'],
                         'organic_type' => $organic->type,
@@ -338,6 +348,17 @@ class CompostingController extends Controller
                 // Restar del inventario de bodega
                 $organic = Organic::find($ingredientData['organic_id']);
                 if ($organic) {
+                    // Validar que hay suficiente inventario disponible
+                    // Nota: Ya se devolvieron los ingredientes anteriores, así que el inventario incluye esas devoluciones
+                    $availableInventory = WarehouseClassification::getAvailableInventory($organic->type);
+                    $typeInSpanish = $organic->type_in_spanish;
+                    if ($ingredientData['amount'] > $availableInventory) {
+                        DB::rollback();
+                        return redirect()->back()
+                            ->withInput()
+                            ->with('error', "No hay suficiente inventario disponible para {$typeInSpanish}. Inventario disponible: " . number_format($availableInventory, 2) . " kg. Intenta usar: " . number_format($ingredientData['amount'], 2) . " kg.");
+                    }
+                    
                     WarehouseClassification::create([
                         'date' => $request->start_date,
                         'type' => $organic->type,

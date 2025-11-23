@@ -22,10 +22,7 @@
                 </p>
             </div>
             <div class="text-right">
-                <a href="{{ route('aprendiz.composting.index') }}" class="bg-gray-400 text-gray-800 border border-gray-500 hover:bg-gray-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
-                    <i class="fas fa-arrow-left mr-2"></i>
-                    Volver
-                </a>
+                <div class="text-green-400 font-bold text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
             </div>
         </div>
     </div>
@@ -199,14 +196,16 @@
             </div>
 
             <!-- Botones de Acción -->
+            <!-- Form Actions -->
             <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-                <a href="{{ route('aprendiz.composting.index') }}" class="waste-btn-secondary">
+                <a href="{{ route('aprendiz.composting.index') }}" 
+                   class="waste-btn-secondary">
                     <i class="fas fa-times mr-2"></i>
                     Cancelar
                 </a>
                 <button type="submit" class="waste-btn">
                     <i class="fas fa-save mr-2"></i>
-                    Actualizar Pila
+                    Guardar
                 </button>
             </div>
         </form>

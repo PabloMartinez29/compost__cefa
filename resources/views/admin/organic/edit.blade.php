@@ -126,18 +126,16 @@
                 </div>
 
                 <!-- Form Actions -->
-                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-                    <a href="{{ route('admin.organic.show', $organic) }}" class="waste-btn-secondary">
-                        <i class="fas fa-eye mr-2"></i>
-                        View Details
-                    </a>
-                    <a href="{{ route('admin.organic.index') }}" class="waste-btn-secondary">
-                        <i class="fas fa-arrow-left mr-2"></i>
-                        Back to List
-                    </a>
-                    <button type="submit" class="waste-btn">
+                <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-300">
+                    <a href="{{ route('admin.organic.index') }}" 
+                       class="flex-1 sm:flex-none px-4 py-2 bg-soft-gray-100 text-soft-gray-700 rounded-lg hover:bg-soft-gray-200 transition-all duration-200 text-center font-medium flex items-center justify-center">
+                            <i class="fas fa-times mr-2"></i>
+                            Cancelar
+                        </a>
+                        <button type="submit" 
+                                class="flex-1 sm:flex-none px-4 py-2 bg-soft-green-400 text-white rounded-lg hover:bg-soft-green-500 transition-all duration-200 shadow-md hover:shadow-lg text-center font-medium flex items-center justify-center">
                         <i class="fas fa-save mr-2"></i>
-                        Update Record
+                        Guardar
                     </button>
                 </div>
             </form>

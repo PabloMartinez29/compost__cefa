@@ -16,6 +16,8 @@ class Notification extends Model
         'maintenance_id',
         'supplier_id',
         'usage_control_id',
+        'fertilizer_id',
+        'tracking_id',
         'type',
         'status',
         'message',
@@ -65,6 +67,16 @@ class Notification extends Model
     public function usageControl(): BelongsTo
     {
         return $this->belongsTo(UsageControl::class);
+    }
+
+    public function fertilizer(): BelongsTo
+    {
+        return $this->belongsTo(Fertilizer::class);
+    }
+
+    public function tracking(): BelongsTo
+    {
+        return $this->belongsTo(Tracking::class);
     }
 
     // Scopes

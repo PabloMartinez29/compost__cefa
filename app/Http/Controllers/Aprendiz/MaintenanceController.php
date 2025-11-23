@@ -175,6 +175,30 @@ class MaintenanceController extends Controller
     public function edit(Maintenance $maintenance)
     {
         $machineries = Machinery::orderBy('name')->get();
+        
+        // Si es una petición AJAX, devolver JSON con maquinarias
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'maintenance' => [
+                    'id' => $maintenance->id,
+                    'machinery_id' => $maintenance->machinery_id,
+                    'date' => $maintenance->date->format('Y-m-d'),
+                    'end_date' => $maintenance->end_date ? $maintenance->end_date->format('Y-m-d') : null,
+                    'type' => $maintenance->type,
+                    'responsible' => $maintenance->responsible,
+                    'description' => $maintenance->description,
+                ],
+                'machineries' => $machineries->map(function($machinery) {
+                    return [
+                        'id' => $machinery->id,
+                        'name' => $machinery->name,
+                        'brand' => $machinery->brand,
+                        'model' => $machinery->model,
+                    ];
+                })
+            ]);
+        }
+        
         return view('aprendiz.machinery.maintenances.edit', compact('maintenance', 'machineries'));
     }
 

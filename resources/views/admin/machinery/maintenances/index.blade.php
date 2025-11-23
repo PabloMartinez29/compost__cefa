@@ -177,7 +177,7 @@
                                            class="inline-flex items-center text-blue-400 hover:text-blue-500" title="Ver Detalles">
                                             <i class="fas fa-eye"></i>
                                         </button>
-                                        <button onclick="confirmEdit({{ $maintenance->id }})" 
+                                        <button type="button" onclick="confirmEdit(event, {{ $maintenance->id }})" 
                                            class="inline-flex items-center text-green-500 hover:text-green-700" title="Editar">
                                             <i class="fas fa-edit"></i>
                                         </button>
@@ -295,6 +295,126 @@
     </div>
 </div>
 
+<!-- Modal de edición -->
+<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop-blur hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <!-- Modal Header -->
+        <div class="waste-header">
+            <div class="text-center">
+                <h3 class="waste-title text-xl justify-center">
+                    <i class="fas fa-edit waste-icon"></i>
+                    Editar Actividad
+                </h3>
+                <p class="waste-subtitle">
+                    <i class="fas fa-user-shield text-green-400 mr-2"></i>
+                    <span id="editUserInfo">{{ Auth::user()->name }} - Registro #<span id="editMaintenanceId"></span></span>
+                </p>
+            </div>
+            <button id="closeEditModal" class="absolute top-4 right-4 text-gray-600 hover:text-gray-800">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6">
+            <form id="editForm" method="POST">
+                @csrf
+                @method('PUT')
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Fecha -->
+                    <div class="waste-form-group">
+                        <label for="edit_date" class="waste-form-label">Fecha *</label>
+                        <input type="date" id="edit_date" name="date" required
+                               max="{{ date('Y-m-d') }}"
+                               class="waste-form-input" />
+                    </div>
+
+                    <!-- Maquinaria -->
+                    <div class="waste-form-group">
+                        <label for="edit_machinery_id" class="waste-form-label">Maquinaria *</label>
+                        <div class="relative">
+                            <select id="edit_machinery_id" name="machinery_id" required class="waste-form-select">
+                                <option value="">Seleccionar maquinaria</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                        </div>
+                    </div>
+
+                    <!-- Tipo de Registro -->
+                    <div class="waste-form-group md:col-span-2">
+                        <label class="waste-form-label">Tipo de Registro *</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-green-50 transition-all duration-200">
+                                <input type="radio" name="type" value="M" id="edit_type_maintenance"
+                                       class="sr-only peer" required>
+                                <div class="w-4 h-4 border-2 border-gray-300 rounded-full peer-checked:border-green-500 peer-checked:bg-green-500 mr-3 flex items-center justify-center">
+                                    <div class="w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100"></div>
+                                </div>
+                                <span class="text-sm font-medium text-gray-700 peer-checked:text-green-700">M: Mantenimiento</span>
+                            </label>
+                            <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-green-50 transition-all duration-200">
+                                <input type="radio" name="type" value="O" id="edit_type_operation"
+                                       class="sr-only peer" required>
+                                <div class="w-4 h-4 border-2 border-gray-300 rounded-full peer-checked:border-green-500 peer-checked:bg-green-500 mr-3 flex items-center justify-center">
+                                    <div class="w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100"></div>
+                                </div>
+                                <span class="text-sm font-medium text-gray-700 peer-checked:text-green-700">O: Operación</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Responsable -->
+                    <div class="waste-form-group">
+                        <label for="edit_responsible" class="waste-form-label">Responsable *</label>
+                        <input type="text" id="edit_responsible" name="responsible" maxlength="150" required
+                               placeholder="Nombre del responsable"
+                               class="waste-form-input" />
+                    </div>
+
+                    <!-- Fecha de Fin (solo para mantenimiento) -->
+                    <div class="waste-form-group" id="edit_end_date_container" style="display: none;">
+                        <label for="edit_end_date" class="waste-form-label">Fecha de Fin de Mantenimiento</label>
+                        <input type="date" id="edit_end_date" name="end_date"
+                               class="waste-form-input" />
+                        <p class="text-gray-500 text-xs mt-1">
+                            <i class="fas fa-info-circle mr-1"></i>
+                            Campo opcional
+                        </p>
+                    </div>
+
+                    <!-- Descripción -->
+                    <div class="waste-form-group md:col-span-2">
+                        <label for="edit_description" class="waste-form-label">Descripción del Trabajo Realizado *</label>
+                        <textarea id="edit_description" name="description" rows="4" maxlength="1000" required
+                                  placeholder="Describe detalladamente el mantenimiento u operación realizada..."
+                                  class="waste-form-textarea"></textarea>
+                        <div class="flex justify-between mt-1">
+                            <p class="text-gray-500 text-xs">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Máximo 1000 caracteres
+                            </p>
+                            <p class="text-gray-500 text-xs" id="edit_char-count">0/1000</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <button type="button" id="cancelEditModal" class="waste-btn-secondary">
+                        <i class="fas fa-times mr-2"></i>
+                        Cancelar
+                    </button>
+                    <button type="submit" class="waste-btn">
+                        <i class="fas fa-save mr-2"></i>
+                        Guardar cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 // Funciones para el modal de imagen
 function openImageModal(imageSrc) {
@@ -369,8 +489,70 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
+// Funciones para el modal de edición
+let editModal, closeEditBtn, cancelEditBtn, editForm;
+
+// Inicializar elementos cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    editModal = document.getElementById('editModal');
+    closeEditBtn = document.getElementById('closeEditModal');
+    cancelEditBtn = document.getElementById('cancelEditModal');
+    editForm = document.getElementById('editForm');
+    
+    if (closeEditBtn) {
+        closeEditBtn.addEventListener('click', closeEditModal);
+    }
+    if (cancelEditBtn) {
+        cancelEditBtn.addEventListener('click', closeEditModal);
+    }
+    if (editModal) {
+        editModal.addEventListener('click', (e) => {
+            if (e.target === editModal || e.target.closest('.modal-backdrop-blur') === editModal) {
+                closeEditModal();
+            }
+        });
+    }
+});
+
+function openEditModal() {
+    if (!editModal) {
+        editModal = document.getElementById('editModal');
+    }
+    if (editModal) {
+        editModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeEditModal() {
+    if (!editModal) {
+        editModal = document.getElementById('editModal');
+    }
+    if (editModal) {
+        editModal.classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        if (!editModal) {
+            editModal = document.getElementById('editModal');
+        }
+        if (editModal && !editModal.classList.contains('hidden')) {
+            closeEditModal();
+        }
+    }
+});
+
 // Confirmación antes de editar
-function confirmEdit(maintenanceId) {
+function confirmEdit(event, maintenanceId) {
+    // Prevenir cualquier comportamiento por defecto
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    
     Swal.fire({
         title: 'Confirmar edición',
         text: '¿Está seguro de que desea editar este registro?',
@@ -382,9 +564,165 @@ function confirmEdit(maintenanceId) {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            window.location.href = `/admin/machinery/maintenance/${maintenanceId}/edit`;
+            openEditMaintenanceModal(maintenanceId);
         }
     });
+    
+    return false;
+}
+
+// Función para mostrar/ocultar campo de fecha de fin
+function toggleEndDateField() {
+    const typeMaintenance = document.getElementById('edit_type_maintenance');
+    const endDateContainer = document.getElementById('edit_end_date_container');
+    const dateInput = document.getElementById('edit_date');
+    const endDateInput = document.getElementById('edit_end_date');
+    
+    if (typeMaintenance && typeMaintenance.checked) {
+        endDateContainer.style.display = 'block';
+        if (dateInput && dateInput.value) {
+            endDateInput.min = dateInput.value;
+        }
+    } else {
+        if (!endDateInput || !endDateInput.value) {
+            endDateContainer.style.display = 'none';
+        } else {
+            endDateContainer.style.display = 'block';
+        }
+    }
+}
+
+// Función para abrir modal de edición con datos
+function openEditMaintenanceModal(maintenanceId) {
+    fetch(`/admin/machinery/maintenance/${maintenanceId}/edit`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error en la respuesta del servidor');
+            }
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                throw new Error('La respuesta no es JSON');
+            }
+            return response.json();
+        })
+        .then(result => {
+            const data = result.maintenance;
+            const machineries = result.machineries || [];
+            
+            // Asegurarse de que los elementos existan
+            if (!editForm) {
+                editForm = document.getElementById('editForm');
+            }
+            if (!editModal) {
+                editModal = document.getElementById('editModal');
+            }
+            
+            if (!editForm || !editModal) {
+                throw new Error('No se encontraron los elementos del modal');
+            }
+            
+            // Actualizar ID en el header
+            const editMaintenanceId = document.getElementById('editMaintenanceId');
+            if (editMaintenanceId) {
+                editMaintenanceId.textContent = data.id.toString().padStart(3, '0');
+            }
+            
+            // Configurar acción del formulario
+            editForm.action = `/admin/machinery/maintenance/${maintenanceId}`;
+            
+            // Llenar campos
+            document.getElementById('edit_date').value = data.date || '';
+            document.getElementById('edit_responsible').value = data.responsible || '';
+            document.getElementById('edit_description').value = data.description || '';
+            
+            if (data.end_date) {
+                document.getElementById('edit_end_date').value = data.end_date || '';
+            }
+            
+            // Seleccionar tipo
+            if (data.type === 'M') {
+                document.getElementById('edit_type_maintenance').checked = true;
+            } else {
+                document.getElementById('edit_type_operation').checked = true;
+            }
+            
+            // Llenar select de maquinarias
+            const select = document.getElementById('edit_machinery_id');
+            select.innerHTML = '<option value="">Seleccionar maquinaria</option>';
+            machineries.forEach(machinery => {
+                const option = document.createElement('option');
+                option.value = machinery.id;
+                option.textContent = `${machinery.name} - ${machinery.brand} ${machinery.model}`;
+                if (machinery.id == data.machinery_id) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+            
+            // Configurar eventos para mostrar/ocultar fecha de fin
+            const typeMaintenance = document.getElementById('edit_type_maintenance');
+            const typeOperation = document.getElementById('edit_type_operation');
+            const dateInput = document.getElementById('edit_date');
+            const endDateInput = document.getElementById('edit_end_date');
+            
+            // Remover listeners anteriores si existen
+            const newTypeMaintenance = typeMaintenance.cloneNode(true);
+            const newTypeOperation = typeOperation.cloneNode(true);
+            typeMaintenance.parentNode.replaceChild(newTypeMaintenance, typeMaintenance);
+            typeOperation.parentNode.replaceChild(newTypeOperation, typeOperation);
+            
+            newTypeMaintenance.addEventListener('change', toggleEndDateField);
+            newTypeOperation.addEventListener('change', toggleEndDateField);
+            
+            if (dateInput) {
+                dateInput.addEventListener('change', function() {
+                    if (endDateInput && newTypeMaintenance.checked) {
+                        endDateInput.min = this.value;
+                    }
+                });
+            }
+            
+            // Inicializar estado del campo de fecha de fin
+            toggleEndDateField();
+            
+            // Contador de caracteres
+            const descriptionTextarea = document.getElementById('edit_description');
+            const charCount = document.getElementById('edit_char-count');
+            
+            function updateCharCount() {
+                const count = descriptionTextarea.value.length;
+                charCount.textContent = `${count}/1000`;
+                if (count > 900) {
+                    charCount.classList.add('text-red-500');
+                    charCount.classList.remove('text-gray-500');
+                } else {
+                    charCount.classList.remove('text-red-500');
+                    charCount.classList.add('text-gray-500');
+                }
+            }
+            
+            descriptionTextarea.addEventListener('input', updateCharCount);
+            updateCharCount();
+            
+            // Mostrar modal
+            openEditModal();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                title: 'Error',
+                text: 'Error al cargar los datos del registro. Por favor, intente nuevamente.',
+                icon: 'error',
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'Entendido'
+            });
+        });
 }
 
 // Función para confirmar eliminación con SweetAlert2

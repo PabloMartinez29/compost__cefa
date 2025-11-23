@@ -1,34 +1,32 @@
 @extends('layouts.master')
 
 @section('content')
+@vite(['resources/css/waste.css'])
+
 <div class="min-h-screen bg-soft-gray-50 py-8">
-    <!-- Contenedor más ancho -->
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <!-- Header -->
-        <div class="mb-8">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-gradient-to-br from-soft-green-500 to-soft-green-600 rounded-xl flex items-center justify-center shadow-sm">
-                    <i class="fas fa-edit text-white text-lg"></i>
-                </div>
+        <div class="waste-header animate-fade-in-up mb-6">
+            <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-3xl font-bold text-soft-gray-900">Editar Registro de Abono Terminado</h1>
-                    <p class="text-soft-gray-600">Modifica la información de entrega del abono</p>
+                    <h1 class="waste-title">
+                        <i class="fas fa-edit waste-icon"></i>
+                        Editar Registro de Abono Terminado
+                    </h1>
+                    <p class="waste-subtitle">
+                        <i class="fas fa-user-shield text-green-400 mr-2"></i>
+                        {{ Auth::user()->name }} - Registro #{{ str_pad($fertilizer->id, 3, '0', STR_PAD_LEFT) }}
+                    </p>
+                </div>
+                <div class="text-right">
+                    <div class="text-green-400 font-bold text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
                 </div>
             </div>
         </div>
 
         <!-- Form Card -->
-        <div class="bg-white shadow-xl rounded-2xl overflow-hidden w-full">
-            <!-- Form Header -->
-            <div class="bg-gradient-to-r from-soft-green-500 to-soft-green-600 px-6 py-4">
-                <h2 class="text-xl font-semibold text-white flex items-center">
-                    <i class="fas fa-edit mr-3"></i>
-                    Formulario de Edición
-                </h2>
-            </div>
-
-            <!-- Form Body -->
-            <form action="{{ route('admin.fertilizer.update', $fertilizer) }}" method="POST" class="p-6 space-y-6">
+        <div class="waste-form animate-fade-in-up animate-delay-1">
+            <form action="{{ route('admin.fertilizer.update', $fertilizer) }}" method="POST">
                 @csrf
                 @method('PUT')
 
@@ -39,47 +37,38 @@
                 @endif
 
                 <!-- Primera fila: Fecha, Hora, Pila (solo lectura) -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <!-- Fecha -->
-                    <div class="space-y-2">
-                        <label for="date" class="block text-sm font-semibold text-soft-gray-700 flex items-center">
-                            <i class="fas fa-calendar-alt mr-2 text-soft-green-600"></i>
-                            Fecha
-                        </label>
+                    <div class="waste-form-group">
+                        <label for="date" class="waste-form-label">Fecha *</label>
                         <input type="date" name="date" id="date" required
                                value="{{ old('date', $fertilizer->date->format('Y-m-d')) }}"
-                               class="w-full px-4 py-3 border border-soft-gray-300 rounded-xl focus:ring-2 focus:ring-soft-green-500 focus:border-soft-green-500 transition-all duration-200 bg-soft-gray-50 hover:bg-white">
+                               class="waste-form-input @error('date') border-red-500 @enderror">
                         @error('date')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <!-- Hora -->
-                    <div class="space-y-2">
-                        <label for="time" class="block text-sm font-semibold text-soft-gray-700 flex items-center">
-                            <i class="fas fa-clock mr-2 text-soft-green-600"></i>
-                            Hora
-                        </label>
+                    <div class="waste-form-group">
+                        <label for="time" class="waste-form-label">Hora *</label>
                         <input type="time" name="time" id="time" required
                                value="{{ old('time', $fertilizer->time) }}"
-                               class="w-full px-4 py-3 border border-soft-gray-300 rounded-xl focus:ring-2 focus:ring-soft-green-500 focus:border-soft-green-500 transition-all duration-200 bg-soft-gray-50 hover:bg-white">
+                               class="waste-form-input @error('time') border-red-500 @enderror">
                         @error('time')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <!-- Pila (solo lectura) -->
-                    <div class="space-y-2">
-                        <label for="composting_id" class="block text-sm font-semibold text-soft-gray-700 flex items-center">
-                            <i class="fas fa-mountain mr-2 text-soft-green-600"></i>
-                            Pila
-                        </label>
+                    <div class="waste-form-group">
+                        <label for="composting_id" class="waste-form-label">Pila</label>
                         <input type="text" 
                                value="{{ $fertilizer->composting ? $fertilizer->composting->formatted_pile_num : 'N/A' }}" 
                                readonly
-                               class="w-full px-4 py-3 border border-soft-gray-300 rounded-xl bg-gray-100 cursor-not-allowed">
+                               class="waste-form-input bg-gray-50 cursor-not-allowed">
                         <input type="hidden" name="composting_id" value="{{ $fertilizer->composting_id }}">
-                        <p class="text-xs text-gray-500 mt-1">
+                        <p class="text-gray-500 text-sm mt-1">
                             <i class="fas fa-info-circle mr-1"></i>
                             La pila no se puede modificar después de crear el registro.
                         </p>
@@ -87,153 +76,126 @@
                 </div>
 
                 <!-- Segunda fila: Solicitante, Destino -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Solicitante -->
-                    <div class="space-y-2">
-                        <label for="requester" class="block text-sm font-semibold text-soft-gray-700 flex items-center">
-                            <i class="fas fa-user mr-2 text-soft-green-600"></i>
-                            Solicitante
-                        </label>
+                    <div class="waste-form-group">
+                        <label for="requester" class="waste-form-label">Solicitante *</label>
                         <input type="text" name="requester" id="requester" maxlength="150" required
                                value="{{ old('requester', $fertilizer->requester) }}"
                                placeholder="Nombre del solicitante"
-                               class="w-full px-4 py-3 border border-soft-gray-300 rounded-xl focus:ring-2 focus:ring-soft-green-500 focus:border-soft-green-500 transition-all duration-200 bg-soft-gray-50 hover:bg-white">
+                               class="waste-form-input @error('requester') border-red-500 @enderror">
                         @error('requester')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <!-- Destino -->
-                    <div class="space-y-2">
-                        <label for="destination" class="block text-sm font-semibold text-soft-gray-700 flex items-center">
-                            <i class="fas fa-map-marker-alt mr-2 text-soft-green-600"></i>
-                            Destino
-                        </label>
+                    <div class="waste-form-group">
+                        <label for="destination" class="waste-form-label">Destino *</label>
                         <input type="text" name="destination" id="destination" maxlength="150" required
                                value="{{ old('destination', $fertilizer->destination) }}"
                                placeholder="Lugar de destino"
-                               class="w-full px-4 py-3 border border-soft-gray-300 rounded-xl focus:ring-2 focus:ring-soft-green-500 focus:border-soft-green-500 transition-all duration-200 bg-soft-gray-50 hover:bg-white">
+                               class="waste-form-input @error('destination') border-red-500 @enderror">
                         @error('destination')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
 
                 <!-- Tercera fila: Quién recibe, Quién entrega -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Quién recibe -->
-                    <div class="space-y-2">
-                        <label for="received_by" class="block text-sm font-semibold text-soft-gray-700 flex items-center">
-                            <i class="fas fa-hand-holding mr-2 text-soft-green-600"></i>
-                            Quién Recibe
-                        </label>
+                    <div class="waste-form-group">
+                        <label for="received_by" class="waste-form-label">Quién Recibe *</label>
                         <input type="text" name="received_by" id="received_by" maxlength="150" required
                                value="{{ old('received_by', $fertilizer->received_by) }}"
                                placeholder="Nombre de quien recibe"
-                               class="w-full px-4 py-3 border border-soft-gray-300 rounded-xl focus:ring-2 focus:ring-soft-green-500 focus:border-soft-green-500 transition-all duration-200 bg-soft-gray-50 hover:bg-white">
+                               class="waste-form-input @error('received_by') border-red-500 @enderror">
                         @error('received_by')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <!-- Quién entrega -->
-                    <div class="space-y-2">
-                        <label for="delivered_by" class="block text-sm font-semibold text-soft-gray-700 flex items-center">
-                            <i class="fas fa-shipping-fast mr-2 text-soft-green-600"></i>
-                            Quién Entrega
-                        </label>
+                    <div class="waste-form-group">
+                        <label for="delivered_by" class="waste-form-label">Quién Entrega *</label>
                         <input type="text" name="delivered_by" id="delivered_by" maxlength="150" required
                                value="{{ old('delivered_by', $fertilizer->delivered_by) }}"
                                placeholder="Nombre de quien entrega"
-                               class="w-full px-4 py-3 border border-soft-gray-300 rounded-xl focus:ring-2 focus:ring-soft-green-500 focus:border-soft-green-500 transition-all duration-200 bg-soft-gray-50 hover:bg-white">
+                               class="waste-form-input @error('delivered_by') border-red-500 @enderror">
                         @error('delivered_by')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
 
                 <!-- Cuarta fila: Tipo de abono, Cantidad -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Tipo de abono -->
-                    <div class="space-y-2">
-                        <label for="type" class="block text-sm font-semibold text-soft-gray-700 flex items-center">
-                            <i class="fas fa-seedling mr-2 text-soft-green-600"></i>
-                            Tipo de Abono
-                        </label>
+                    <div class="waste-form-group">
+                        <label for="type" class="waste-form-label">Tipo de Abono *</label>
                         <div class="grid grid-cols-2 gap-3">
-                            <label class="flex items-center p-3 border border-soft-gray-300 rounded-xl cursor-pointer hover:bg-soft-green-50 transition-all duration-200">
+                            <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-green-50 transition-all duration-200">
                                 <input type="radio" name="type" value="Liquid" {{ old('type', $fertilizer->type) == 'Liquid' ? 'checked' : '' }}
                                        class="sr-only peer">
-                                <div class="w-4 h-4 border-2 border-soft-gray-300 rounded-full peer-checked:border-soft-green-500 peer-checked:bg-soft-green-500 mr-3 flex items-center justify-center">
+                                <div class="w-4 h-4 border-2 border-gray-300 rounded-full peer-checked:border-green-500 peer-checked:bg-green-500 mr-3 flex items-center justify-center">
                                     <div class="w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100"></div>
                                 </div>
-                                <span class="text-sm font-medium text-soft-gray-700 peer-checked:text-soft-green-700">Líquido</span>
+                                <span class="text-sm font-medium text-gray-700 peer-checked:text-green-700">Líquido</span>
                             </label>
-                            <label class="flex items-center p-3 border border-soft-gray-300 rounded-xl cursor-pointer hover:bg-soft-green-50 transition-all duration-200">
+                            <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-green-50 transition-all duration-200">
                                 <input type="radio" name="type" value="Solid" {{ old('type', $fertilizer->type) == 'Solid' ? 'checked' : '' }}
                                        class="sr-only peer">
-                                <div class="w-4 h-4 border-2 border-soft-gray-300 rounded-full peer-checked:border-soft-green-500 peer-checked:bg-soft-green-500 mr-3 flex items-center justify-center">
+                                <div class="w-4 h-4 border-2 border-gray-300 rounded-full peer-checked:border-green-500 peer-checked:bg-green-500 mr-3 flex items-center justify-center">
                                     <div class="w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100"></div>
                                 </div>
-                                <span class="text-sm font-medium text-soft-gray-700 peer-checked:text-soft-green-700">Sólido</span>
+                                <span class="text-sm font-medium text-gray-700 peer-checked:text-green-700">Sólido</span>
                             </label>
                         </div>
                         @error('type')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
 
                     <!-- Cantidad -->
-                    <div class="space-y-2">
-                        <label for="amount" class="block text-sm font-semibold text-soft-gray-700 flex items-center">
-                            <i class="fas fa-weight mr-2 text-soft-green-600"></i>
-                            Cantidad (KG/L)
-                        </label>
+                    <div class="waste-form-group">
+                        <label for="amount" class="waste-form-label">Cantidad (KG/L) *</label>
                         <div class="relative">
                             <input type="number" name="amount" id="amount" step="0.01" min="0.01" required
                                    value="{{ old('amount', $fertilizer->amount) }}"
                                    placeholder="0.00"
-                                   class="w-full px-4 py-3 pr-16 border border-soft-gray-300 rounded-xl focus:ring-2 focus:ring-soft-green-500 focus:border-soft-green-500 transition-all duration-200 bg-soft-gray-50 hover:bg-white">
+                                   class="waste-form-input pr-16 @error('amount') border-red-500 @enderror">
                             <div class="absolute inset-y-0 right-0 flex items-center pr-4">
-                                <span class="text-soft-gray-500 text-sm font-medium" id="amountUnit">{{ $fertilizer->type == 'Liquid' ? 'L' : 'Kg' }}</span>
+                                <span class="text-gray-500 text-sm font-medium" id="amountUnit">{{ $fertilizer->type == 'Liquid' ? 'L' : 'Kg' }}</span>
                             </div>
                         </div>
                         @error('amount')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
 
                 <!-- Notas -->
-                <div class="space-y-2">
-                    <label for="notes" class="block text-sm font-semibold text-soft-gray-700 flex items-center">
-                        <i class="fas fa-sticky-note mr-2 text-soft-green-600"></i>
-                        Notas (Opcional)
-                    </label>
+                <div class="waste-form-group">
+                    <label for="notes" class="waste-form-label">Notas</label>
                     <textarea name="notes" id="notes" rows="4"
                               placeholder="Observaciones adicionales sobre la entrega..."
-                              class="w-full px-4 py-3 border border-soft-gray-300 rounded-xl focus:ring-2 focus:ring-soft-green-500 focus:border-soft-green-500 transition-all duration-200 bg-soft-gray-50 hover:bg-white resize-none">{{ old('notes', $fertilizer->notes) }}</textarea>
+                              class="waste-form-textarea @error('notes') border-red-500 @enderror">{{ old('notes', $fertilizer->notes) }}</textarea>
                     @error('notes')
-                        <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <!-- Botones de acción -->
-                <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-soft-gray-200 justify-center">
-                    <a href="{{ route('admin.fertilizer.show', $fertilizer) }}" 
-                       class="px-6 py-2.5 border border-soft-gray-300 text-soft-gray-700 rounded-xl hover:bg-soft-gray-50 transition-all duration-200 font-medium flex items-center justify-center">
-                        <i class="fas fa-eye mr-2"></i>
-                        Ver Detalles
-                    </a>
+                <!-- Form Actions -->
+                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
                     <a href="{{ route('admin.fertilizer.index') }}" 
-                       class="px-6 py-2.5 border border-soft-gray-300 text-soft-gray-700 rounded-xl hover:bg-soft-gray-50 transition-all duration-200 font-medium flex items-center justify-center">
-                        <i class="fas fa-arrow-left mr-2"></i>
+                       class="waste-btn-secondary">
+                        <i class="fas fa-times mr-2"></i>
                         Cancelar
                     </a>
-                    <button type="submit"
-                            class="px-6 py-2.5 bg-gradient-to-r from-soft-green-500 to-soft-green-600 text-white rounded-xl hover:from-soft-green-600 hover:to-soft-green-700 transition-all duration-200 font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex items-center justify-center">
+                    <button type="submit" class="waste-btn">
                         <i class="fas fa-save mr-2"></i>
-                        Actualizar Registro
+                        Guardar
                     </button>
                 </div>
             </form>

@@ -258,46 +258,74 @@
     </div>
 </div>
 <!-- Modal de edición -->
-<div id="editModal" class="fixed inset-0 z-50 hidden overflow-y-auto">
-    <div class="absolute inset-0 bg-black bg-opacity-40"></div>
-    <div class="relative min-h-screen py-4 px-4 flex items-start justify-center">
-        <div class="relative max-w-2xl w-full bg-white rounded-2xl shadow-xl overflow-hidden my-4">
-            <div class="bg-green-100 border-b border-green-300 px-4 py-2 flex items-center justify-between">
-                <h3 class="text-gray-800 font-semibold text-base"><i class="fas fa-edit mr-2 text-green-600"></i>Editar Maquinaria</h3>
-                <button id="closeEditModal" class="text-gray-600 hover:text-gray-800"><i class="fas fa-times"></i></button>
+<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop-blur hidden z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <!-- Modal Header -->
+        <div class="waste-header">
+            <div class="text-center">
+                <h3 class="waste-title text-xl justify-center">
+                    <i class="fas fa-edit waste-icon"></i>
+                    Editar Maquinaria
+                </h3>
+                <p class="waste-subtitle">
+                    <i class="fas fa-user-shield text-green-400 mr-2"></i>
+                    <span id="editUserInfo">{{ Auth::user()->name }} - Maquinaria #<span id="editMachineryId"></span></span>
+                </p>
             </div>
+            <button id="closeEditModal" class="absolute top-4 right-4 text-gray-600 hover:text-gray-800">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6">
             <form id="editForm" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
-                <div class="p-3 grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                        <label for="edit_name" class="block text-xs font-medium text-gray-700 mb-0.5">Nombre de la maquinaria</label>
-                        <input id="edit_name" name="name" type="text" required class="w-full px-2 py-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-300 text-sm" />
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Nombre -->
+                    <div class="waste-form-group">
+                        <label for="edit_name" class="waste-form-label">Nombre de la maquinaria *</label>
+                        <input id="edit_name" name="name" type="text" required class="waste-form-input" />
                     </div>
-                    <div>
-                        <label for="edit_location" class="block text-xs font-medium text-gray-700 mb-0.5">Ubicación</label>
-                        <input id="edit_location" name="location" type="text" required class="w-full px-2 py-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-300 text-sm" />
+
+                    <!-- Ubicación -->
+                    <div class="waste-form-group">
+                        <label for="edit_location" class="waste-form-label">Ubicación *</label>
+                        <input id="edit_location" name="location" type="text" required class="waste-form-input" />
                     </div>
-                    <div>
-                        <label for="edit_start_func" class="block text-xs font-medium text-gray-700 mb-0.5">Fecha de inicio de funcionamiento</label>
-                        <input id="edit_start_func" name="start_func" type="date" max="{{ date('Y-m-d') }}" required class="w-full px-2 py-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-300 text-sm" />
+
+                    <!-- Fecha de inicio -->
+                    <div class="waste-form-group">
+                        <label for="edit_start_func" class="waste-form-label">Fecha de inicio de funcionamiento *</label>
+                        <input id="edit_start_func" name="start_func" type="date" max="{{ date('Y-m-d') }}" required class="waste-form-input" />
                     </div>
-                    <div>
-                        <label for="edit_brand" class="block text-xs font-medium text-gray-700 mb-0.5">Marca</label>
-                        <input id="edit_brand" name="brand" type="text" required class="w-full px-2 py-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-300 text-sm" />
+
+                    <!-- Marca -->
+                    <div class="waste-form-group">
+                        <label for="edit_brand" class="waste-form-label">Marca *</label>
+                        <input id="edit_brand" name="brand" type="text" required class="waste-form-input" />
                     </div>
-                    <div>
-                        <label for="edit_model" class="block text-xs font-medium text-gray-700 mb-0.5">Modelo</label>
-                        <input id="edit_model" name="model" type="text" required class="w-full px-2 py-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-300 text-sm" />
+
+                    <!-- Modelo -->
+                    <div class="waste-form-group">
+                        <label for="edit_model" class="waste-form-label">Modelo *</label>
+                        <input id="edit_model" name="model" type="text" required class="waste-form-input" />
                     </div>
-                    <div>
-                        <label for="edit_serial" class="block text-xs font-medium text-gray-700 mb-0.5">Número de serie</label>
-                        <input id="edit_serial" name="serial" type="text" required class="w-full px-2 py-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-300 font-mono text-sm" />
+
+                    <!-- Número de serie -->
+                    <div class="waste-form-group">
+                        <label for="edit_serial" class="waste-form-label">Número de serie *</label>
+                        <input id="edit_serial" name="serial" type="text" required class="waste-form-input font-mono" />
                     </div>
-                    <div class="md:col-span-2">
-                        <label for="edit_maint_freq" class="block text-xs font-medium text-gray-700 mb-0.5">Frecuencia de mantenimiento</label>
+
+                    <!-- Frecuencia de mantenimiento -->
+                    <div class="waste-form-group md:col-span-2">
+                        <label for="edit_maint_freq" class="waste-form-label">Frecuencia de mantenimiento *</label>
                         <div class="relative">
-                            <select id="edit_maint_freq" name="maint_freq" required class="w-full px-2 py-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-300 appearance-none bg-white text-sm">
+                            <select id="edit_maint_freq" name="maint_freq" required class="waste-form-select">
+                                <option value="">Seleccionar frecuencia...</option>
                                 <option value="Diario">Diario</option>
                                 <option value="Semanal">Semanal</option>
                                 <option value="Quincenal">Quincenal</option>
@@ -307,39 +335,45 @@
                                 <option value="Semestral">Semestral</option>
                                 <option value="Anual">Anual</option>
                             </select>
-                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                <i class="fas fa-chevron-down text-gray-400"></i>
-                            </div>
+                            <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                         </div>
                     </div>
                     
                     <!-- Imagen de la maquinaria -->
-                    <div class="md:col-span-2">
-                        <label for="edit_image" class="block text-xs font-medium text-gray-700 mb-0.5">Imagen de la maquinaria</label>
-                        <div id="currentImage" class="mb-2"></div>
+                    <div class="waste-form-group md:col-span-2">
+                        <label for="edit_image" class="waste-form-label">Imagen de la maquinaria</label>
+                        <div id="currentImage" class="mb-4"></div>
                         <div class="relative">
                             <input type="file" name="image" id="edit_image" 
-                                   class="w-full px-2 py-1.5 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-300 text-sm" 
+                                   class="waste-form-input" 
                                    accept="image/*" onchange="previewEditImage(this)">
-                            <div id="editImagePreview" class="mt-2 hidden">
-                                <p class="text-xs font-medium text-gray-600 mb-0.5">Nueva imagen:</p>
+                            <div id="editImagePreview" class="mt-4 hidden">
+                                <p class="text-sm font-medium text-gray-600 mb-2">Nueva imagen:</p>
                                 <div class="relative inline-block">
-                                    <img id="editPreviewImg" class="w-32 h-32 object-cover rounded-lg border-2 border-gray-300 shadow-md" alt="Preview">
-                                    <button type="button" onclick="removeEditImage()" class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors">
-                                        <i class="fas fa-times text-xs"></i>
+                                    <img id="editPreviewImg" class="w-32 h-32 object-cover rounded-lg border border-gray-200" alt="Preview">
+                                    <button type="button" onclick="removeEditImage()" class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors">
+                                        <i class="fas fa-times"></i>
                                     </button>
                                 </div>
                             </div>
                         </div>
-                        <p class="text-gray-500 text-xs mt-0.5 flex items-center">
-                            <i class="fas fa-info-circle mr-1 text-xs"></i>
+                        <p class="text-gray-500 text-sm mt-1">
+                            <i class="fas fa-info-circle mr-1"></i>
                             Formatos permitidos: JPEG, PNG, JPG, GIF, WEBP
                         </p>
                     </div>
                 </div>
-                <div class="px-3 py-2 border-t border-gray-200 flex justify-end gap-2 bg-white">
-                    <button type="button" id="cancelEditModal" class="px-3 py-1.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 text-sm">Cancelar</button>
-                    <button type="submit" class="px-3 py-1.5 bg-green-400 text-green-800 border border-green-500 rounded-lg hover:bg-green-500 transition-all duration-200 text-sm">Guardar cambios</button>
+
+                <!-- Form Actions -->
+                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                    <button type="button" id="cancelEditModal" class="waste-btn-secondary">
+                        <i class="fas fa-times mr-2"></i>
+                        Cancelar
+                    </button>
+                    <button type="submit" class="waste-btn">
+                        <i class="fas fa-save mr-2"></i>
+                        Guardar cambios
+                    </button>
                 </div>
             </form>
         </div>
@@ -352,8 +386,14 @@
     const cancelBtn = document.getElementById('cancelEditModal');
     const form = document.getElementById('editForm');
 
-    function openModal() { modal.classList.remove('hidden'); document.body.classList.add('overflow-hidden'); }
-    function closeModal() { modal.classList.add('hidden'); document.body.classList.remove('overflow-hidden'); }
+    function openModal() { 
+        modal.classList.remove('hidden'); 
+        document.body.style.overflow = 'hidden'; 
+    }
+    function closeModal() { 
+        modal.classList.add('hidden'); 
+        document.body.style.overflow = 'auto'; 
+    }
 
     // Función para abrir modal de edición
     function openEditModal(machineryId) {
@@ -362,6 +402,10 @@
         
         const id = btn.dataset.id;
         form.action = `{{ url('aprendiz/machinery/machineries') }}/${id}`;
+        
+        // Actualizar ID en el header
+        document.getElementById('editMachineryId').textContent = id.toString().padStart(3, '0');
+        
         document.getElementById('edit_name').value = btn.dataset.name;
         document.getElementById('edit_location').value = btn.dataset.location;
         document.getElementById('edit_brand').value = btn.dataset.brand;
@@ -375,9 +419,9 @@
         const editImagePreview = document.getElementById('editImagePreview');
         if (btn.dataset.image) {
             currentImageDiv.innerHTML = `
-                <p class="text-xs font-medium text-gray-600 mb-0.5">Imagen actual:</p>
+                <label class="block text-sm font-medium text-gray-600 mb-2">Imagen actual:</label>
                 <div class="relative inline-block">
-                    <img src="${btn.dataset.image}" alt="Imagen actual" class="w-32 h-32 object-cover rounded-lg border-2 border-gray-300 shadow-md">
+                    <img src="${btn.dataset.image}" alt="Imagen actual" class="w-32 h-32 object-cover rounded-lg border border-gray-200">
                 </div>
             `;
             editImagePreview.classList.add('hidden');
@@ -516,7 +560,18 @@
 
     closeBtn.addEventListener('click', closeModal);
     cancelBtn.addEventListener('click', closeModal);
-    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    modal.addEventListener('click', (e) => { 
+        if (e.target === modal || e.target.closest('.modal-backdrop-blur') === modal) {
+            closeModal(); 
+        }
+    });
+    
+    // Cerrar con Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+            closeModal();
+        }
+    });
 
     // Validar número de serie en tiempo real
     document.getElementById('edit_serial').addEventListener('input', function(){
