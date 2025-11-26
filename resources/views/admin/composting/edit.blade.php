@@ -153,11 +153,11 @@
                             Ingredientes de la Pila
                         </h2>
                         <p class="text-sm text-gray-600 mt-1">Total: <span id="ingredientCount" class="font-semibold text-green-600">{{ $composting->ingredients->count() }}</span> ingredientes</p>
+                        <p class="text-sm text-yellow-600 mt-1 flex items-center">
+                            <i class="fas fa-lock mr-1"></i>
+                            Los ingredientes no se pueden modificar una vez creada la pila
+                        </p>
                     </div>
-                    <button type="button" onclick="addIngredient()" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
-                        <i class="fas fa-plus mr-2"></i>
-                        Agregar Ingrediente
-                    </button>
                 </div>
 
                 @if(session('error'))
@@ -220,8 +220,8 @@ let ingredientIndex = 0;
 // Datos de residuos orgánicos disponibles
 const availableOrganics = @json($availableOrganics);
 
-// Ingredientes existentes
-const existingIngredients = @json($composting->ingredients);
+// Ingredientes existentes con información del residuo orgánico
+const existingIngredients = @json($existingIngredients);
 
 function addIngredient(ingredient = null) {
     const container = document.getElementById('ingredients-container');
@@ -232,40 +232,42 @@ function addIngredient(ingredient = null) {
     const amount = ingredient ? ingredient.amount : '';
     const notes = ingredient ? ingredient.notes : '';
     
+    // Obtener el nombre del residuo orgánico para mostrar
+    const organicName = ingredient && ingredient.organic ? ingredient.organic.type_in_spanish : '';
+    const displayAmount = amount ? parseFloat(amount).toFixed(2) : '';
+    const displayNotes = notes || '';
+    
     ingredientDiv.innerHTML = `
         <div class="flex items-center justify-between mb-3">
             <h3 class="text-lg font-semibold text-gray-800">Ingrediente ${ingredientIndex + 1}</h3>
-            <button type="button" onclick="removeIngredient(this)" class="text-red-500 hover:text-red-700">
-                <i class="fas fa-trash"></i>
-            </button>
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="waste-form-group">
                 <label class="waste-form-label">Residuo Orgánico *</label>
-                <select name="ingredients[${ingredientIndex}][organic_id]" 
-                        class="waste-form-select @error('ingredients.*.organic_id') border-red-500 @enderror" required>
-                    <option value="">Seleccionar residuo</option>
-                    ${availableOrganics.map(organic => `
-                        <option value="${organic.id}" ${organic.id == organicId ? 'selected' : ''}>${organic.type_in_spanish} - ${organic.formatted_weight} (Disponible: ${organic.available_quantity} Kg)</option>
-                    `).join('')}
-                </select>
+                <input type="hidden" name="ingredients[${ingredientIndex}][organic_id]" value="${organicId}">
+                <input type="text" 
+                       class="waste-form-input bg-gray-100 cursor-not-allowed" 
+                       value="${organicName}" 
+                       readonly>
             </div>
             
             <div class="waste-form-group">
                 <label class="waste-form-label">Cantidad (Kg) *</label>
-                <input type="number" name="ingredients[${ingredientIndex}][amount]" 
-                       class="waste-form-input @error('ingredients.*.amount') border-red-500 @enderror" 
-                       placeholder="0.00" step="0.01" min="0.01" 
-                       value="${amount}" required>
+                <input type="hidden" name="ingredients[${ingredientIndex}][amount]" value="${amount}">
+                <input type="text" 
+                       class="waste-form-input bg-gray-100 cursor-not-allowed" 
+                       value="${displayAmount}" 
+                       readonly>
             </div>
             
             <div class="waste-form-group">
                 <label class="waste-form-label">Notas</label>
-                <input type="text" name="ingredients[${ingredientIndex}][notes]" 
-                       class="waste-form-input" 
-                       placeholder="Notas adicionales (opcional)"
-                       value="${notes}">
+                <input type="hidden" name="ingredients[${ingredientIndex}][notes]" value="${displayNotes}">
+                <input type="text" 
+                       class="waste-form-input bg-gray-100 cursor-not-allowed" 
+                       value="${displayNotes}" 
+                       readonly>
             </div>
         </div>
     `;
@@ -274,16 +276,12 @@ function addIngredient(ingredient = null) {
     ingredientIndex++;
     updateIngredientCount();
     
-    // Agregar event listener para actualizar el resumen cuando cambie la cantidad
-    const amountInput = ingredientDiv.querySelector('input[name*="[amount]"]');
-    if (amountInput) {
-        amountInput.addEventListener('input', updateSummary);
-    }
+    // No se necesita event listener porque los campos están bloqueados
 }
 
 function removeIngredient(button) {
-    button.closest('.ingredient-item').remove();
-    updateIngredientCount();
+    // Los ingredientes no se pueden eliminar en edición
+    return false;
 }
 
 function updateIngredientCount() {
@@ -297,9 +295,9 @@ function updateSummary() {
     let totalKg = 0;
     
     ingredients.forEach(ingredient => {
-        const amountInput = ingredient.querySelector('input[name*="[amount]"]');
-        if (amountInput && amountInput.value) {
-            totalKg += parseFloat(amountInput.value) || 0;
+        const hiddenAmountInput = ingredient.querySelector('input[type="hidden"][name*="[amount]"]');
+        if (hiddenAmountInput && hiddenAmountInput.value) {
+            totalKg += parseFloat(hiddenAmountInput.value) || 0;
         }
     });
     
@@ -318,15 +316,8 @@ document.addEventListener('DOMContentLoaded', function() {
         existingIngredients.forEach(ingredient => {
             addIngredient(ingredient);
         });
-    } else {
-        addIngredient();
     }
     updateIngredientCount();
-    
-    // Agregar event listeners a todos los inputs de cantidad existentes
-    document.querySelectorAll('input[name*="[amount]"]').forEach(input => {
-        input.addEventListener('input', updateSummary);
-    });
 });
 
 // Validación del formulario

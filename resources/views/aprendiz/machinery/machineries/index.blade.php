@@ -323,7 +323,7 @@
                     <!-- Frecuencia de mantenimiento -->
                     <div class="waste-form-group md:col-span-2">
                         <label for="edit_maint_freq" class="waste-form-label">Frecuencia de mantenimiento *</label>
-                        <div class="relative">
+                        <div>
                             <select id="edit_maint_freq" name="maint_freq" required class="waste-form-select">
                                 <option value="">Seleccionar frecuencia...</option>
                                 <option value="Diario">Diario</option>
@@ -335,7 +335,6 @@
                                 <option value="Semestral">Semestral</option>
                                 <option value="Anual">Anual</option>
                             </select>
-                            <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                         </div>
                     </div>
                     

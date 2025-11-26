@@ -64,7 +64,7 @@
                 <!-- Role Field -->
                 <div class="waste-form-group">
                     <label for="role" class="waste-form-label">Rol del Usuario *</label>
-                    <div class="relative">
+                    <div>
                         <select id="role" 
                                 name="role" 
                                 class="waste-form-select @error('role') border-red-500 @enderror"
@@ -73,7 +73,6 @@
                             <option value="admin" {{ old('role', $user->role) == 'admin' ? 'selected' : '' }}>Administrador</option>
                             <option value="aprendiz" {{ old('role', $user->role) == 'aprendiz' ? 'selected' : '' }}>Aprendiz</option>
                         </select>
-                        <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                     </div>
                     @error('role')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
