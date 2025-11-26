@@ -75,6 +75,65 @@
             from, to { border-color: transparent; }
             50% { border-color: #16a34a; }
         }
+        
+        .scroll-animated-title {
+            display: inline-block;
+            position: relative;
+            opacity: 0;
+            transform: translate3d(0, 60px, -30px) scale(0.92) rotateX(18deg);
+            letter-spacing: 0.35em;
+            filter: blur(6px);
+            transition:
+                opacity 0.85s cubic-bezier(0.19, 1, 0.22, 1),
+                transform 0.85s cubic-bezier(0.19, 1, 0.22, 1),
+                letter-spacing 0.85s cubic-bezier(0.19, 1, 0.22, 1),
+                filter 0.85s ease;
+        }
+        
+        .scroll-animated-title::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 140%;
+            background: radial-gradient(circle, rgba(34,197,94,0.25) 0%, rgba(34,197,94,0) 70%);
+            transform: translate(-50%, -50%) scale(0.6);
+            opacity: 0;
+            transition: opacity 0.8s ease, transform 0.8s ease, width 0.8s ease;
+            pointer-events: none;
+        }
+        
+        .scroll-animated-title::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            bottom: -14px;
+            width: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #16a34a, #22c55e);
+            box-shadow: 0 0 18px rgba(34, 197, 94, 0.5);
+            transition: width 0.7s ease, left 0.7s ease;
+        }
+        
+        .scroll-animated-title.in-view {
+            opacity: 1;
+            transform: translate3d(0, 0, 0) scale(1) rotateX(0deg);
+            letter-spacing: 0.02em;
+            filter: blur(0);
+            text-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+        }
+        
+        .scroll-animated-title.in-view::before {
+            opacity: 1;
+            width: 120%;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        
+        .scroll-animated-title.in-view::after {
+            width: 140px;
+            left: calc(50% - 70px);
+        }
             </style>
     </head>
 <body class="font-inter bg-white min-h-screen">
@@ -165,18 +224,18 @@
         </header>
 
     <!-- Hero Section -->
-    <section class="pt-32 pb-20 relative overflow-hidden min-h-screen flex items-center">
+    <section id="hero-section" class="pt-32 pb-20 relative overflow-hidden min-h-screen flex items-center" style="height: 100vh;">
         <!-- Video Background -->
-        <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover z-0">
+        <video id="hero-video" autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover z-0" style="transform-origin: center center;">
             <source src="{{ asset('videos/hero-background.mp4') }}" type="video/mp4">
             <!-- Fallback si el video no carga -->
         </video>
         
         <!-- Overlay con opacidad para legibilidad del texto -->
-        <div class="absolute inset-0 bg-black/80 z-10"></div>
+        <div id="hero-overlay" class="absolute inset-0 bg-black/60 z-10"></div>
         
         <!-- Contenido sobre el video -->
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
+        <div id="hero-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
             <div class="text-center">
                 <!-- Main Title with Typewriter Effect -->
                 <div class="mb-8">
@@ -224,29 +283,45 @@
         <div class="absolute top-20 left-10 w-4 h-4 bg-compost-400 rounded-full animate-bounce opacity-60 z-30"></div>
         <div class="absolute top-40 right-20 w-6 h-6 bg-compost-300 rounded-full animate-bounce opacity-40 z-30" style="animation-delay: 0.5s;"></div>
         <div class="absolute bottom-20 left-20 w-3 h-3 bg-compost-500 rounded-full animate-bounce opacity-70 z-30" style="animation-delay: 1s;"></div>
-        <div class="absolute bottom-40 right-10 w-5 h-5 bg-compost-400 rounded-full animate-bounce opacity-50 z-30" style="animation-delay: 1.5s;"></div>
+        <div class="absolute bottom-40 right-10 w-5 h-5 bg-compost-400 rounded-full animate-bounce opacity-50 z-30" style="animation-delay: 1.5s;">        </div>
     </section>
 
     <!-- About Section -->
-    <section id="about" class="py-20 bg-white">
+    <section id="about" class="py-20 pb-32 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h2 class="text-4xl md:text-5xl font-bold text-compost-800 mb-6">¿Qué es COMPOST CEFA?</h2>
-                <div class="w-24 h-1 bg-gradient-to-r from-compost-600 to-compost-500 mx-auto mb-8"></div>
-                <p class="text-xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-                    Es un sistema integral diseñado para el registro y control de la creación de pilas de compostaje 
-                    y la manipulación de maquinaria en centros de acopio, optimizando todo el proceso desde la recepción 
-                    de residuos orgánicos hasta la producción de abono.
-                </p>
+            <div class="text-center mb-12">
+                <h2 class="scroll-animated-title text-4xl md:text-5xl font-bold text-compost-800 mb-6">¿Qué es COMPOST CEFA?</h2>
+                <div class="w-24 h-1 bg-gradient-to-r from-compost-600 to-compost-500 mx-auto"></div>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <!-- Imagen a la izquierda -->
+                <div class="order-2 lg:order-1">
+                    <div class="relative overflow-hidden rounded-2xl shadow-2xl group">
+                        <img src="{{ asset('img/carousel/carousel-1.jpg') }}" 
+                             alt="Sistema COMPOST CEFA" 
+                             class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                    </div>
+                </div>
+                
+                <!-- Texto a la derecha -->
+                <div class="order-1 lg:order-2">
+                    <p class="text-lg md:text-xl text-gray-700 leading-relaxed text-justify">
+                        Es un sistema integral diseñado para el registro y control de la creación de pilas de compostaje 
+                        y la manipulación de maquinaria en centros de acopio, optimizando todo el proceso desde la recepción 
+                        de residuos orgánicos hasta la producción de abono.
+                    </p>
+                </div>
             </div>
 
             <!-- Info Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div id="about-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mt-16 mb-16">
                 <div class="bg-gradient-to-br from-compost-50 to-compost-100 p-8 rounded-2xl text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-200">
                     <div class="w-16 h-16 bg-gradient-to-br from-compost-600 to-compost-700 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                         <i class="fas fa-mountain text-white text-2xl"></i>
                     </div>
-                    <h3 class="text-2xl font-bold text-compost-800 mb-4">Creación de Pilas</h3>
+                    <h3 class="card-title text-2xl font-bold text-compost-800 mb-4" data-title="Creación de Pilas">Creación de Pilas</h3>
                     <p class="text-gray-600">Registro detallado y control del proceso de creación y gestión de pilas de compostaje.</p>
                 </div>
 
@@ -254,7 +329,7 @@
                     <div class="w-16 h-16 bg-gradient-to-br from-compost-600 to-compost-700 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                         <i class="fas fa-tractor text-white text-2xl"></i>
                     </div>
-                    <h3 class="text-2xl font-bold text-compost-800 mb-4">Manipulación de Maquinaria</h3>
+                    <h3 class="card-title text-2xl font-bold text-compost-800 mb-4" data-title="Manipulación de Maquinaria">Manipulación de Maquinaria</h3>
                     <p class="text-gray-600">Control y registro de la manipulación de equipos y maquinaria del centro de acopio.</p>
                 </div>
 
@@ -262,7 +337,7 @@
                     <div class="w-16 h-16 bg-gradient-to-br from-compost-600 to-compost-700 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                         <i class="fas fa-seedling text-white text-2xl"></i>
                     </div>
-                    <h3 class="text-2xl font-bold text-compost-800 mb-4">Producción de Abono</h3>
+                    <h3 class="card-title text-2xl font-bold text-compost-800 mb-4" data-title="Producción de Abono">Producción de Abono</h3>
                     <p class="text-gray-600">Monitoreo y control del proceso de compostaje para obtener abono de alta calidad.</p>
                 </div>
 
@@ -270,18 +345,19 @@
                     <div class="w-16 h-16 bg-gradient-to-br from-compost-600 to-compost-700 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
                         <i class="fas fa-recycle text-white text-2xl"></i>
                     </div>
-                    <h3 class="text-2xl font-bold text-compost-800 mb-4">Registro de Residuos Orgánicos</h3>
+                    <h3 class="card-title text-2xl font-bold text-compost-800 mb-4" data-title="Registro de Residuos Orgánicos">Registro de Residuos Orgánicos</h3>
                     <p class="text-gray-600">Control completo del registro, clasificación y procesamiento de residuos orgánicos.</p>
                 </div>
             </div>
         </div>
     </section>
 
+
     <!-- Modules Section -->
     <section id="modules" class="py-20 bg-gradient-to-br from-compost-50 to-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="text-4xl md:text-5xl font-bold text-compost-800 mb-6">Módulos del Sistema</h2>
+                <h2 class="scroll-animated-title text-4xl md:text-5xl font-bold text-compost-800 mb-6">Módulos del Sistema</h2>
                 <div class="w-24 h-1 bg-gradient-to-r from-compost-600 to-compost-500 mx-auto mb-8"></div>
                 <p class="text-xl text-gray-600 max-w-3xl mx-auto">
                     Componentes especializados para el registro y control de pilas de compostaje y maquinaria
@@ -389,60 +465,66 @@
     </section>
 
     <!-- Features Section -->
-    <section id="features" class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"></div>
-            <div class="text-center mb-16">
-                <h2 class="text-4xl md:text-5xl font-bold text-compost-800 mb-6">Características Principales</h2>
-                <div class="w-24 h-1 bg-gradient-to-r from-compost-600 to-compost-500 mx-auto mb-8"></div>
-                <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-                    Funcionalidades esenciales para el control eficiente del proceso de compostaje
-                </p>
+    <section id="features" class="py-20 bg-gradient-to-br from-compost-50 to-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="scroll-animated-title text-4xl md:text-5xl font-bold text-compost-800 mb-6">Características Principales</h2>
+                <div class="w-24 h-1 bg-gradient-to-r from-compost-600 to-compost-500 mx-auto"></div>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-5xl mx-auto">
-                <!-- Feature Left -->
-                <div class="space-y-8">
-                    <div class="flex items-start space-x-4">
-                        <div class="w-12 h-12 bg-gradient-to-br from-compost-600 to-compost-700 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                            <i class="fas fa-chart-line text-white text-lg"></i>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <!-- Texto a la izquierda -->
+                <div class="order-1">
+                    <div class="space-y-8">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-compost-600 to-compost-700 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                                <i class="fas fa-chart-line text-white text-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-compost-800 mb-2">Monitoreo Continuo</h3>
+                                <p class="text-gray-600">Seguimiento en tiempo real de temperatura, humedad y estado de las pilas de compostaje.</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="text-xl font-bold text-compost-800 mb-2">Monitoreo Continuo</h3>
-                            <p class="text-gray-600">Seguimiento en tiempo real de temperatura, humedad y estado de las pilas de compostaje.</p>
+                        
+                        <div class="flex items-start space-x-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-compost-600 to-compost-700 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                                <i class="fas fa-shield-alt text-white text-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-compost-800 mb-2">Seguridad Avanzada</h3>
+                                <p class="text-gray-600">Sistema de autenticación robusto con roles diferenciados para administradores y pasantes.</p>
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="flex items-start space-x-4">
-                        <div class="w-12 h-12 bg-gradient-to-br from-compost-600 to-compost-700 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                            <i class="fas fa-shield-alt text-white text-lg"></i>
+                        
+                        <div class="flex items-start space-x-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-compost-600 to-compost-700 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                                <i class="fas fa-users text-white text-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-compost-800 mb-2">Gestión de Usuarios</h3>
+                                <p class="text-gray-600">Control completo de accesos y permisos para administradores y pasantes del centro.</p>
+                            </div>
                         </div>
-                        <div>
-                            <h3 class="text-xl font-bold text-compost-800 mb-2">Seguridad Avanzada</h3>
-                            <p class="text-gray-600">Sistema de autenticación robusto con roles diferenciados para administradores y pasantes.</p>
+                        
+                        <div class="flex items-start space-x-4">
+                            <div class="w-12 h-12 bg-gradient-to-br from-compost-600 to-compost-700 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
+                                <i class="fas fa-clipboard-list text-white text-lg"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-compost-800 mb-2">Registro Detallado</h3>
+                                <p class="text-gray-600">Documentación completa de todas las actividades y procesos del centro de acopio.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Feature Right -->
-                <div class="space-y-8">
-                    <div class="flex items-start space-x-4">
-                        <div class="w-12 h-12 bg-gradient-to-br from-compost-600 to-compost-700 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                            <i class="fas fa-users text-white text-lg"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold text-compost-800 mb-2">Gestión de Usuarios</h3>
-                            <p class="text-gray-600">Control completo de accesos y permisos para administradores y pasantes del centro.</p>
-                        </div>
-                    </div>
-                    
-                    <div class="flex items-start space-x-4">
-                        <div class="w-12 h-12 bg-gradient-to-br from-compost-600 to-compost-700 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg">
-                            <i class="fas fa-clipboard-list text-white text-lg"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-xl font-bold text-compost-800 mb-2">Registro Detallado</h3>
-                            <p class="text-gray-600">Documentación completa de todas las actividades y procesos del centro de acopio.</p>
-                        </div>
+                <!-- Imagen a la derecha -->
+                <div class="order-2">
+                    <div class="relative overflow-hidden rounded-2xl shadow-2xl group">
+                        <img src="{{ asset('img/carousel/carousel-2.jpg') }}" 
+                             alt="Características del sistema" 
+                             class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                     </div>
                 </div>
             </div>
@@ -508,7 +590,7 @@
             <div class="border-t border-compost-700 pt-8">
                 <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                     <div class="text-compost-300 text-sm">
-                        <p>&copy; 2025 COMPOST CEFA. Sistema de Registro de Creación de Pilas de Compostaje y Manipulación de Maquinaria.</p>
+                        <p>&copy; Copyright 2025 COMPOST CEFA. Todos los derechos reservados.</p>
                     </div>
                     <div class="flex space-x-6">
                         <a href="#" class="text-compost-300 hover:text-white transition-colors duration-300">
@@ -571,31 +653,44 @@
             }
         });
 
-        // Smooth scrolling
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
+        // Scroll animations for section titles
+        document.addEventListener('DOMContentLoaded', function() {
+            const animatedTitles = document.querySelectorAll('.scroll-animated-title');
+            if (!animatedTitles.length) return;
+            
+            const revealTitle = (title) => title.classList.add('in-view');
+            const hideTitle = (title) => title.classList.remove('in-view');
+            
+            if ('IntersectionObserver' in window) {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            revealTitle(entry.target);
+                        } else {
+                            hideTitle(entry.target);
+                        }
                     });
-                }
-            });
-        });
-
-        // Header scroll effect
-        window.addEventListener('scroll', function() {
-            const header = document.querySelector('header');
-            if (window.scrollY > 100) {
-                header.classList.add('shadow-xl');
-                header.style.background = 'rgba(255, 255, 255, 0.98)';
+                }, {
+                    threshold: 0.25,
+                    rootMargin: '0px 0px -10% 0px'
+                });
+                
+                animatedTitles.forEach(title => observer.observe(title));
             } else {
-                header.classList.remove('shadow-xl');
-                header.style.background = 'rgba(255, 255, 255, 0.95)';
+                const handleFallbackScroll = () => {
+                    animatedTitles.forEach(title => {
+                        const rect = title.getBoundingClientRect();
+                        const inView = rect.top < window.innerHeight * 0.8 && rect.bottom > window.innerHeight * 0.2;
+                        inView ? revealTitle(title) : hideTitle(title);
+                    });
+                };
+                
+                window.addEventListener('scroll', handleFallbackScroll, { passive: true });
+                handleFallbackScroll();
             }
         });
+
+        // (Animaciones adicionales deshabilitadas por solicitud del usuario)
     </script>
     </body>
 </html>

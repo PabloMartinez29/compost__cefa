@@ -159,7 +159,7 @@
                         
                         <!-- Social Links -->
                         <div class="flex justify-center space-x-3">
-                            <a href="#" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
+                            <a href="https://www.linkedin.com/in/ivan-perdomo-2a898039a/" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
                                 <i class="fab fa-linkedin-in text-sm"></i>
                             </a>
                             <a href="https://github.com/perdomoivan" target="_blank" class="w-10 h-10 bg-gray-800 hover:bg-gray-900 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
@@ -194,7 +194,7 @@
                         
                         <!-- Social Links -->
                         <div class="flex justify-center space-x-3">
-                            <a href="#" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
+                            <a href="www.linkedin.com/in/anggie-anaya-00187639a/" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
                                 <i class="fab fa-linkedin-in text-sm"></i>
                             </a>
                             <a href="https://github.com/anggieanaya16" target="_blank" class="w-10 h-10 bg-gray-800 hover:bg-gray-900 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
@@ -229,7 +229,7 @@
                         
                         <!-- Social Links -->
                         <div class="flex justify-center space-x-3">
-                            <a href="#" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
+                            <a href="www.linkedin.com/in/juan-andres-almanza-salinas-80b87639a/" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
                                 <i class="fab fa-linkedin-in text-sm"></i>
                             </a>
                             <a href="https://github.com/Almanza310" target="_blank" class="w-10 h-10 bg-gray-800 hover:bg-gray-900 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
@@ -523,19 +523,18 @@
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
                 <!-- Brand -->
                 <div class="col-span-1 md:col-span-2">
-                    <div class="flex items-center space-x-4 mb-6">
-                        <div class="w-12 h-12 bg-gradient-to-br from-compost-600 to-compost-700 rounded-xl flex items-center justify-center shadow-lg">
-                            <i class="fas fa-seedling text-white text-xl"></i>
-                        </div>
-                        <div>
-                            <span class="text-2xl font-black text-white">COMPOST</span>
-                            <span class="text-xl font-bold text-compost-300 block -mt-1">CEFA</span>
-                        </div>
+                    <h3 class="text-lg font-bold text-white mb-4">Ubicación</h3>
+                    <div class="rounded-lg overflow-hidden shadow-lg" style="height: 300px;">
+                        <iframe 
+                            src="https://www.google.com/maps?q=2.61361,-75.36111&hl=es&z=15&output=embed" 
+                            width="100%" 
+                            height="100%" 
+                            style="border:0;" 
+                            allowfullscreen="" 
+                            loading="lazy" 
+                            referrerpolicy="no-referrer-when-downgrade">
+                        </iframe>
                     </div>
-                    <p class="text-compost-200 leading-relaxed max-w-md">
-                        Sistema integral de registro para la creación de pilas de compostaje y manipulación de maquinaria. 
-                        Optimizando procesos para un futuro más sostenible.
-                    </p>
                 </div>
                 
                 <!-- Quick Links -->
@@ -576,7 +575,7 @@
             <div class="border-t border-compost-700 pt-8">
                 <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                     <div class="text-compost-300 text-sm">
-                        <p>&copy; 2025 COMPOST CEFA. Sistema de Registro de Creación de Pilas de Compostaje y Manipulación de Maquinaria.</p>
+                        <p>&copy; Copyright 2025 COMPOST CEFA. Todos los derechos reservados.</p>
                     </div>
                     <div class="flex space-x-6">
                         <a href="#" class="text-compost-300 hover:text-white transition-colors duration-300">
