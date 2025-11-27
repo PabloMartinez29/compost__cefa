@@ -192,9 +192,6 @@
                                     <option value="Semestral" {{ old('maint_freq') == 'Semestral' ? 'selected' : '' }}>Semestral</option>
                                     <option value="Anual" {{ old('maint_freq') == 'Anual' ? 'selected' : '' }}>Anual</option>
                                 </select>
-                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                    <i class="fas fa-chevron-down text-gray-400"></i>
-                                </div>
                             </div>
                             @error('maint_freq')
                                 <p class="text-red-500 text-sm mt-1 flex items-center">

@@ -53,9 +53,6 @@
                                     </option>
                                 @endforeach
                             </select>
-                            <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                <i class="fas fa-chevron-down text-gray-400"></i>
-                            </div>
                         </div>
                         @error('machinery_id')
                             <p class="text-red-500 text-sm mt-1 flex items-center">

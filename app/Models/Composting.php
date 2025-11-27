@@ -71,15 +71,26 @@ class Composting extends Model
      */
     public function getFormattedEndDateAttribute(): string
     {
+        // Si existe fecha de fin registrada en BD, usarla
         if ($this->end_date) {
             return $this->end_date->format('d/m/Y');
         }
-        
-        // Si han pasado 45 días desde el inicio, mostrar como completada
-        if ($this->days_elapsed >= 45) {
+
+        // Si el proceso está marcado como completado (por días, seguimientos o end_date),
+        // calcular una fecha de fin "automática" basada en la fecha de inicio.
+        // Usamos la misma lógica del accessor status (45 días de proceso).
+        if ($this->status === 'Completada') {
+            // Si hay fecha de inicio, calculamos la fecha en que se cumplen exactamente 45 días de proceso.
+            // Día 1 = start_date, Día 45 = start_date + 44 días.
+            // Esa fecha es la "fecha de fin" real del proceso.
+            if ($this->start_date) {
+                return $this->start_date->copy()->addDays(44)->format('d/m/Y');
+            }
+
             return 'Completada';
         }
-        
+
+        // En cualquier otro caso, el proceso sigue en curso
         return 'En proceso';
     }
 
