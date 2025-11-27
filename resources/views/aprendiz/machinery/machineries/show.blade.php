@@ -85,9 +85,6 @@
                             <option value="Semestral" {{ $freq=='Semestral'?'selected':'' }}>Semestral</option>
                             <option value="Anual" {{ $freq=='Anual'?'selected':'' }}>Anual</option>
                         </select>
-                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                            <i class="fas fa-chevron-down text-gray-400"></i>
-                        </div>
                     </div>
                 </div>
                 <div class="md:col-span-2">

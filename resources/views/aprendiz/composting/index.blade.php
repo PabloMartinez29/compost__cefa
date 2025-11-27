@@ -180,17 +180,7 @@
                                 </span>
                             </td>
                             <td>
-                                @if($composting->end_date)
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                        <i class="fas fa-check mr-1"></i>
-                                        Completada
-                                    </span>
-                                @else
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                        <i class="fas fa-clock mr-1"></i>
-                                        En Proceso
-                                    </span>
-                                @endif
+                                {!! $composting->formatted_status !!}
                             </td>
                             <td>
                                 @if($composting->creator && $composting->creator->role === 'admin')

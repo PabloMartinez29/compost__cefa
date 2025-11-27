@@ -84,28 +84,27 @@
                         </div>
 
                         <!-- Pila (Compostaje) -->
-                        <div class="space-y-2">
+                        <div class="space-y-2 lg:col-span-3">
                             <label class="flex items-center text-sm font-semibold text-soft-gray-700">
                                 <i class="fas fa-mountain text-soft-green-500 mr-2"></i>
                                 Pila *
                             </label>
                             <div class="relative">
                                 <select name="composting_id" id="composting_id" 
-                                        class="w-full px-3 py-2.5 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 @error('composting_id') border-red-500 @enderror appearance-none bg-white" 
+                                        class="w-full px-3 py-2.5 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 text-sm @error('composting_id') border-red-500 @enderror appearance-none bg-white" 
                                         required>
                                     <option value="">Seleccionar pila completada...</option>
                                     @foreach($completedCompostings ?? [] as $composting)
                                         <option value="{{ $composting->id }}" 
                                                 data-total-kg="{{ $composting->total_kg }}"
                                                 {{ old('composting_id') == $composting->id ? 'selected' : '' }}>
-                                            {{ $composting->formatted_pile_num }} - {{ $composting->formatted_total_kg }} ({{ $composting->formatted_start_date }})
+                                            {{ $composting->formatted_pile_num }} - {{ $composting->status }} 
+                                            ({{ $composting->formatted_start_date }} → {{ $composting->formatted_end_date }})
                                         </option>
                                     @endforeach
                                 </select>
-                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                    <i class="fas fa-chevron-down text-gray-400"></i>
-                                </div>
                             </div>
+                            <p id="selectedPileText" class="text-xs text-gray-600 mt-1 italic hidden"></p>
                             @error('composting_id')
                                 <p class="text-red-500 text-sm mt-1 flex items-center">
                                     <i class="fas fa-exclamation-circle mr-1"></i>
@@ -241,10 +240,9 @@
                             </label>
                             <div class="relative">
                                 <input type="number" name="amount" id="amount" step="0.01" min="0.01" 
-                                       class="w-full px-3 py-2.5 pr-16 border-2 border-gray-300 rounded-xl bg-gray-100 cursor-not-allowed @error('amount') border-red-500 @enderror" 
+                                       class="w-full px-3 py-2.5 pr-16 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 @error('amount') border-red-500 @enderror" 
                                        placeholder="0.00" 
                                        value="{{ old('amount') }}" 
-                                       readonly 
                                        required>
                                 <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                                     <span class="text-gray-500 font-semibold" id="amountUnit">Kg</span>
@@ -252,7 +250,11 @@
                             </div>
                             <p class="text-gray-500 text-sm mt-1 flex items-center">
                                 <i class="fas fa-info-circle mr-1"></i>
-                                La cantidad se establece automáticamente según el total de kilos de la pila seleccionada.
+                                Ingrese la cantidad a entregar. Se sugerirá el total disponible de la pila seleccionada.
+                            </p>
+                            <p id="availableAmount" class="text-blue-600 text-sm mt-1 hidden">
+                                <i class="fas fa-info-circle mr-1"></i>
+                                Disponible: <span id="availableAmountValue">0.00</span> Kg
                             </p>
                             @error('amount')
                                 <p class="text-red-500 text-sm mt-1 flex items-center">
@@ -309,6 +311,7 @@
         const compostingSelect = document.getElementById('composting_id');
         const amountInput = document.getElementById('amount');
         const amountUnit = document.getElementById('amountUnit');
+        const selectedPileText = document.getElementById('selectedPileText');
         
         if (!dateInput.value) {
             dateInput.value = new Date().toISOString().split('T')[0];
@@ -321,18 +324,51 @@
             timeInput.value = `${hours}:${minutes}`;
         }
 
-        // Actualizar cantidad cuando se selecciona una pila
+        // Si ya hay una pila seleccionada (por old() después de validación), mostrarla completa abajo
+        if (compostingSelect && selectedPileText && compostingSelect.value) {
+            const selectedOption = compostingSelect.options[compostingSelect.selectedIndex];
+            selectedPileText.textContent = selectedOption.text.trim();
+            selectedPileText.classList.remove('hidden');
+            // Mostrar texto completo en tooltip al pasar el mouse
+            compostingSelect.title = selectedOption.text.trim();
+        }
+
+        // Actualizar cantidad disponible cuando se selecciona una pila
         compostingSelect.addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
+            const availableAmountElement = document.getElementById('availableAmount');
+            const availableAmountValue = document.getElementById('availableAmountValue');
+            
             if (selectedOption.value) {
                 const totalKg = parseFloat(selectedOption.getAttribute('data-total-kg'));
                 if (totalKg && !isNaN(totalKg)) {
-                    amountInput.value = totalKg.toFixed(2);
+                    // Solo mostrar cantidad disponible, NO llenar el campo automáticamente
+                    if (availableAmountElement && availableAmountValue) {
+                        availableAmountValue.textContent = totalKg.toFixed(2);
+                        availableAmountElement.classList.remove('hidden');
+                    }
                 } else {
-                    amountInput.value = '';
+                    if (availableAmountElement) {
+                        availableAmountElement.classList.add('hidden');
+                    }
                 }
+
+                // Mostrar texto completo de la pila seleccionada debajo del select
+                if (selectedPileText) {
+                    selectedPileText.textContent = selectedOption.text.trim();
+                    selectedPileText.classList.remove('hidden');
+                }
+
+                // Actualizar tooltip del select con el texto completo
+                this.title = selectedOption.text.trim();
             } else {
-                amountInput.value = '';
+                if (selectedPileText) {
+                    selectedPileText.textContent = '';
+                    selectedPileText.classList.add('hidden');
+                }
+                if (availableAmountElement) {
+                    availableAmountElement.classList.add('hidden');
+                }
             }
         });
 
