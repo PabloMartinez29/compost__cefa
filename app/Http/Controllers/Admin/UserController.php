@@ -87,6 +87,7 @@ class UserController extends Controller
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
+            'identification' => $user->identification,
             'role' => $user->role,
             'email_verified_at' => $user->email_verified_at,
             'created_at' => $user->created_at,
@@ -148,16 +149,32 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        // No permitir eliminar al usuario actual
+        // No permitir desactivar al usuario actual
         if ($user->id === Auth::id()) {
             return redirect()->route('admin.users.index')
-                ->with('error', 'No puedes eliminar tu propia cuenta.');
+                ->with('error', 'No puedes desactivar tu propia cuenta.');
         }
 
-        $user->delete();
+        // Desactivar usuario en lugar de eliminarlo
+        $user->update([
+            'is_active' => false,
+        ]);
 
         return redirect()->route('admin.users.index')
-            ->with('success', 'Usuario eliminado exitosamente.');
+            ->with('success', 'Usuario desactivado exitosamente.');
+    }
+
+    /**
+     * Reactivate a previously deactivated user.
+     */
+    public function activate(User $user)
+    {
+        $user->update([
+            'is_active' => true,
+        ]);
+
+        return redirect()->route('admin.users.index')
+            ->with('success', 'Usuario activado exitosamente.');
     }
 
     /**

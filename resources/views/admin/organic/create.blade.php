@@ -60,7 +60,7 @@
                                 <i class="fas fa-recycle text-soft-green-500 mr-2"></i>
                                 Tipo de Residuo *
                             </label>
-                            <div class="relative">
+                            <div>
                                 <select name="type" 
                                         class="w-full px-4 py-4 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 @error('type') border-red-500 @enderror appearance-none bg-white" 
                                         required>
@@ -73,9 +73,6 @@
                                     <option value="PigManure" {{ old('type') == 'PigManure' ? 'selected' : '' }}>🐷 Estiércol de Cerdo</option>
                                     <option value="Other" {{ old('type') == 'Other' ? 'selected' : '' }}>📦 Otro</option>
                                 </select>
-                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                    <i class="fas fa-chevron-down text-gray-400"></i>
-                                </div>
                             </div>
                             @error('type')
                                 <p class="text-red-500 text-sm mt-1 flex items-center">

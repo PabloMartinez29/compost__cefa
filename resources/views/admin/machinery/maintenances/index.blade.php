@@ -220,7 +220,7 @@
 <div id="viewModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop-blur hidden z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <!-- Modal Header -->
-        <div class="waste-header">
+        <div class="waste-header relative">
             <div class="text-center">
                 <h3 class="waste-title text-xl justify-center">
                     <i class="fas fa-eye waste-icon"></i>
@@ -333,11 +333,10 @@
                     <!-- Maquinaria -->
                     <div class="waste-form-group">
                         <label for="edit_machinery_id" class="waste-form-label">Maquinaria *</label>
-                        <div class="relative">
+                        <div>
                             <select id="edit_machinery_id" name="machinery_id" required class="waste-form-select">
                                 <option value="">Seleccionar maquinaria</option>
                             </select>
-                            <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                         </div>
                     </div>
 
@@ -506,8 +505,9 @@ document.addEventListener('DOMContentLoaded', function() {
         cancelEditBtn.addEventListener('click', closeEditModal);
     }
     if (editModal) {
+        // Cerrar solo cuando se hace clic en el fondo oscuro, no dentro del contenido
         editModal.addEventListener('click', (e) => {
-            if (e.target === editModal || e.target.closest('.modal-backdrop-blur') === editModal) {
+            if (e.target === editModal) {
                 closeEditModal();
             }
         });

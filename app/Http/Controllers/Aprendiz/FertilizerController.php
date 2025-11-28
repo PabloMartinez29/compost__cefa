@@ -90,14 +90,13 @@ class FertilizerController extends Controller
     public function create()
     {
         // Obtener solo las pilas completadas que no tengan abono registrado
-        // Una pila está completada si tiene end_date O tiene 45 o más seguimientos
-        $completedCompostings = Composting::whereNotNull('total_kg')
-            ->whereDoesntHave('fertilizers')
+        // Una pila está completada según el mismo criterio usado en el modelo (accessor status)
+        $completedCompostings = Composting::whereDoesntHave('fertilizers')
             ->with(['creator', 'trackings'])
             ->get()
             ->filter(function($composting) {
-                // Verificar si está completada: tiene end_date o 45+ seguimientos
-                return ($composting->end_date !== null) || ($composting->trackings->count() >= 45);
+                // Usar el accessor de estado para mantener la misma lógica que en seguimiento de pilas
+                return $composting->status === 'Completada';
             })
             ->sortByDesc(function($composting) {
                 // Ordenar por end_date si existe, sino por fecha de creación
@@ -127,9 +126,10 @@ class FertilizerController extends Controller
         ]);
 
         // Verificar que la pila esté completada
-        $composting = Composting::findOrFail($request->composting_id);
+        $composting = Composting::with('trackings')->findOrFail($request->composting_id);
         
-        if (!$composting->end_date && $composting->trackings->count() < 45) {
+        // Usar el accessor status para mantener la misma lógica que en create()
+        if ($composting->status !== 'Completada') {
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'La pila seleccionada no está completada. Solo se pueden registrar abonos de pilas completadas.');
@@ -142,7 +142,20 @@ class FertilizerController extends Controller
                 ->with('error', 'Ya existe un registro de abono para esta pila.');
         }
 
+        // Validar que la cantidad no exceda los kilogramos beneficiados disponibles
+        $availableKg = $composting->total_kg ?? 0;
+        if ($request->amount > $availableKg) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', "La cantidad solicitada ({$request->amount} " . ($request->type === 'Liquid' ? 'L' : 'Kg') . ") excede los kilogramos beneficiados disponibles ({$availableKg} Kg) de la pila.");
+        }
+
+        // Crear el registro de abono
         Fertilizer::create($request->all());
+
+        // Restar la cantidad de los kilogramos beneficiados de la pila
+        $newTotalKg = max(0, $availableKg - $request->amount);
+        $composting->update(['total_kg' => $newTotalKg]);
 
         return redirect()->route('aprendiz.fertilizer.index')->with('success', '¡Registro de abono creado exitosamente!');
     }
@@ -228,6 +241,32 @@ class FertilizerController extends Controller
             'notes' => 'nullable|string'
         ]);
 
+        $composting = $fertilizer->composting;
+        $oldAmount = $fertilizer->amount;
+        $newAmount = $request->amount;
+        $amountDifference = $newAmount - $oldAmount;
+
+        // Si la cantidad cambió, actualizar los kilogramos beneficiados de la pila
+        if ($amountDifference != 0) {
+            $currentTotalKg = $composting->total_kg ?? 0;
+            
+            // Si se aumenta la cantidad, validar que no exceda lo disponible
+            if ($amountDifference > 0) {
+                $availableKg = $currentTotalKg;
+                if ($amountDifference > $availableKg) {
+                    return redirect()->back()
+                        ->withInput()
+                        ->with('error', "No se puede aumentar la cantidad. Solo hay {$availableKg} Kg disponibles en la pila.");
+                }
+            }
+            
+            // Calcular el nuevo total de kilogramos beneficiados
+            // Si se aumenta: restar la diferencia
+            // Si se disminuye: sumar la diferencia (devolver a la pila)
+            $newTotalKg = max(0, $currentTotalKg - $amountDifference);
+            $composting->update(['total_kg' => $newTotalKg]);
+        }
+
         $fertilizer->update($request->all());
 
         return redirect()->route('aprendiz.fertilizer.index')->with('success', '¡Registro de abono actualizado exitosamente!');
@@ -262,6 +301,14 @@ class FertilizerController extends Controller
 
         // Marcar la notificación como procesada
         $approvedNotification->update(['read_at' => now()]);
+
+        // Devolver la cantidad a los kilogramos beneficiados de la pila
+        $composting = $fertilizer->composting;
+        if ($composting) {
+            $currentTotalKg = $composting->total_kg ?? 0;
+            $newTotalKg = $currentTotalKg + $fertilizer->amount;
+            $composting->update(['total_kg' => $newTotalKg]);
+        }
 
         $fertilizer->delete();
 

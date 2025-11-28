@@ -348,11 +348,10 @@
                     <!-- Maquinaria -->
                     <div class="waste-form-group md:col-span-2">
                         <label for="edit_machinery_id" class="waste-form-label">Maquinaria *</label>
-                        <div class="relative">
+                        <div>
                             <select id="edit_machinery_id" name="machinery_id" required class="waste-form-select">
                                 <option value="">Seleccionar maquinaria</option>
                             </select>
-                            <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                         </div>
                     </div>
 

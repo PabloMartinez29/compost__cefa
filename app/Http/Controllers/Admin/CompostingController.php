@@ -20,15 +20,19 @@ class CompostingController extends Controller
      */
     public function index()
     {
-        $compostings = Composting::with(['ingredients.organic', 'creator'])
+        $compostings = Composting::with(['ingredients.organic', 'creator', 'trackings'])
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Calcular estadísticas
-        $totalPiles = Composting::count();
-        $activePiles = Composting::whereNull('end_date')->count();
-        $completedPiles = Composting::whereNotNull('end_date')->count();
-        $totalIngredients = Composting::withCount('ingredients')->get()->sum('ingredients_count');
+        // Calcular estadísticas usando el mismo criterio de estado que en el modelo (accessor status)
+        $totalPiles = $compostings->count();
+        $completedPiles = $compostings->filter(function ($composting) {
+            return $composting->status === 'Completada';
+        })->count();
+        $activePiles = $totalPiles - $completedPiles;
+        $totalIngredients = $compostings->sum(function ($composting) {
+            return $composting->ingredients->count();
+        });
 
         return view('admin.composting.index', compact('compostings', 'totalPiles', 'activePiles', 'completedPiles', 'totalIngredients'));
     }
@@ -248,7 +252,22 @@ class CompostingController extends Controller
         })->values();
 
         $composting->load(['ingredients.organic']);
-        return view('admin.composting.edit', compact('composting', 'availableOrganics'));
+
+        // Preparar ingredientes existentes para la vista
+        $existingIngredients = $composting->ingredients->map(function($ingredient) {
+            return [
+                'id' => $ingredient->id,
+                'organic_id' => $ingredient->organic_id,
+                'amount' => $ingredient->amount,
+                'notes' => $ingredient->notes,
+                'organic' => $ingredient->organic ? [
+                    'id' => $ingredient->organic->id,
+                    'type_in_spanish' => $ingredient->organic->type_in_spanish
+                ] : null
+            ];
+        })->toArray();
+
+        return view('admin.composting.edit', compact('composting', 'availableOrganics', 'existingIngredients'));
     }
 
     /**
@@ -268,24 +287,14 @@ class CompostingController extends Controller
             'ingredients.*.notes' => 'nullable|string|max:255'
         ];
         
+        // Nota: Los ingredientes se validan pero no se modifican, solo se usan para validar el formulario
+        
         // Validar imagen solo si está presente
         if ($request->hasFile('image')) {
             $rules['image'] = 'image|mimes:jpeg,png,jpg,gif,webp|max:2048';
         }
         
         $request->validate($rules);
-
-        // Validar que no exceda la cantidad disponible
-        foreach ($request->ingredients as $ingredientData) {
-            $organic = Organic::find($ingredientData['organic_id']);
-            $availableQuantity = WarehouseClassification::getCurrentInventory($organic->type);
-            
-            if ($ingredientData['amount'] > $availableQuantity) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('error', "La cantidad de {$organic->type_in_spanish} ({$ingredientData['amount']} kg) excede la cantidad disponible en bodega ({$availableQuantity} kg).");
-            }
-        }
 
         DB::beginTransaction();
         try {
@@ -314,61 +323,11 @@ class CompostingController extends Controller
                 $data['image'] = null;
             }
             
-            // Actualizar el compostaje
+            // Actualizar el compostaje (solo los campos permitidos, los ingredientes no se tocan)
             $composting->update($data);
 
-            // Obtener ingredientes existentes para devolver al inventario
-            $existingIngredients = $composting->ingredients()->with('organic')->get();
-            
-            // Devolver al inventario las cantidades de ingredientes eliminados
-            foreach ($existingIngredients as $existingIngredient) {
-                WarehouseClassification::create([
-                    'date' => $request->start_date,
-                    'type' => $existingIngredient->organic->type,
-                    'movement_type' => 'entry',
-                    'weight' => $existingIngredient->amount,
-                    'notes' => "Devolución por edición de pila #{$composting->formatted_pile_num}",
-                    'processed_by' => auth()->user()->name
-                ]);
-            }
-
-            // Eliminar ingredientes existentes
-            $composting->ingredients()->delete();
-
-            // Crear los nuevos ingredientes y restar del inventario
-            foreach ($request->ingredients as $ingredientData) {
-                // Crear el ingrediente
-                Ingredient::create([
-                    'composting_id' => $composting->id,
-                    'organic_id' => $ingredientData['organic_id'],
-                    'amount' => $ingredientData['amount'],
-                    'notes' => $ingredientData['notes'] ?? null
-                ]);
-
-                // Restar del inventario de bodega
-                $organic = Organic::find($ingredientData['organic_id']);
-                if ($organic) {
-                    // Validar que hay suficiente inventario disponible
-                    // Nota: Ya se devolvieron los ingredientes anteriores, así que el inventario incluye esas devoluciones
-                    $availableInventory = WarehouseClassification::getAvailableInventory($organic->type);
-                    $typeInSpanish = $organic->type_in_spanish;
-                    if ($ingredientData['amount'] > $availableInventory) {
-                        DB::rollback();
-                        return redirect()->back()
-                            ->withInput()
-                            ->with('error', "No hay suficiente inventario disponible para {$typeInSpanish}. Inventario disponible: " . number_format($availableInventory, 2) . " kg. Intenta usar: " . number_format($ingredientData['amount'], 2) . " kg.");
-                    }
-                    
-                    WarehouseClassification::create([
-                        'date' => $request->start_date,
-                        'type' => $organic->type,
-                        'movement_type' => 'exit',
-                        'weight' => $ingredientData['amount'],
-                        'notes' => "Uso en pila de compostaje #{$composting->formatted_pile_num}",
-                        'processed_by' => auth()->user()->name
-                    ]);
-                }
-            }
+            // Los ingredientes no se modifican en edición - se mantienen los existentes
+            // No es necesario validar ni modificar los ingredientes, simplemente se ignoran
 
             DB::commit();
 

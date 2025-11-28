@@ -39,7 +39,7 @@
 <div id="editModal" class="fixed inset-0 z-[60] hidden">
     <div class="absolute inset-0 bg-black bg-opacity-40"></div>
     <div class="relative max-w-3xl w-full mx-auto mt-20 bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div class="bg-green-100 border-b border-green-300 px-6 py-4 flex items-center justify-between">
+        <div class="bg-green-100 border-b border-green-300 px-6 py-4 flex items-center justify-between relative">
             <h3 class="text-gray-800 font-semibold"><i class="fas fa-edit mr-2 text-green-600"></i>Editar registro de maquinaria</h3>
             <button id="closeEditModal" class="text-gray-600 hover:text-gray-800"><i class="fas fa-times"></i></button>
         </div>
@@ -85,9 +85,6 @@
                             <option value="Semestral" {{ $freq=='Semestral'?'selected':'' }}>Semestral</option>
                             <option value="Anual" {{ $freq=='Anual'?'selected':'' }}>Anual</option>
                         </select>
-                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                            <i class="fas fa-chevron-down text-gray-400"></i>
-                        </div>
                     </div>
                 </div>
                 <div class="md:col-span-2">

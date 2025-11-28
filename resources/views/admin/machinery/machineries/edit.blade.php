@@ -122,7 +122,7 @@
                     <!-- Frecuencia de mantenimiento -->
                     <div class="waste-form-group">
                         <label class="waste-form-label">Frecuencia de mantenimiento *</label>
-                        <div class="relative">
+                        <div>
                             <select name="maint_freq" id="maint_freq" required
                                     class="waste-form-select @error('maint_freq') border-red-500 @enderror">
                                 <option value="">Seleccionar frecuencia...</option>
@@ -135,7 +135,6 @@
                                 <option value="Semestral" {{ old('maint_freq', $machinery->maint_freq) == 'Semestral' ? 'selected' : '' }}>Semestral</option>
                                 <option value="Anual" {{ old('maint_freq', $machinery->maint_freq) == 'Anual' ? 'selected' : '' }}>Anual</option>
                             </select>
-                            <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                         </div>
                         @error('maint_freq')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>

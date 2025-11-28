@@ -261,7 +261,7 @@
 <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop-blur hidden z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <!-- Modal Header -->
-        <div class="waste-header">
+        <div class="waste-header relative">
             <div class="text-center">
                 <h3 class="waste-title text-xl justify-center">
                     <i class="fas fa-edit waste-icon"></i>
@@ -323,7 +323,7 @@
                     <!-- Frecuencia de mantenimiento -->
                     <div class="waste-form-group md:col-span-2">
                         <label for="edit_maint_freq" class="waste-form-label">Frecuencia de mantenimiento *</label>
-                        <div class="relative">
+                        <div>
                             <select id="edit_maint_freq" name="maint_freq" required class="waste-form-select">
                                 <option value="">Seleccionar frecuencia...</option>
                                 <option value="Diario">Diario</option>
@@ -335,7 +335,6 @@
                                 <option value="Semestral">Semestral</option>
                                 <option value="Anual">Anual</option>
                             </select>
-                            <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                         </div>
                     </div>
                     
@@ -560,8 +559,9 @@
 
     closeBtn.addEventListener('click', closeModal);
     cancelBtn.addEventListener('click', closeModal);
+    // Cerrar solo cuando se hace clic en el fondo oscuro, no dentro del contenido
     modal.addEventListener('click', (e) => { 
-        if (e.target === modal || e.target.closest('.modal-backdrop-blur') === modal) {
+        if (e.target === modal) {
             closeModal(); 
         }
     });
