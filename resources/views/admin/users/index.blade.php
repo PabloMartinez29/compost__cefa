@@ -146,6 +146,7 @@ Swal.fire({
                             <th>Email</th>
                             <th>Rol</th>
                             <th>Fecha Registro</th>
+                            <th>Estado</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -182,6 +183,19 @@ Swal.fire({
                         </td>
                         <td>{{ $user->created_at->format('d/m/Y') }}</td>
                         <td>
+                            @if($user->is_active)
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                    Activo
+                                </span>
+                            @else
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-700">
+                                    <i class="fas fa-ban mr-1"></i>
+                                    Inactivo
+                                </span>
+                            @endif
+                        </td>
+                        <td>
                             <div class="flex space-x-2 items-center">
                                 <button onclick="openViewModal({{ $user->id }})" 
                                        class="inline-flex items-center text-blue-400 hover:text-blue-500" title="Ver Detalles">
@@ -193,11 +207,19 @@ Swal.fire({
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 @if($user->id !== auth()->id())
-                                <button onclick="deleteUser({{ $user->id }}, '{{ $user->name }}')" 
-                                        class="inline-flex items-center text-red-500 hover:text-red-700" 
-                                        title="Eliminar">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                                    @if($user->is_active)
+                                        <button onclick="deactivateUser({{ $user->id }}, '{{ $user->name }}')" 
+                                                class="inline-flex items-center text-yellow-500 hover:text-yellow-700" 
+                                                title="Desactivar">
+                                            <i class="fas fa-user-slash"></i>
+                                        </button>
+                                    @else
+                                        <button onclick="activateUser({{ $user->id }}, '{{ $user->name }}')" 
+                                                class="inline-flex items-center text-green-500 hover:text-green-700" 
+                                                title="Activar">
+                                            <i class="fas fa-user-check"></i>
+                                        </button>
+                                    @endif
                                 @endif
                                 <a href="{{ route('admin.users.download.pdf', $user) }}" 
                                    class="inline-flex items-center text-red-800 hover:text-red-900" 
@@ -569,25 +591,25 @@ function closeEditModal() {
     document.body.style.overflow = 'auto';
 }
 
-// Función para eliminar usuario con alerta bonita
-function deleteUser(userId, userName) {
+// Función para desactivar usuario con alerta bonita
+function deactivateUser(userId, userName) {
     Swal.fire({
-        title: '¿Eliminar Usuario?',
+        title: '¿Desactivar Usuario?',
         html: `
             <div class="text-center">
                 <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     <i class="fas fa-user-times text-red-500 text-2xl"></i>
                 </div>
-                <p class="text-gray-700 mb-2">¿Estás seguro de que deseas eliminar al usuario?</p>
+                <p class="text-gray-700 mb-2">¿Estás seguro de que deseas desactivar al usuario?</p>
                 <p class="font-semibold text-gray-900">${userName}</p>
-                <p class="text-sm text-red-600 mt-2">Esta acción no se puede deshacer</p>
+                <p class="text-sm text-red-600 mt-2">El usuario no podrá acceder al sistema hasta que sea reactivado.</p>
             </div>
         `,
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#ef4444',
         cancelButtonColor: '#6b7280',
-        confirmButtonText: '<i class="fas fa-trash mr-2"></i>Sí, eliminar',
+        confirmButtonText: '<i class="fas fa-user-slash mr-2"></i>Sí, desactivar',
         cancelButtonText: '<i class="fas fa-times mr-2"></i>Cancelar',
         reverseButtons: true,
         customClass: {
@@ -599,8 +621,8 @@ function deleteUser(userId, userName) {
         if (result.isConfirmed) {
             // Mostrar loading
             Swal.fire({
-                title: 'Eliminando...',
-                text: 'Eliminando usuario del sistema',
+                title: 'Desactivando...',
+                text: 'Desactivando usuario en el sistema',
                 allowOutsideClick: false,
                 didOpen: () => {
                     Swal.showLoading();
@@ -623,6 +645,61 @@ function deleteUser(userId, userName) {
             tokenField.value = '{{ csrf_token() }}';
             
             form.appendChild(methodField);
+            form.appendChild(tokenField);
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+
+// Función para activar usuario con alerta bonita
+function activateUser(userId, userName) {
+    Swal.fire({
+        title: '¿Activar Usuario?',
+        html: `
+            <div class="text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-user-check text-green-500 text-2xl"></i>
+                </div>
+                <p class="text-gray-700 mb-2">¿Estás seguro de que deseas activar nuevamente al usuario?</p>
+                <p class="font-semibold text-gray-900">${userName}</p>
+                <p class="text-sm text-green-600 mt-2">El usuario podrá volver a acceder al sistema.</p>
+            </div>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#22c55e',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: '<i class="fas fa-user-check mr-2"></i>Sí, activar',
+        cancelButtonText: '<i class="fas fa-times mr-2"></i>Cancelar',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal2-popup-custom',
+            title: 'swal2-title-custom',
+            htmlContainer: 'swal2-html-custom'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Mostrar loading
+            Swal.fire({
+                title: 'Activando...',
+                text: 'Activando usuario en el sistema',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Create form and submit
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/admin/users/${userId}/activate`;
+
+            const tokenField = document.createElement('input');
+            tokenField.type = 'hidden';
+            tokenField.name = '_token';
+            tokenField.value = '{{ csrf_token() }}';
+
             form.appendChild(tokenField);
             document.body.appendChild(form);
             form.submit();

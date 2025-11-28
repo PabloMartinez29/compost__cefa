@@ -121,6 +121,8 @@ Route::middleware(['auth','role:admin'])->group(function(){
         'update' => 'admin.users.update',
         'destroy' => 'admin.users.destroy',
     ]);
+    Route::post('admin/users/{user}/activate', [\App\Http\Controllers\Admin\UserController::class, 'activate'])
+        ->name('admin.users.activate');
     
     // Ruta específica para obtener datos de usuario en JSON
     Route::get('admin/users/{user}/data', [\App\Http\Controllers\Admin\UserController::class, 'getUserData'])->name('admin.users.data');

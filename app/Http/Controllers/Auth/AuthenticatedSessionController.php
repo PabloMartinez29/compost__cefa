@@ -36,6 +36,16 @@ class AuthenticatedSessionController extends Controller
                 return redirect()->route('login')->with('error', 'Error de autenticación.');
             }
 
+            // Si la cuenta está desactivada, cerrar sesión inmediatamente y mostrar mensaje
+            if (isset($user->is_active) && $user->is_active === false) {
+                Auth::guard('web')->logout();
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
+
+                return redirect()->route('login')
+                    ->with('account_deactivated_login', true);
+            }
+
             // Verificar y asignar rol por defecto si es necesario
             if (is_null($user->role)) {
                 \App\Models\User::where('id', $user->id)->update(['role' => 'aprendiz']);
