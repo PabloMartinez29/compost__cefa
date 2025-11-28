@@ -261,7 +261,7 @@
 <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop-blur hidden z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <!-- Modal Header -->
-        <div class="waste-header">
+        <div class="waste-header relative">
             <div class="text-center">
                 <h3 class="waste-title text-xl justify-center">
                     <i class="fas fa-edit waste-icon"></i>
@@ -559,8 +559,9 @@
 
     closeBtn.addEventListener('click', closeModal);
     cancelBtn.addEventListener('click', closeModal);
+    // Cerrar solo cuando se hace clic en el fondo oscuro, no dentro del contenido
     modal.addEventListener('click', (e) => { 
-        if (e.target === modal || e.target.closest('.modal-backdrop-blur') === modal) {
+        if (e.target === modal) {
             closeModal(); 
         }
     });

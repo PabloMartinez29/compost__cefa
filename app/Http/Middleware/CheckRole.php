@@ -15,11 +15,20 @@ class CheckRole
      */
     public function handle(Request $request, Closure $next, $role): Response
     {
-
-
         if (!auth()->check()) { 
             return redirect('/login'); 
         } 
+
+        // Si el usuario está autenticado pero su cuenta fue desactivada,
+        // cerrar sesión y redirigir al inicio de sesión con mensaje claro.
+        if (auth()->user() && isset(auth()->user()->is_active) && auth()->user()->is_active === false) {
+            auth()->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
+            return redirect()->route('login')
+                ->with('account_deactivated_session', true);
+        }
  
         $userRole = auth()->user()->role;
         
