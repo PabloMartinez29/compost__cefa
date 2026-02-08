@@ -42,7 +42,8 @@
             <div class="flex items-center justify-between">
                 <div>
                     <div class="stats-label">Pilas Activas</div>
-                    <div class="stats-number">0</div>
+                    <div class="stats-number">{{ $compostingStats['active'] }}</div>
+                    <div class="text-xs text-gray-500 mt-1">{{ $compostingStats['total'] }} registradas</div>
                 </div>
                 <div class="stats-icon text-green-300">
                     <i class="fas fa-mountain"></i>
@@ -83,7 +84,8 @@
             <div class="flex items-center justify-between">
                 <div>
                     <div class="stats-label">Abono (Kg)</div>
-                    <div class="stats-number">0</div>
+                    <div class="stats-number">{{ number_format($fertilizerStats['total_amount'], 1) }}</div>
+                    <div class="text-xs text-gray-500 mt-1">{{ $fertilizerStats['total_records'] }} registros</div>
                 </div>
                 <div class="stats-icon text-yellow-300">
                     <i class="fas fa-seedling"></i>

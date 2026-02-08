@@ -264,9 +264,20 @@ class MonitoringController extends Controller
                 'amount' => $group->sum('amount')
             ];
         });
+
+        // Agrupar por mes para mostrar tendencia general (cantidad total de abono)
+        $byDate = $fertilizers->groupBy(function($fertilizer) {
+            return $fertilizer->date ? $fertilizer->date->format('Y-m') : null;
+        })->filter(function($group, $key) {
+            // Filtrar posibles claves nulas si hay registros sin fecha
+            return !is_null($key);
+        })->map(function($group) {
+            return $group->sum('amount');
+        })->sortKeys();
         
         return [
-            'by_type' => $byType
+            'by_type' => $byType->toArray(),
+            'by_date' => $byDate->toArray()
         ];
     }
     
@@ -368,13 +379,29 @@ class MonitoringController extends Controller
     private function getMachineryData()
     {
         $machineries = Machinery::all();
-        
+
+        // Normalizamos los estados para que valores nulos o "N/A"
+        // cuenten como "Sin mantenimiento registrado"
         $byStatus = [
-            'Operativa' => $machineries->filter(function($m) { return $m->status === 'Operativa'; })->count(),
-            'Mantenimiento requerido' => $machineries->filter(function($m) { return $m->status === 'Mantenimiento requerido'; })->count(),
-            'Sin mantenimiento registrado' => $machineries->filter(function($m) { return $m->status === 'Sin mantenimiento registrado'; })->count(),
+            'Operativa' => 0,
+            'Mantenimiento requerido' => 0,
+            'Sin mantenimiento registrado' => 0,
         ];
-        
+
+        foreach ($machineries as $machinery) {
+            $status = $machinery->status;
+
+            if ($status === 'Operativa') {
+                $byStatus['Operativa']++;
+            } elseif ($status === 'Mantenimiento requerido') {
+                $byStatus['Mantenimiento requerido']++;
+            } else {
+                // Cualquier otro valor (null, "N/A", vacío, etc.)
+                // se considera como "Sin mantenimiento registrado"
+                $byStatus['Sin mantenimiento registrado']++;
+            }
+        }
+
         return [
             'by_status' => $byStatus,
             'total' => $machineries->count()

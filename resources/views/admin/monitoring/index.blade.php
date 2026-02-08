@@ -228,19 +228,29 @@ function showModule(module) {
         'pilas': {
             title: '<i class="fas fa-mountain text-cyan-600 mr-2"></i>Historial de Pilas de Compostaje',
             pdf: 'pilas',
-            data: @json($compostingData['by_date']),
+            // Usamos los datos por estado GLOBAL (sin filtro de fechas) para que siempre
+            // se vean las pilas activas/completadas aunque se hayan creado en otro período.
+            data: @json($compostingDataGeneral['by_status'] ?? []),
             records: @json($compostingRecords)
         },
         'abono': {
             title: '<i class="fas fa-seedling text-yellow-600 mr-2"></i>Historial de Abonos',
             pdf: 'abono',
-            data: @json($fertilizerData['by_date']),
+            // Usamos la tendencia general por fecha (sin filtrar por período)
+            data: @json($fertilizerDataGeneral['by_date'] ?? []),
             records: @json($fertilizerRecords)
         },
         'maquinaria': {
             title: '<i class="fas fa-cogs text-purple-600 mr-2"></i>Estado de Maquinaria',
             pdf: 'maquinaria',
-            data: @json($machineryData['by_status']),
+            {{-- Para la gráfica solo mostraremos:
+                 - Maquinaria operativa
+                 - Maquinaria registrada (total de equipos)
+            --}}
+            data: @json([
+                'Operativa' => $machineryData['by_status']['Operativa'] ?? 0,
+                'Maquinaria registrada' => $machineryData['total'] ?? 0,
+            ]),
             records: @json($machineryRecords)
         }
     };
@@ -342,7 +352,10 @@ function showModuleHistory(module, records) {
         html += '<thead class="bg-gray-50"><tr><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Nombre</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Marca</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Modelo</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Ubicación</th></tr></thead>';
         html += '<tbody class="bg-white divide-y divide-gray-200">';
         records.forEach(record => {
-            const status = record.status || 'N/A';
+            let status = record.status || 'Sin mantenimiento registrado';
+            if (status === 'N/A') {
+                status = 'Sin mantenimiento registrado';
+            }
             const statusClass = status === 'Operativa' ? 'bg-green-100 text-green-800' : 
                                status === 'Mantenimiento requerido' ? 'bg-red-100 text-red-800' : 
                                'bg-yellow-100 text-yellow-800';
@@ -427,7 +440,10 @@ function createExpandedChart(canvasId, data, module) {
         oldChartInstance.destroy();
     }
     
-    let labels, values, chartType, datasets;
+    let labels = [];
+    let values = [];
+    let chartType = 'line';
+    let datasets = [];
     
     if (module === 'residuos') {
         // Para residuos, mostrar por tipo con sus nombres en español - solo peso
@@ -444,7 +460,7 @@ function createExpandedChart(canvasId, data, module) {
         // Asegurar que todos los tipos estén presentes (incluso si no tienen datos)
         const allTypes = Object.keys(typeMap);
         const dataMap = {};
-        Object.keys(data).forEach(key => {
+        Object.keys(data || {}).forEach(key => {
             dataMap[key] = data[key];
         });
         
@@ -471,23 +487,83 @@ function createExpandedChart(canvasId, data, module) {
             backgroundColor: colors.info,
             borderWidth: 2
         }];
-    } else {
-        labels = Object.keys(data);
-        values = Object.values(data);
-        chartType = 'line';
+    } else if (module === 'pilas') {
+        // Para pilas mostramos barras de estado (en proceso vs completadas)
+        labels = ['Pilas en proceso', 'Pilas completadas'];
+        values = [data?.active || 0, data?.completed || 0];
+        chartType = 'bar';
         
         datasets = [{
-            label: module === 'maquinaria' ? 'Cantidad' : 'Registros',
+            label: 'Registros',
             data: values,
-            borderColor: module === 'pilas' ? colors.infoBorder :
-                        module === 'abono' ? colors.warningBorder : colors.purpleBorder,
-            backgroundColor: module === 'pilas' ? colors.info :
-                            module === 'abono' ? colors.warning : colors.purple,
-            borderWidth: 3,
-            fill: true,
-            tension: 0.4,
-            pointRadius: 5
+            borderColor: [colors.infoBorder, colors.successBorder],
+            backgroundColor: [colors.info, colors.success],
+            borderWidth: 2,
+            fill: false,
+            tension: 0,
+            pointRadius: 0,
+            // Barras más delgadas para que se vean más estilizadas
+            barPercentage: 0.4,
+            categoryPercentage: 0.5,
+            maxBarThickness: 40
         }];
+    } else {
+        // Abono y Maquinaria
+        labels = Object.keys(data || {});
+        values = Object.values(data || {});
+
+        if (module === 'abono') {
+            // Si abono tiene un solo punto, duplicamos para que se vea claramente la línea
+            if (labels.length === 1) {
+                labels = [labels[0], labels[0]];
+                values = [values[0], values[0]];
+            }
+
+            chartType = 'line';
+            
+            // Estilo tipo trading: línea fina sin relleno, puntos pequeños
+            datasets = [{
+                label: 'Registros',
+                data: values,
+                borderColor: colors.warningBorder,
+                backgroundColor: 'rgba(0,0,0,0)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.25,
+                pointRadius: 3,
+                pointHoverRadius: 5,
+                pointBackgroundColor: colors.warningBorder,
+                pointBorderColor: '#ffffff'
+            }];
+        } else {
+            // Maquinaria: barras por estado
+            chartType = 'bar';
+
+            const statusBgColors = {
+                'Operativa': colors.success,
+                'Mantenimiento requerido': colors.danger,
+                'Sin mantenimiento registrado': colors.warning
+            };
+            const statusBorderColors = {
+                'Operativa': colors.successBorder,
+                'Mantenimiento requerido': colors.dangerBorder,
+                'Sin mantenimiento registrado': colors.warningBorder
+            };
+
+            const bgColors = labels.map(label => statusBgColors[label] || colors.purple);
+            const borderColors = labels.map(label => statusBorderColors[label] || colors.purpleBorder);
+
+            datasets = [{
+                label: 'Cantidad de equipos',
+                data: values,
+                backgroundColor: bgColors,
+                borderColor: borderColors,
+                borderWidth: 2,
+                barPercentage: 0.5,
+                categoryPercentage: 0.6,
+                maxBarThickness: 50
+            }];
+        }
     }
     
     const chartConfig = {
@@ -510,7 +586,11 @@ function createExpandedChart(canvasId, data, module) {
                 x: {
                     title: {
                         display: true,
-                        text: module === 'residuos' ? 'Tipo de Residuo' : 'Período'
+                        text: module === 'residuos'
+                            ? 'Tipo de Residuo'
+                            : (module === 'pilas'
+                                ? 'Estado de las pilas'
+                                : (module === 'maquinaria' ? 'Estado de la maquinaria' : 'Período'))
                     }
                 }
             },
@@ -522,7 +602,6 @@ function createExpandedChart(canvasId, data, module) {
             }
         }
     };
-    
     
     oldChartInstance = new Chart(ctx, chartConfig);
 }
