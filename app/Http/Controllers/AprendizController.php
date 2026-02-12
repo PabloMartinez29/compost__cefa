@@ -110,12 +110,19 @@ class AprendizController extends Controller
      */
     public function markNotificationAsRead(Notification $notification)
     {
-        // Verify that the notification belongs to the authenticated user
-        if ($notification->from_user_id !== auth()->id()) {
+        // Verificar que la notificación sea del usuario actual (recipiente)
+        if ($notification->user_id !== auth()->id()) {
             return response()->json(['success' => false, 'message' => 'No autorizado'], 403);
         }
 
         $notification->update(['read_at' => now()]);
+
+        if ($notification->type === 'maintenance_reminder' && $notification->machinery_id) {
+            $machinery = \App\Models\Machinery::find($notification->machinery_id);
+            if ($machinery) {
+                $machinery->scheduleNextMaintenanceDue();
+            }
+        }
         
         return response()->json(['success' => true, 'message' => 'Notificación marcada como leída']);
     }

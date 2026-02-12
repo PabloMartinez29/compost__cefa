@@ -23,5 +23,10 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\Schedule::command('machinery:check-maintenance')
             ->dailyAt('08:00')
             ->timezone('America/Bogota');
+
+        // El día de la fecha del mantenimiento: enviar alerta a todos (admin y aprendiz) cada hora
+        \Illuminate\Support\Facades\Schedule::command('machinery:send-maintenance-date-reminders')
+            ->hourly()
+            ->timezone('America/Bogota');
     }
 }

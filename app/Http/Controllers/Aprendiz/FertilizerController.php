@@ -302,13 +302,9 @@ class FertilizerController extends Controller
         // Marcar la notificación como procesada
         $approvedNotification->update(['read_at' => now()]);
 
-        // Devolver la cantidad a los kilogramos beneficiados de la pila
-        $composting = $fertilizer->composting;
-        if ($composting) {
-            $currentTotalKg = $composting->total_kg ?? 0;
-            $newTotalKg = $currentTotalKg + $fertilizer->amount;
-            $composting->update(['total_kg' => $newTotalKg]);
-        }
+        // Importante: al eliminar un registro de abono NO se deben
+        // devolver los kilogramos beneficiados a la pila, para evitar
+        // que se altere el historial real de salida de abono.
 
         $fertilizer->delete();
 

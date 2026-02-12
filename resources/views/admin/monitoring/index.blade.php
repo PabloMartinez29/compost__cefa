@@ -31,8 +31,8 @@
         </div>
     </div>
 
-    <!-- Filtros de Período -->
-    <div class="bg-green-50 rounded-xl shadow-sm p-6 mb-8 border border-green-200 animate-fade-in-up animate-delay-1 mt-6">
+    <!-- Filtros de Período (zona separada; no se solapa con el DataTable del historial) -->
+    <div class="bg-green-50 rounded-xl shadow-sm p-6 mb-8 border border-green-200 animate-fade-in-up animate-delay-1 mt-6 monitoring-filters-row">
         <form method="GET" action="{{ route('admin.monitoring.index') }}" class="flex flex-wrap items-end gap-4">
             <div class="flex-1 min-w-[200px]">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Período</label>
@@ -150,8 +150,8 @@
                     <canvas id="module-chart"></canvas>
                 </div>
             </div>
-            <!-- Historial de Registros -->
-            <div id="module-history" class="mt-6" style="clear: both;">
+            <!-- Historial de Registros (contenedor aislado para evitar solapamiento con filtros de fecha) -->
+            <div id="module-history" class="mt-6 monitoring-history-block" style="clear: both;">
                 <!-- Contenido dinámico del historial -->
             </div>
         </div>
@@ -312,7 +312,7 @@ function showModuleHistory(module, records) {
         return;
     }
     
-    let html = '<div class="mt-6"><h3 class="text-lg font-bold text-gray-800 mb-4">Historial de Entradas</h3>';
+    let html = '<div class="mt-6 monitoring-datatable-container"><h3 class="text-lg font-bold text-gray-800 mb-4">Historial de Entradas</h3>';
     html += '<div class="overflow-x-auto"><table id="history-table" class="min-w-full divide-y divide-gray-200">';
     
     if (module === 'residuos') {
@@ -372,12 +372,12 @@ function showModuleHistory(module, records) {
         dataTableInstance = null;
     }
     
-    // Inicializar DataTable con 5 registros por página
+    // Inicializar DataTable con 5 registros por página (length en fila propia para evitar solapamiento del 5 con la flecha)
     setTimeout(() => {
         dataTableInstance = $('#history-table').DataTable({
             pageLength: 5,
             lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Todos"]],
-            dom: 'lrtip', // l = length, r = processing, t = table, i = info, p = pagination (sin f = filter/búsqueda)
+            dom: '<"monitoring-dt-top"l>rtip', // l en fila aparte; r=processing, t=tabla, i=info, p=paginación
             language: {
                 "sProcessing": "Procesando...",
                 "sLengthMenu": "Mostrar _MENU_ registros",
@@ -613,7 +613,36 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <style>
-/* Estilos para DataTables */
+/* Fila de filtros (fechas): ancho completo y no invade la tabla */
+.monitoring-filters-row {
+    width: 100%;
+    display: block;
+}
+
+/* Bloque del historial: separado de los filtros de fecha para evitar solapamiento */
+.monitoring-history-block {
+    position: relative;
+    z-index: 1;
+    margin-top: 1rem;
+    width: 100%;
+}
+.monitoring-datatable-container {
+    width: 100%;
+}
+.monitoring-datatable-container .dataTables_wrapper {
+    isolation: isolate;
+}
+
+/* Fila superior del DataTable: solo "Mostrar X registros", en bloque para que no se solape el 5 con la flecha */
+.monitoring-datatable-container .dataTables_wrapper .monitoring-dt-top,
+.dataTables_wrapper .monitoring-dt-top {
+    display: block;
+    width: 100%;
+    margin-bottom: 0.75rem;
+    clear: both;
+}
+
+/* Estilos para DataTables - fila "Mostrar X registros" en un solo bloque, sin solapamiento */
 .dataTables_wrapper {
     position: relative;
     clear: both;
@@ -622,32 +651,49 @@ document.addEventListener('DOMContentLoaded', function() {
 
 .dataTables_wrapper .dataTables_length {
     float: left;
-    margin-bottom: 1.5rem;
-    padding: 0.5rem 0;
-    clear: both;
+    margin-bottom: 0;
+    margin-left: 0;
+    padding: 0.5rem 0.75rem 0.5rem 0;
+    clear: none;
 }
 
 .dataTables_wrapper .dataTables_length label {
     font-weight: 500;
     color: #374151;
     margin: 0;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    white-space: nowrap;
 }
 
+/* Select "Mostrar X registros": ancho suficiente para el número + espacio, sin flecha superpuesta */
+#module-history .dataTables_wrapper .dataTables_length label select,
+.monitoring-datatable-container .dataTables_wrapper .dataTables_length label select,
 .dataTables_wrapper .dataTables_length label select {
-    display: inline-block;
-    margin: 0 0.5rem;
-    padding: 0.5rem;
-    border: 1px solid #d1d5db;
-    border-radius: 0.375rem;
-    font-size: 0.875rem;
-    min-width: 60px;
-    background-color: white;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    background-image: none;
-    padding-right: 0.5rem;
+    display: inline-block !important;
+    margin: 0 !important;
+    margin-right: 0.5rem !important;
+    padding: 0.5rem 0.75rem 0.5rem 0.75rem !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 0.375rem !important;
+    font-size: 0.875rem !important;
+    min-width: 4rem !important;
+    width: auto !important;
+    text-align: center !important;
+    background-color: #fff !important;
+    background-image: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+}
+/* Ocultar cualquier flecha/icono que DataTables o el navegador añada al select */
+#module-history .dataTables_length label::after,
+#module-history .dataTables_length label::before,
+#module-history .dataTables_length .select2-container,
+#module-history .dataTables_length svg,
+#module-history .dataTables_length [class*="dropdown"] {
+    display: none !important;
 }
 
 .dataTables_wrapper .dataTables_info {

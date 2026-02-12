@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\AdminController; 
 use App\Http\Controllers\AprendizController;
 use App\Http\Middleware\SetLocale; 
@@ -24,6 +25,17 @@ use App\Http\Controllers\Aprendiz\MachineryController as AprendizMachineryContro
 use App\Http\Controllers\Aprendiz\SupplierController as AprendizSupplierController;
 use App\Http\Controllers\Aprendiz\MaintenanceController as AprendizMaintenanceController;
 use App\Http\Controllers\Aprendiz\UsageControlController as AprendizUsageControlController;
+
+// Servir archivos de storage cuando el enlace simbólico devuelve 403 (p. ej. en algunos entornos Windows/Laragon)
+Route::get('/storage/{path}', function (string $path) {
+    $path = str_replace(['../', '..\\'], '', $path);
+    if (!Storage::disk('public')->exists($path)) {
+        abort(404);
+    }
+    $fullPath = Storage::disk('public')->path($path);
+    $mime = mime_content_type($fullPath) ?: 'application/octet-stream';
+    return response()->file($fullPath, ['Content-Type' => $mime]);
+})->where('path', '.*')->name('storage.serve');
 
 Route::get('/', function () {
     return view('welcome');
@@ -188,6 +200,7 @@ Route::middleware(['auth','role:admin'])->group(function(){
     
     // Maintenance Routes - Deben ir DESPUÉS de las rutas de supplier
     Route::get('admin/machinery/maintenance', [MaintenanceController::class, 'index'])->name('admin.machinery.maintenance.index');
+    Route::get('admin/machinery/maintenance/next-due', [MaintenanceController::class, 'nextMaintenanceDue'])->name('admin.machinery.maintenance.next-due');
     Route::get('admin/machinery/maintenance/create', [MaintenanceController::class, 'create'])->name('admin.machinery.maintenance.create');
     Route::post('admin/machinery/maintenance', [MaintenanceController::class, 'store'])->name('admin.machinery.maintenance.store');
     Route::get('admin/machinery/maintenance/{maintenance}', [MaintenanceController::class, 'show'])->name('admin.machinery.maintenance.show');
@@ -340,6 +353,7 @@ Route::middleware(['auth', 'role:aprendiz'])->group(function(){
           
           // Maintenance Routes for Apprentices
           Route::get('aprendiz/machinery/maintenance', [AprendizMaintenanceController::class, 'index'])->name('aprendiz.machinery.maintenance.index');
+          Route::get('aprendiz/machinery/maintenance/next-due', [AprendizMaintenanceController::class, 'nextMaintenanceDue'])->name('aprendiz.machinery.maintenance.next-due');
           Route::get('aprendiz/machinery/maintenance/create', [AprendizMaintenanceController::class, 'create'])->name('aprendiz.machinery.maintenance.create');
           Route::post('aprendiz/machinery/maintenance', [AprendizMaintenanceController::class, 'store'])->name('aprendiz.machinery.maintenance.store');
           Route::get('aprendiz/machinery/maintenance/{maintenance}', [AprendizMaintenanceController::class, 'show'])->name('aprendiz.machinery.maintenance.show');

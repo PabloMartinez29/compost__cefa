@@ -224,7 +224,7 @@
             <div class="text-center">
                 <h3 class="waste-title text-xl justify-center">
                     <i class="fas fa-eye waste-icon"></i>
-                    Detalles del Abono
+                    Detalles del Abono - Registro #<span id="viewRecordId"></span>
                 </h3>
             </div>
         </div>
@@ -705,7 +705,9 @@ function closeEditModal() {
 closeEditBtn.addEventListener('click', closeEditModal);
 cancelEditBtn.addEventListener('click', closeEditModal);
 editModal.addEventListener('click', (e) => {
-    if (e.target === editModal || e.target.closest('.modal-backdrop-blur') === editModal) {
+    // Cerrar solo cuando se hace clic directamente sobre el fondo del modal,
+    // no cuando se interactúa con el contenido interno.
+    if (e.target === editModal) {
         closeEditModal();
     }
 });

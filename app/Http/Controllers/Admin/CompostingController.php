@@ -42,19 +42,26 @@ class CompostingController extends Controller
      */
     public function create()
     {
-        // Obtener residuos orgánicos disponibles con stock
-        $availableOrganics = Organic::all()->map(function ($organic) {
-            $availableQuantity = WarehouseClassification::getCurrentInventory($organic->type);
-            return [
+        // Un solo ítem por tipo de residuo, con el total disponible en bodega (no duplicados por registro)
+        $types = ['Kitchen', 'Beds', 'Leaves', 'CowDung', 'ChickenManure', 'PigManure', 'Other'];
+        $availableOrganics = collect();
+        foreach ($types as $type) {
+            $availableQuantity = WarehouseClassification::getCurrentInventory($type);
+            if ($availableQuantity <= 0) {
+                continue;
+            }
+            $organic = Organic::where('type', $type)->first();
+            if (!$organic) {
+                continue;
+            }
+            $availableOrganics->push([
                 'id' => $organic->id,
-                'type' => $organic->type,
+                'type' => $type,
                 'type_in_spanish' => $organic->type_in_spanish,
-                'formatted_weight' => $organic->formatted_weight,
-                'available_quantity' => $availableQuantity
-            ];
-        })->filter(function ($organic) {
-            return $organic['available_quantity'] > 0;
-        })->values();
+                'available_quantity' => round($availableQuantity, 2),
+                'available_quantity_formatted' => number_format($availableQuantity, 2, '.', ''),
+            ]);
+        }
 
         return view('admin.composting.create', compact('availableOrganics'));
     }

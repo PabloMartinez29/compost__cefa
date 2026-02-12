@@ -18,6 +18,7 @@ class Maintenance extends Model
         'type',
         'description',
         'responsible',
+        'created_by',
     ];
 
     protected $casts = [
@@ -29,6 +30,12 @@ class Maintenance extends Model
     public function machinery()
     {
         return $this->belongsTo(Machinery::class);
+    }
+
+    // Quién registró el mantenimiento (admin o aprendiz)
+    public function creator()
+    {
+        return $this->belongsTo(\App\Models\User::class, 'created_by');
     }
 
     // Accessor para el tipo de mantenimiento
@@ -64,6 +71,7 @@ class Maintenance extends Model
     {
         return $query->where('machinery_id', $machineryId);
     }
+
 }
 
 

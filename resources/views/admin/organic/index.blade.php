@@ -344,10 +344,10 @@
                     <div class="md:col-span-2">
                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                             <i class="fas fa-image text-green-500 mr-2"></i>
-                            Imagen (Opcional)
+                            Imagen (Obligatoria)
                         </label>
                         <div class="relative">
-                            <input type="file" name="img" id="imageInput" 
+                            <input type="file" name="img" id="imageInput" required 
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 @error('img') border-red-500 @enderror" 
                                    accept="image/*" onchange="previewImage(this)">
                             <div id="imagePreview" class="mt-3 hidden">

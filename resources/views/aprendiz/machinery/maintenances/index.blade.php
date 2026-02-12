@@ -129,6 +129,7 @@
                                 <th>Tipo</th>
                                 <th>Descripción</th>
                                 <th>Responsable</th>
+                                <th>Próx. mantenimiento</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
@@ -171,6 +172,18 @@
                                     </div>
                                 </td>
                                     <td>{{ $maintenance->responsible }}</td>
+                                <td class="text-center">
+                                    @if($maintenance->machinery)
+                                        @if($maintenance->machinery->status === 'En mantenimiento')
+                                            <span class="text-sm font-semibold text-amber-600">Pausado</span>
+                                        @else
+                                            @php $machNextDue = $maintenance->machinery->getNextMaintenanceDueDateTime(); @endphp
+                                            <span class="maintenance-row-countdown text-sm font-mono font-semibold text-gray-800" data-next-due="{{ $machNextDue?->toIso8601String() ?? '' }}">--</span>
+                                        @endif
+                                    @else
+                                        --
+                                    @endif
+                                </td>
                                 <td>
                                     <div class="flex space-x-2 items-center">
                                             <button onclick="openViewModal({{ $maintenance->id }})" 
@@ -342,7 +355,7 @@
             <form id="editForm" method="POST">
                 @csrf
                 @method('PUT')
-                
+                <input type="hidden" name="type" id="edit_type_hidden" value="">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Fecha -->
                     <div class="waste-form-group">
@@ -362,21 +375,21 @@
                         </div>
                     </div>
 
-                    <!-- Tipo de Registro -->
+                    <!-- Tipo de Registro (valor real en edit_type_hidden para que siempre se envíe al guardar) -->
                     <div class="waste-form-group md:col-span-2">
                         <label class="waste-form-label">Tipo de Registro *</label>
                         <div class="grid grid-cols-2 gap-3">
                             <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-green-50 transition-all duration-200">
-                                <input type="radio" name="type" value="M" id="edit_type_maintenance"
-                                       class="sr-only peer" required>
+                                <input type="radio" name="type_radio" value="M" id="edit_type_maintenance"
+                                       class="sr-only peer">
                                 <div class="w-4 h-4 border-2 border-gray-300 rounded-full peer-checked:border-green-500 peer-checked:bg-green-500 mr-3 flex items-center justify-center">
                                     <div class="w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100"></div>
                                 </div>
                                 <span class="text-sm font-medium text-gray-700 peer-checked:text-green-700">M: Mantenimiento</span>
                             </label>
                             <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-green-50 transition-all duration-200">
-                                <input type="radio" name="type" value="O" id="edit_type_operation"
-                                       class="sr-only peer" required>
+                                <input type="radio" name="type_radio" value="O" id="edit_type_operation"
+                                       class="sr-only peer">
                                 <div class="w-4 h-4 border-2 border-gray-300 rounded-full peer-checked:border-green-500 peer-checked:bg-green-500 mr-3 flex items-center justify-center">
                                     <div class="w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100"></div>
                                 </div>
@@ -542,9 +555,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (editModal) {
         editModal.addEventListener('click', (e) => {
-            if (e.target === editModal || e.target.closest('.modal-backdrop-blur') === editModal) {
+            if (e.target === editModal) {
                 closeEditModal();
             }
+        });
+    }
+    // Asegurar que el tipo se envíe al guardar: sincronizar hidden con el radio seleccionado en cada submit
+    if (editForm) {
+        editForm.addEventListener('submit', function() {
+            const checked = document.querySelector('input[name="type_radio"]:checked');
+            const typeHidden = document.getElementById('edit_type_hidden');
+            if (checked && typeHidden) typeHidden.value = checked.value;
         });
     }
 });
@@ -680,11 +701,14 @@ function openEditMaintenanceModal(maintenanceId) {
                 document.getElementById('edit_end_date').value = data.end_date || '';
             }
             
-            // Seleccionar tipo
+            // Seleccionar tipo y sincronizar campo oculto (name="type") que es el que se envía al guardar
+            const typeHidden = document.getElementById('edit_type_hidden');
             if (data.type === 'M') {
                 document.getElementById('edit_type_maintenance').checked = true;
+                if (typeHidden) typeHidden.value = 'M';
             } else {
                 document.getElementById('edit_type_operation').checked = true;
+                if (typeHidden) typeHidden.value = 'O';
             }
             
             // Llenar select de maquinarias
@@ -700,24 +724,28 @@ function openEditMaintenanceModal(maintenanceId) {
                 select.appendChild(option);
             });
             
-            // Configurar eventos para mostrar/ocultar fecha de fin
+            // Configurar eventos para mostrar/ocultar fecha de fin (sin clonar los radios para que type se envíe al guardar)
             const typeMaintenance = document.getElementById('edit_type_maintenance');
             const typeOperation = document.getElementById('edit_type_operation');
             const dateInput = document.getElementById('edit_date');
             const endDateInput = document.getElementById('edit_end_date');
             
-            // Remover listeners anteriores si existen
-            const newTypeMaintenance = typeMaintenance.cloneNode(true);
-            const newTypeOperation = typeOperation.cloneNode(true);
-            typeMaintenance.parentNode.replaceChild(newTypeMaintenance, typeMaintenance);
-            typeOperation.parentNode.replaceChild(newTypeOperation, typeOperation);
-            
-            newTypeMaintenance.addEventListener('change', toggleEndDateField);
-            newTypeOperation.addEventListener('change', toggleEndDateField);
+            typeMaintenance.removeEventListener('change', toggleEndDateField);
+            typeOperation.removeEventListener('change', toggleEndDateField);
+            typeMaintenance.addEventListener('change', function() {
+                toggleEndDateField();
+                const h = document.getElementById('edit_type_hidden');
+                if (h) h.value = 'M';
+            });
+            typeOperation.addEventListener('change', function() {
+                toggleEndDateField();
+                const h = document.getElementById('edit_type_hidden');
+                if (h) h.value = 'O';
+            });
             
             if (dateInput) {
                 dateInput.addEventListener('change', function() {
-                    if (endDateInput && newTypeMaintenance.checked) {
+                    if (endDateInput && typeMaintenance.checked) {
                         endDateInput.min = this.value;
                     }
                 });
@@ -962,6 +990,31 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+
+    function formatRowCountdown(totalSeconds) {
+        if (totalSeconds == null || totalSeconds < 0) return '--';
+        if (totalSeconds <= 0) return '0d 0h 0m 0s';
+        const d = Math.floor(totalSeconds / 86400);
+        const h = Math.floor((totalSeconds % 86400) / 3600);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        const s = totalSeconds % 60;
+        return d + 'd ' + h + 'h ' + m + 'm ' + s + 's';
+    }
+    function updateMaintenanceRowCountdowns() {
+        document.querySelectorAll('.maintenance-row-countdown').forEach(function(el) {
+            const nextDue = el.getAttribute('data-next-due');
+            if (!nextDue) {
+                el.textContent = '--';
+                return;
+            }
+            const end = new Date(nextDue);
+            const now = new Date();
+            const sec = Math.max(0, Math.floor((end - now) / 1000));
+            el.textContent = formatRowCountdown(sec);
+        });
+    }
+    updateMaintenanceRowCountdowns();
+    setInterval(updateMaintenanceRowCountdowns, 1000);
 });
 </script>
 

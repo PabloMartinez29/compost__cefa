@@ -47,7 +47,9 @@ class OrganicController extends Controller
             'delivered_by' => 'required|string|max:100',
             'received_by' => 'required|string|max:100',
             'notes' => 'nullable|string',
-            'img' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'img' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ], [
+            'img.required' => 'La imagen es obligatoria.',
         ]);
 
         $data = $request->all();
@@ -65,8 +67,9 @@ class OrganicController extends Controller
 
         $organic = Organic::create($data);
 
-        // Crear movimiento automático en bodega de clasificación
+        // Crear movimiento automático en bodega de clasificación (vinculado al residuo para poder actualizar al editar)
         WarehouseClassification::create([
+            'organic_id' => $organic->id,
             'date' => $data['date'],
             'type' => $data['type'],
             'movement_type' => 'entry', // Entrada automática
@@ -142,6 +145,11 @@ class OrganicController extends Controller
         ]);
 
         $data = $request->all();
+
+        // Guardar valores anteriores para localizar la entrada en bodega (registros sin organic_id)
+        $oldWeight = $organic->weight;
+        $oldDate = $organic->date?->format('Y-m-d');
+        $oldType = $organic->type;
         
         // Handle image upload
         if ($request->hasFile('img')) {
@@ -157,7 +165,33 @@ class OrganicController extends Controller
 
         $organic->update($data);
 
-        return redirect()->route('admin.organic.index')->with('success', '¡Registro de residuo orgánico actualizado exitosamente!');
+        // Sincronizar bodega: actualizar la entrada asociada a este residuo para que el inventario refleje el nuevo peso
+        $warehouseEntry = WarehouseClassification::where('organic_id', $organic->id)
+            ->where('movement_type', 'entry')
+            ->first();
+
+        if (!$warehouseEntry && $oldDate !== null) {
+            // Registros antiguos sin organic_id: buscar por fecha, tipo y peso anterior
+            $warehouseEntry = WarehouseClassification::where('movement_type', 'entry')
+                ->where('type', $oldType)
+                ->where('date', $oldDate)
+                ->where('weight', $oldWeight)
+                ->where('notes', 'like', 'Entrada automática desde registro%')
+                ->first();
+            if ($warehouseEntry) {
+                $warehouseEntry->update(['organic_id' => $organic->id]);
+            }
+        }
+
+        if ($warehouseEntry) {
+            $warehouseEntry->update([
+                'weight' => $organic->weight,
+                'date' => $organic->date,
+                'type' => $organic->type,
+            ]);
+        }
+
+        return redirect()->route('admin.organic.index')->with('success', '¡Registro de residuo orgánico actualizado exitosamente! El inventario de bodega se ha actualizado.');
     }
 
     /**
