@@ -225,12 +225,21 @@ class SupplierController extends Controller
     }
 
     /**
-     * Generate PDF for all suppliers
+     * Generate PDF for all suppliers (o solo los filtrados si se pasan ids)
      */
-    public function downloadAllSuppliersPDF()
+    public function downloadAllSuppliersPDF(Request $request)
     {
-        $suppliers = Supplier::with('machinery')->latest()->get();
-        
+        $query = Supplier::with('machinery')->latest();
+
+        if ($request->filled('ids')) {
+            $ids = array_filter(array_map('intval', explode(',', $request->ids)));
+            if (!empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+        }
+
+        $suppliers = $query->get();
+
         $pdf = PDF::loadView('admin.machinery.suppliers.pdf.all-suppliers', compact('suppliers'))
             ->setPaper('a4', 'landscape')
             ->setOptions([

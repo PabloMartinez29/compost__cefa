@@ -90,9 +90,9 @@
                 </h2>
                 <div class="flex items-center space-x-4">
                     @if($machineries->count() > 0)
-                        <a href="{{ route('admin.machinery.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                        <button type="button" id="btn-download-all-pdf" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm" title="Descargar PDF de los registros visibles (filtrados)">
                             <i class="fas fa-file-pdf"></i>
-                        </a>
+                        </button>
                     @endif
                     <a href="{{ route('admin.machinery.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
                         <i class="fas fa-plus mr-2"></i>
@@ -127,7 +127,7 @@
                         </thead>
                         <tbody>
                             @foreach($machineries as $machinery)
-                                <tr>
+                                <tr data-id="{{ $machinery->id }}">
                                     <td class="text-center align-middle py-2">
                                         @if($machinery->image)
                                             <div class="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 mx-auto">
@@ -584,7 +584,7 @@
             return;
         }
         
-        let table = new DataTable('#machineriesTable', {
+        window.machineriesDataTable = new DataTable('#machineriesTable', {
             language: {
                 search: 'Buscar:',
                 lengthMenu: 'Mostrar _MENU_ registros',
@@ -653,16 +653,32 @@
                 
                 if (lengthSelect) {
                     lengthSelect.addEventListener('change', function() {
-                        table.page.len(parseInt(this.value)).draw();
+                        window.machineriesDataTable.page.len(parseInt(this.value)).draw();
                     });
                 }
                 
                 if (searchInput) {
                     searchInput.addEventListener('keyup', function() {
-                        table.search(this.value).draw();
+                        window.machineriesDataTable.search(this.value).draw();
                     });
                 }
             }
+        });
+
+        document.getElementById('btn-download-all-pdf')?.addEventListener('click', function() {
+            let url = '{{ route("admin.machinery.download.all-pdf") }}';
+            if (window.machineriesDataTable) {
+                const ids = [];
+                window.machineriesDataTable.rows({ search: 'applied' }).every(function() {
+                    const row = this.node();
+                    const id = row.getAttribute('data-id');
+                    if (id) ids.push(id);
+                });
+                if (ids.length > 0) {
+                    url += '?ids=' + ids.join(',');
+                }
+            }
+            window.location.href = url;
         });
 
         // Actualizar cronómetros de maquinaria cada segundo

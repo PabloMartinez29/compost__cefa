@@ -93,9 +93,9 @@
                 </h2>
                 <div class="flex items-center space-x-4">
                     @if($organics->count() > 0)
-                        <a href="{{ route('admin.organic.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                        <button type="button" id="btn-download-all-pdf" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm" title="Descargar PDF de los registros visibles (filtrados)">
                             <i class="fas fa-file-pdf"></i>
-                        </a>
+                        </button>
                     @endif
                     <a href="{{ route('admin.organic.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
                         <i class="fas fa-plus mr-2"></i>
@@ -137,7 +137,7 @@
                         </thead>
                         <tbody>
                             @foreach($organics as $organic)
-                        <tr>
+                        <tr data-id="{{ $organic->id }}">
                             <td class="font-mono">#{{ str_pad($organic->id, 3, '0', STR_PAD_LEFT) }}</td>
                             <td>{{ $organic->formatted_date }}</td>
                             <td>
@@ -256,7 +256,6 @@
         <div class="py-6">
             <form id="createForm" action="{{ route('admin.organic.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Fecha -->
                     <div class="md:col-span-2">
@@ -435,7 +434,7 @@
                             <option value="Beds">Camas</option>
                             <option value="Leaves">Hojas</option>
                             <option value="CowDung">Estiércol de Vaca</option>
-                            <option value="ChickenManure">Gallinaza</option>
+                            <option value="ChickenManure">Estiércol de Pollo</option>
                             <option value="PigManure">Estiércol de Cerdo</option>
                             <option value="Other">Otro</option>
                         </select>
@@ -487,8 +486,8 @@
                 <!-- New Image Upload -->
                 <div class="waste-form-group">
                     <label class="waste-form-label">Nueva Imagen (Opcional)</label>
-                    <input type="file" name="img" class="waste-form-input @error('img') border-red-500 @enderror" 
-                           accept="image/*">
+                    <input type="file" name="img" id="editImageInput" class="waste-form-input @error('img') border-red-500 @enderror" 
+                           accept="image/*" onchange="previewEditImage(this)">
                     @error('img')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -869,6 +868,13 @@ function openEditModal(organicId) {
                 document.getElementById('imageReplaceWarning').classList.add('hidden');
             }
             
+            // Limpiar input de nueva imagen y guardar URL actual para restaurar si cambian de opinión
+            const editImageInput = document.getElementById('editImageInput');
+            if (editImageInput) {
+                editImageInput.value = '';
+            }
+            document.getElementById('editForm').setAttribute('data-current-img-url', data.img_url || '');
+            
             // Configurar acción del formulario
             document.getElementById('editForm').action = `/admin/organic/${organicId}`;
             
@@ -885,6 +891,34 @@ function openEditModal(organicId) {
 function closeEditModal() {
     document.getElementById('editModal').classList.add('hidden');
     document.body.style.overflow = 'auto';
+}
+
+// Actualizar vista previa de imagen en el modal de edición al elegir un archivo
+function previewEditImage(input) {
+    const currentImage = document.getElementById('currentImage');
+    const currentImageContainer = document.getElementById('currentImageContainer');
+    if (!currentImage || !currentImageContainer) return;
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            currentImage.src = e.target.result;
+            currentImageContainer.classList.remove('hidden');
+            document.getElementById('imageReplaceWarning').classList.remove('hidden');
+        };
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        // Si se canceló la selección, restaurar imagen actual del servidor (si había)
+        const editForm = document.getElementById('editForm');
+        const imgUrl = editForm.getAttribute('data-current-img-url');
+        if (imgUrl) {
+            currentImage.src = imgUrl;
+        }
+        if (!imgUrl) {
+            currentImageContainer.classList.add('hidden');
+            document.getElementById('imageReplaceWarning').classList.add('hidden');
+        }
+    }
 }
 
 // Cerrar modal de editar al hacer clic fuera
@@ -1048,6 +1082,16 @@ function confirmDelete(event, form) {
     });
 @endif
 
+// Abrir modal de crear si hay errores de validación para conservar los datos
+document.addEventListener('DOMContentLoaded', function() {
+    @if($errors->any())
+    if (document.getElementById('createModal')) {
+        openCreateModal();
+        document.body.style.overflow = 'hidden';
+    }
+    @endif
+});
+
 // Inicializar DataTables
 document.addEventListener('DOMContentLoaded', function() {
     // Verificar que DataTable esté disponible
@@ -1072,7 +1116,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('Inicializando DataTables...');
     
-    let table = new DataTable('#organicsTable', {
+    window.organicsDataTable = new DataTable('#organicsTable', {
         language: {
             search: 'Buscar:',
             lengthMenu: 'Mostrar _MENU_ registros',
@@ -1141,19 +1185,36 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (lengthSelect) {
                 lengthSelect.addEventListener('change', function() {
-                    table.page.len(parseInt(this.value)).draw();
+                    window.organicsDataTable.page.len(parseInt(this.value)).draw();
                 });
             }
             
             if (searchInput) {
                 searchInput.addEventListener('keyup', function() {
-                    table.search(this.value).draw();
+                    window.organicsDataTable.search(this.value).draw();
                 });
             }
         }
     });
-    
-    console.log('DataTables configurado:', table);
+
+    // Descargar PDF de registros visibles (filtrados) o todos
+    document.getElementById('btn-download-all-pdf')?.addEventListener('click', function() {
+        let url = '{{ route("admin.organic.download.all-pdf") }}';
+        if (window.organicsDataTable) {
+            const ids = [];
+            window.organicsDataTable.rows({ search: 'applied' }).every(function() {
+                const row = this.node();
+                const id = row.getAttribute('data-id');
+                if (id) ids.push(id);
+            });
+            if (ids.length > 0) {
+                url += '?ids=' + ids.join(',');
+            }
+        }
+        window.location.href = url;
+    });
+
+    console.log('DataTables configurado:', window.organicsDataTable);
 });
 </script>
 @endsection

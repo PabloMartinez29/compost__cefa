@@ -34,29 +34,25 @@
     <!-- Filtros de Período (zona separada; no se solapa con el DataTable del historial) -->
     <div class="bg-green-50 rounded-xl shadow-sm p-6 mb-8 border border-green-200 animate-fade-in-up animate-delay-1 mt-6 monitoring-filters-row">
         <form method="GET" action="{{ route('admin.monitoring.index') }}" class="flex flex-wrap items-end gap-4">
+            
             <div class="flex-1 min-w-[200px]">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Período</label>
-                <select name="period" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                    <option value="daily" {{ $period === 'daily' ? 'selected' : '' }}>Diario</option>
-                    <option value="weekly" {{ $period === 'weekly' ? 'selected' : '' }}>Semanal</option>
-                    <option value="biweekly" {{ $period === 'biweekly' ? 'selected' : '' }}>Quincenal</option>
-                    <option value="monthly" {{ $period === 'monthly' ? 'selected' : '' }}>Mensual</option>
-                    <option value="yearly" {{ $period === 'yearly' ? 'selected' : '' }}>Anual</option>
-                </select>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Filtrar por Fecha Específica</label>
+                <div class="relative">
+                    <input type="date" name="start_date" value="{{ $startDate ? $startDate->format('Y-m-d') : '' }}" onchange="document.getElementById('end_date_input').value = this.value" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                    <input type="hidden" id="end_date_input" name="end_date" value="{{ $endDate ? $endDate->format('Y-m-d') : '' }}">
+                </div>
             </div>
-            <div class="flex-1 min-w-[200px]">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Inicio</label>
-                <input type="date" name="start_date" value="{{ $startDate ? $startDate->format('Y-m-d') : '' }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-            </div>
-            <div class="flex-1 min-w-[200px]">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Fecha Fin</label>
-                <input type="date" name="end_date" value="{{ $endDate ? $endDate->format('Y-m-d') : '' }}" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500">
-            </div>
+
             <div>
                 <button type="submit" class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors duration-200">
                     <i class="fas fa-filter mr-2"></i>
                     Filtrar
                 </button>
+                
+                <a href="{{ route('admin.monitoring.index') }}" class="ml-2 px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors duration-200 inline-flex items-center text-center h-[42px]">
+                    <i class="fas fa-eraser mr-2"></i>
+                    Limpiar
+                </a>
             </div>
         </form>
     </div>
@@ -222,22 +218,21 @@ function showModule(module) {
         'residuos': {
             title: '<i class="fas fa-recycle text-green-600 mr-2"></i>Historial de Residuos Orgánicos',
             pdf: 'residuos',
-            data: @json($organicDataGeneral['by_type'] ?? []),
+            data: @json($organicData['by_type'] ?? []),
             records: @json($organicRecords)
         },
         'pilas': {
             title: '<i class="fas fa-mountain text-cyan-600 mr-2"></i>Historial de Pilas de Compostaje',
             pdf: 'pilas',
-            // Usamos los datos por estado GLOBAL (sin filtro de fechas) para que siempre
-            // se vean las pilas activas/completadas aunque se hayan creado en otro período.
-            data: @json($compostingDataGeneral['by_status'] ?? []),
+            // Usamos los datos FILTRADOS por fecha para que reflejen el período seleccionado
+            data: @json($compostingData['by_status'] ?? []),
             records: @json($compostingRecords)
         },
         'abono': {
             title: '<i class="fas fa-seedling text-yellow-600 mr-2"></i>Historial de Abonos',
             pdf: 'abono',
-            // Usamos la tendencia general por fecha (sin filtrar por período)
-            data: @json($fertilizerDataGeneral['by_date'] ?? []),
+            // Usamos los datos FILTRADOS por fecha para que reflejen el período seleccionado
+            data: @json($fertilizerData['by_date'] ?? []),
             records: @json($fertilizerRecords)
         },
         'maquinaria': {
@@ -313,6 +308,22 @@ function showModuleHistory(module, records) {
     }
     
     let html = '<div class="mt-6 monitoring-datatable-container"><h3 class="text-lg font-bold text-gray-800 mb-4">Historial de Entradas</h3>';
+    
+    // Controles personalizados (selector de cantidad de registros)
+    html += '<div class="flex items-center justify-between mb-4">';
+    html += '<div class="flex items-center space-x-2">';
+    html += '<span class="text-sm text-gray-600">Mostrar</span>';
+    html += '<select onchange="changeTableLength(this)" class="form-select px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white">';
+    html += '<option value="5">5</option>';
+    html += '<option value="10">10</option>';
+    html += '<option value="25">25</option>';
+    html += '<option value="50">50</option>';
+    html += '<option value="-1">Todos</option>';
+    html += '</select>';
+    html += '<span class="text-sm text-gray-600">registros</span>';
+    html += '</div>';
+    html += '</div>';
+
     html += '<div class="overflow-x-auto"><table id="history-table" class="min-w-full divide-y divide-gray-200">';
     
     if (module === 'residuos') {
@@ -320,7 +331,6 @@ function showModuleHistory(module, records) {
         html += '<tbody class="bg-white divide-y divide-gray-200">';
         records.forEach(record => {
             const date = new Date(record.date || record.created_at).toLocaleDateString('es-ES');
-            // Usar type_in_spanish si está disponible, sino traducir manualmente
             const typeMap = {
                 'Kitchen': 'Cocina',
                 'Beds': 'Camas',
@@ -376,17 +386,17 @@ function showModuleHistory(module, records) {
     setTimeout(() => {
         dataTableInstance = $('#history-table').DataTable({
             pageLength: 5,
-            lengthMenu: [[5, 10, 25, 50, -1], [5, 10, 25, 50, "Todos"]],
-            dom: '<"monitoring-dt-top"l>rtip', // l en fila aparte; r=processing, t=tabla, i=info, p=paginación
+            lengthChange: false, // Desactivar el control por defecto
+            dom: 'rtip', // 'r' processing, 't' table, 'i' info, 'p' pagination. Quitamos 'l' y 'f' (buscador)
             language: {
                 "sProcessing": "Procesando...",
-                "sLengthMenu": "Mostrar _MENU_ registros",
                 "sZeroRecords": "No se encontraron resultados",
                 "sEmptyTable": "Ningún dato disponible en esta tabla",
                 "sInfo": "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
                 "sInfoEmpty": "Mostrando registros del 0 al 0 de un total de 0 registros",
                 "sInfoFiltered": "(filtrado de un total de _MAX_ registros)",
                 "sInfoPostFix": "",
+                "sSearch": "Buscar:",
                 "sUrl": "",
                 "sInfoThousands": ",",
                 "sLoadingRecords": "Cargando...",
@@ -404,6 +414,14 @@ function showModuleHistory(module, records) {
             order: [[0, 'desc']] // Ordenar por primera columna (fecha) descendente
         });
     }, 100);
+}
+
+// Función para cambiar cantidad de registros desde el select personalizado
+function changeTableLength(select) {
+    if (dataTableInstance) {
+        const length = parseInt(select.value);
+        dataTableInstance.page.len(length).draw();
+    }
 }
 
 // Descargar PDF
@@ -612,6 +630,20 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<script>
+// Función para mostrar/ocultar fechas personalizadas
+function toggleDateInputs(select) {
+    const customDateFilters = document.getElementById('custom-date-filters');
+    if (select.value === 'custom') {
+        customDateFilters.classList.remove('hidden');
+        customDateFilters.classList.add('flex');
+    } else {
+        customDateFilters.classList.add('hidden');
+        customDateFilters.classList.remove('flex');
+    }
+}
+</script>
+
 <style>
 /* Fila de filtros (fechas): ancho completo y no invade la tabla */
 .monitoring-filters-row {
@@ -674,18 +706,25 @@ document.addEventListener('DOMContentLoaded', function() {
     display: inline-block !important;
     margin: 0 !important;
     margin-right: 0.5rem !important;
-    padding: 0.5rem 0.75rem 0.5rem 0.75rem !important;
+    padding: 0.375rem 0.5rem !important; /* Tight padding */
     border: 1px solid #d1d5db !important;
     border-radius: 0.375rem !important;
     font-size: 0.875rem !important;
-    min-width: 4rem !important;
+    min-width: 3rem !important;
     width: auto !important;
     text-align: center !important;
-    background-color: #fff !important;
-    background-image: none !important;
+    text-align-last: center !important;
+    background: #fff !important; /* Wipe all background properties */
     -webkit-appearance: none !important;
     -moz-appearance: none !important;
     appearance: none !important;
+}
+
+/* Force hiding of IE/Edge native arrow on select */
+#module-history .dataTables_wrapper .dataTables_length label select::-ms-expand,
+.monitoring-datatable-container .dataTables_wrapper .dataTables_length label select::-ms-expand,
+.dataTables_wrapper .dataTables_length label select::-ms-expand {
+    display: none !important;
 }
 /* Ocultar cualquier flecha/icono que DataTables o el navegador añada al select */
 #module-history .dataTables_length label::after,

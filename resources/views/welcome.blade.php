@@ -193,10 +193,7 @@
                                         <i class="fas fa-tachometer-alt w-4 text-compost-600 mr-3"></i>
                                         Dashboard
                                     </a>
-                                    <a href="#" class="flex items-center px-4 py-2 text-sm text-compost-700 hover:bg-compost-50 transition-colors duration-200">
-                                        <i class="fas fa-user-cog w-4 text-compost-600 mr-3"></i>
-                                        Perfil
-                                    </a>
+
                                 </div>
                                 
                                 <!-- Divider -->

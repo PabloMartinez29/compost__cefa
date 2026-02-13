@@ -391,12 +391,21 @@ class OrganicController extends Controller
     }
 
     /**
-     * Generate PDF for all organics
+     * Generate PDF for all organics (o solo los filtrados si se pasan ids en la petición)
      */
-    public function downloadAllOrganicsPDF()
+    public function downloadAllOrganicsPDF(Request $request)
     {
-        $organics = Organic::with('creator')->orderBy('date', 'desc')->get();
-        
+        $query = Organic::with('creator')->orderBy('date', 'desc');
+
+        if ($request->filled('ids')) {
+            $ids = array_filter(array_map('intval', explode(',', $request->ids)));
+            if (!empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+        }
+
+        $organics = $query->get();
+
         $pdf = PDF::loadView('admin.organic.pdf.all-organics', compact('organics'))
             ->setPaper('a4', 'landscape')
             ->setOptions([

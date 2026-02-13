@@ -170,8 +170,33 @@ return [
     */
 
     'custom' => [
-        'attribute-name' => [
-            'rule-name' => 'custom-message',
+        'email' => [
+            'unique' => 'Este correo electrónico ya está registrado.',
+            'required' => 'El correo electrónico es obligatorio.',
+            'email' => 'El correo electrónico no es válido.',
+        ],
+        'identification' => [
+            'unique' => 'Esta identificación ya está registrada.',
+            'required' => 'La identificación es obligatoria.',
+        ],
+        'name' => [
+            'required' => 'El nombre completo es obligatorio.',
+        ],
+        'password' => [
+            'required' => 'La contraseña es obligatoria.',
+            'min' => 'La contraseña debe tener al menos :min caracteres.',
+            'confirmed' => 'La confirmación de contraseña no coincide.',
+        ],
+        'password_confirmation' => [
+            'required' => 'Debe confirmar la contraseña.',
+        ],
+        'role' => [
+            'required' => 'Debe seleccionar un rol.',
+            'in' => 'El rol seleccionado no es válido.',
+        ],
+        'document_type' => [
+            'required' => 'El tipo de documento es obligatorio.',
+            'in' => 'El tipo de documento seleccionado no es válido.',
         ],
     ],
 
@@ -187,10 +212,13 @@ return [
     */
 
     'attributes' => [
-        'name' => 'nombre',
+        'name' => 'nombre completo',
         'email' => 'correo electrónico',
         'password' => 'contraseña',
         'password_confirmation' => 'confirmación de contraseña',
+        'identification' => 'identificación',
+        'document_type' => 'tipo de documento',
+        'role' => 'rol',
     ],
 
 ];

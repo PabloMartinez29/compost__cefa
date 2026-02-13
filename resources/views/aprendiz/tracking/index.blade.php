@@ -255,53 +255,30 @@ function openTrackingModal(compostingId) {
                                             // Determinar qué botón mostrar
                                             let deleteButton = '';
                                             
-                                            // Solo mostrar botón si es el dueño del seguimiento
+                                            // Solo mostrar botón si es el dueño del seguimiento. Siempre debe solicitar permiso al admin (como en los demás módulos)
                                             if (isOwner) {
-                                                // Si la pila fue creada por admin, siempre necesita permiso
-                                                if (isPileCreatedByAdmin) {
-                                                    if (isApproved) {
-                                                        // Tiene permiso aprobado, puede eliminar
-                                                        deleteButton = `
-                                                            <button type="button" onclick="confirmDelete(${tracking.id})" 
-                                                                    class="bg-red-100 text-red-600 hover:bg-red-200 p-2 rounded-lg transition-colors duration-200"
-                                                                    title="Eliminar">
-                                                                <i class="fas fa-trash"></i>
-                                                            </button>
-                                                        `;
-                                                    } else if (isPending) {
-                                                        // Solicitud pendiente
-                                                        deleteButton = `
-                                                            <button type="button" 
-                                                                    class="bg-yellow-100 text-yellow-600 p-2 rounded-lg transition-colors duration-200 cursor-not-allowed"
-                                                                    title="Solicitud de eliminación pendiente">
-                                                                <i class="fas fa-clock"></i>
-                                                            </button>
-                                                        `;
-                                                    } else if (isRejected) {
-                                                        // Solicitud rechazada, puede solicitar de nuevo
-                                                        deleteButton = `
-                                                            <button type="button" onclick="requestDeletePermission(${tracking.id})" 
-                                                                    class="bg-orange-100 text-orange-600 hover:bg-orange-200 p-2 rounded-lg transition-colors duration-200"
-                                                                    title="Solicitar permiso para eliminar">
-                                                                <i class="fas fa-hand-paper"></i>
-                                                            </button>
-                                                        `;
-                                                    } else {
-                                                        // No tiene permiso, necesita solicitarlo
-                                                        deleteButton = `
-                                                            <button type="button" onclick="requestDeletePermission(${tracking.id})" 
-                                                                    class="bg-orange-100 text-orange-600 hover:bg-orange-200 p-2 rounded-lg transition-colors duration-200"
-                                                                    title="Solicitar permiso para eliminar">
-                                                                <i class="fas fa-hand-paper"></i>
-                                                            </button>
-                                                        `;
-                                                    }
-                                                } else {
-                                                    // Si la pila no fue creada por admin, puede eliminar directamente
+                                                if (isApproved) {
                                                     deleteButton = `
                                                         <button type="button" onclick="confirmDelete(${tracking.id})" 
                                                                 class="bg-red-100 text-red-600 hover:bg-red-200 p-2 rounded-lg transition-colors duration-200"
                                                                 title="Eliminar">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    `;
+                                                } else if (isPending) {
+                                                    deleteButton = `
+                                                        <button type="button" 
+                                                                class="bg-yellow-100 text-yellow-600 p-2 rounded-lg transition-colors duration-200 cursor-not-allowed"
+                                                                title="Solicitud de eliminación pendiente">
+                                                            <i class="fas fa-clock"></i>
+                                                        </button>
+                                                    `;
+                                                } else {
+                                                    // Sin permiso o rechazado: solicitar permiso para eliminar (mismo icono basura que los demás módulos)
+                                                    deleteButton = `
+                                                        <button type="button" onclick="requestDeletePermission(${tracking.id})" 
+                                                                class="bg-red-100 text-red-600 hover:bg-red-200 p-2 rounded-lg transition-colors duration-200"
+                                                                title="Solicitar permiso para eliminar">
                                                             <i class="fas fa-trash"></i>
                                                         </button>
                                                     `;

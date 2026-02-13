@@ -98,7 +98,7 @@ class MaintenanceController extends Controller
             Maintenance::create($data);
 
             return redirect()->route('admin.machinery.maintenance.index')
-                ->with('success', 'Registro de mantenimiento creado exitosamente.');
+                ->with('success', 'Registro de actividad creado exitosamente.');
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Error al crear el registro: ' . $e->getMessage())
@@ -212,7 +212,7 @@ class MaintenanceController extends Controller
             }
             
             return redirect()->route('admin.machinery.maintenance.index')
-                ->with('success', 'Registro de mantenimiento actualizado exitosamente.');
+                ->with('success', 'Registro de actividad actualizado exitosamente.');
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Error al actualizar el registro: ' . $e->getMessage())
@@ -229,7 +229,7 @@ class MaintenanceController extends Controller
             $maintenance->delete();
             
             return redirect()->route('admin.machinery.maintenance.index')
-                ->with('success', 'Registro de mantenimiento eliminado exitosamente.');
+                ->with('success', 'Registro de actividad eliminado exitosamente.');
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Error al eliminar el registro: ' . $e->getMessage());
@@ -237,12 +237,21 @@ class MaintenanceController extends Controller
     }
 
     /**
-     * Generate PDF for all maintenances
+     * Generate PDF for all maintenances (o solo los filtrados si se pasan ids)
      */
-    public function downloadAllMaintenancesPDF()
+    public function downloadAllMaintenancesPDF(Request $request)
     {
-        $maintenances = Maintenance::with('machinery')->orderBy('date', 'desc')->get();
-        
+        $query = Maintenance::with('machinery')->orderBy('date', 'desc');
+
+        if ($request->filled('ids')) {
+            $ids = array_filter(array_map('intval', explode(',', $request->ids)));
+            if (!empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+        }
+
+        $maintenances = $query->get();
+
         $pdf = PDF::loadView('admin.machinery.maintenances.pdf.all-maintenances', compact('maintenances'))
             ->setPaper('a4', 'landscape')
             ->setOptions([

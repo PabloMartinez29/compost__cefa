@@ -587,11 +587,12 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
                 }
             })
-            .then(response => response.json())
-            .then(data => {
+            .then(response => response.json().then(data => ({ response, data })))
+            .then(({ response, data }) => {
                 if (data.success) {
                     Swal.fire({
                         title: 'Marcado como leído',
@@ -603,6 +604,13 @@
                     }).then(() => {
                         location.reload();
                     });
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: data.message || 'No se pudo marcar como leída',
+                        icon: 'error',
+                        confirmButtonColor: '#ef4444'
+                    });
                 }
             })
             .catch(error => {
@@ -610,7 +618,8 @@
                 Swal.fire({
                     title: 'Error',
                     text: 'Ocurrió un error al marcar la notificación',
-                    icon: 'error'
+                    icon: 'error',
+                    confirmButtonColor: '#ef4444'
                 });
             });
         }

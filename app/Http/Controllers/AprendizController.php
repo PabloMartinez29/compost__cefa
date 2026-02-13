@@ -110,8 +110,12 @@ class AprendizController extends Controller
      */
     public function markNotificationAsRead(Notification $notification)
     {
-        // Verificar que la notificación sea del usuario actual (recipiente)
-        if ($notification->user_id !== auth()->id()) {
+        // Permitir si es el destinatario (user_id) o el remitente (from_user_id) en solicitudes aprobadas/rechazadas
+        $isRecipient = $notification->user_id === auth()->id();
+        $isSenderAndProcessed = $notification->from_user_id === auth()->id()
+            && in_array($notification->status, ['approved', 'rejected'], true);
+
+        if (! $isRecipient && ! $isSenderAndProcessed) {
             return response()->json(['success' => false, 'message' => 'No autorizado'], 403);
         }
 

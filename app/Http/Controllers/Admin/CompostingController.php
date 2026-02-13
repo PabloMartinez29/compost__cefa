@@ -378,14 +378,22 @@ class CompostingController extends Controller
     }
 
     /**
-     * Generate PDF for all compostings
+     * Generate PDF for all compostings (o solo los filtrados si se pasan ids)
      */
-    public function downloadAllCompostingsPDF()
+    public function downloadAllCompostingsPDF(Request $request)
     {
-        $compostings = Composting::with(['ingredients.organic', 'creator'])
-            ->orderBy('created_at', 'desc')
-            ->get();
-        
+        $query = Composting::with(['ingredients.organic', 'creator'])
+            ->orderBy('created_at', 'desc');
+
+        if ($request->filled('ids')) {
+            $ids = array_filter(array_map('intval', explode(',', $request->ids)));
+            if (!empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+        }
+
+        $compostings = $query->get();
+
         $pdf = PDF::loadView('admin.composting.pdf.all-compostings', compact('compostings'))
             ->setPaper('a4', 'landscape')
             ->setOptions([

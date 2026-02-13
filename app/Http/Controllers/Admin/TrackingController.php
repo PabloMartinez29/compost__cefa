@@ -463,14 +463,22 @@ class TrackingController extends Controller
     }
 
     /**
-     * Generate PDF for all trackings
+     * Generate PDF for all trackings (o solo los filtrados si se pasan ids)
      */
-    public function downloadAllTrackingsPDF()
+    public function downloadAllTrackingsPDF(Request $request)
     {
-        $trackings = Tracking::with('composting')
-            ->orderBy('date', 'desc')
-            ->get();
-        
+        $query = Tracking::with('composting')
+            ->orderBy('date', 'desc');
+
+        if ($request->filled('ids')) {
+            $ids = array_filter(array_map('intval', explode(',', $request->ids)));
+            if (!empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+        }
+
+        $trackings = $query->get();
+
         $pdf = PDF::loadView('admin.tracking.pdf.all-trackings', compact('trackings'))
             ->setPaper('a4', 'landscape')
             ->setOptions([

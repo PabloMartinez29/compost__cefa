@@ -355,12 +355,21 @@ class MachineryController extends Controller
     }
 
     /**
-     * Generate PDF for all machineries
+     * Generate PDF for all machineries (o solo los filtrados si se pasan ids)
      */
-    public function downloadAllMachineriesPDF()
+    public function downloadAllMachineriesPDF(Request $request)
     {
-        $machineries = Machinery::latest()->get();
-        
+        $query = Machinery::latest();
+
+        if ($request->filled('ids')) {
+            $ids = array_filter(array_map('intval', explode(',', $request->ids)));
+            if (!empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+        }
+
+        $machineries = $query->get();
+
         $pdf = PDF::loadView('aprendiz.machinery.machineries.pdf.all-machineries', compact('machineries'))
             ->setPaper('a4', 'landscape')
             ->setOptions([
