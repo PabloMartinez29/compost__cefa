@@ -517,10 +517,7 @@
                             
                             <!-- Menu Items -->
                             <div class="py-1">
-                                <a href="#" class="flex items-center px-4 py-2 text-sm text-soft-gray-700 hover:bg-soft-gray-50 transition-colors duration-200">
-                                    <i class="fas fa-user-cog w-4 text-soft-gray-400 mr-3"></i>
-                                    Perfil
-                                </a>
+
                                 <a href="{{ url('/') }}" class="flex items-center px-4 py-2 text-sm text-soft-gray-700 hover:bg-soft-gray-50 transition-colors duration-200">
                                     <i class="fas fa-home w-4 text-soft-gray-400 mr-3"></i>
                                     Welcome

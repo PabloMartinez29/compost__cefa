@@ -269,12 +269,21 @@ class UsageControlController extends Controller
     }
 
     /**
-     * Generate PDF for all usage controls
+     * Generate PDF for all usage controls (o solo los filtrados si se pasan ids)
      */
-    public function downloadAllUsageControlsPDF()
+    public function downloadAllUsageControlsPDF(Request $request)
     {
-        $usageControls = UsageControl::with('machinery')->orderBy('date', 'desc')->get();
-        
+        $query = UsageControl::with('machinery')->orderBy('date', 'desc');
+
+        if ($request->filled('ids')) {
+            $ids = array_filter(array_map('intval', explode(',', $request->ids)));
+            if (!empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+        }
+
+        $usageControls = $query->get();
+
         $pdf = PDF::loadView('admin.machinery.usage-controls.pdf.all-usage-controls', compact('usageControls'))
             ->setPaper('a4', 'landscape')
             ->setOptions([

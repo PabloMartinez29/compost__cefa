@@ -184,12 +184,21 @@ class UserController extends Controller
     }
 
     /**
-     * Generate PDF for all users
+     * Generate PDF for all users (o solo los filtrados si se pasan ids)
      */
-    public function downloadAllUsersPDF()
+    public function downloadAllUsersPDF(Request $request)
     {
-        $users = User::orderBy('created_at', 'desc')->get();
-        
+        $query = User::orderBy('created_at', 'desc');
+
+        if ($request->filled('ids')) {
+            $ids = array_filter(array_map('intval', explode(',', $request->ids)));
+            if (!empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+        }
+
+        $users = $query->get();
+
         $pdf = PDF::loadView('admin.users.pdf.all-users', compact('users'))
             ->setPaper('a4', 'landscape')
             ->setOptions([

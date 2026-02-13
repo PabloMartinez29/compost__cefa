@@ -97,9 +97,9 @@
                 </h2>
                 <div class="flex items-center space-x-4">
                     @if($suppliers->count() > 0)
-                        <a href="{{ route('aprendiz.machinery.supplier.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                        <button type="button" id="btn-download-all-pdf" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm" title="Descargar PDF de los registros visibles (filtrados)">
                             <i class="fas fa-file-pdf"></i>
-                        </a>
+                        </button>
                     @endif
                     <a href="{{ route('aprendiz.machinery.supplier.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
                         <i class="fas fa-plus mr-2"></i>
@@ -141,7 +141,7 @@
                         </thead>
                         <tbody>
                             @foreach($suppliers as $supplier)
-                            <tr>
+                            <tr data-id="{{ $supplier->id }}">
                                 <td class="font-mono">#{{ str_pad($supplier->id, 3, '0', STR_PAD_LEFT) }}</td>
                                 <td>
                                     @if($supplier->machinery && $supplier->machinery->image)
@@ -559,7 +559,7 @@ function closeEditModal() {
 closeEditBtn.addEventListener('click', closeEditModal);
 cancelEditBtn.addEventListener('click', closeEditModal);
 editModal.addEventListener('click', (e) => {
-    if (e.target === editModal || e.target.closest('.modal-backdrop-blur') === editModal) {
+    if (e.target === editModal) {
         closeEditModal();
     }
 });
@@ -751,7 +751,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    let table = new DataTable('#suppliersTable', {
+    window.suppliersDataTable = new DataTable('#suppliersTable', {
         language: {
             search: 'Buscar:',
             lengthMenu: 'Mostrar _MENU_ registros',
@@ -810,16 +810,32 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (lengthSelect) {
                 lengthSelect.addEventListener('change', function() {
-                    table.page.len(parseInt(this.value)).draw();
+                    window.suppliersDataTable.page.len(parseInt(this.value)).draw();
                 });
             }
             
             if (searchInput) {
                 searchInput.addEventListener('keyup', function() {
-                    table.search(this.value).draw();
+                    window.suppliersDataTable.search(this.value).draw();
                 });
             }
         }
+    });
+
+    document.getElementById('btn-download-all-pdf')?.addEventListener('click', function() {
+        let url = '{{ route("aprendiz.machinery.supplier.download.all-pdf") }}';
+        if (window.suppliersDataTable) {
+            const ids = [];
+            window.suppliersDataTable.rows({ search: 'applied' }).every(function() {
+                const row = this.node();
+                const id = row.getAttribute('data-id');
+                if (id) ids.push(id);
+            });
+            if (ids.length > 0) {
+                url += '?ids=' + ids.join(',');
+            }
+        }
+        window.location.href = url;
     });
 });
 </script>

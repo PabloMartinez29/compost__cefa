@@ -390,12 +390,21 @@ class MaintenanceController extends Controller
     }
 
     /**
-     * Generate PDF for all maintenances
+     * Generate PDF for all maintenances (o solo los filtrados si se pasan ids)
      */
-    public function downloadAllMaintenancesPDF()
+    public function downloadAllMaintenancesPDF(Request $request)
     {
-        $maintenances = Maintenance::with('machinery')->orderBy('date', 'desc')->get();
-        
+        $query = Maintenance::with('machinery')->orderBy('date', 'desc');
+
+        if ($request->filled('ids')) {
+            $ids = array_filter(array_map('intval', explode(',', $request->ids)));
+            if (!empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+        }
+
+        $maintenances = $query->get();
+
         $pdf = PDF::loadView('aprendiz.machinery.maintenances.pdf.all-maintenances', compact('maintenances'))
             ->setPaper('a4', 'landscape')
             ->setOptions([

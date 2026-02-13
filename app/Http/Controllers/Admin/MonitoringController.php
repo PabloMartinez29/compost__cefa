@@ -25,8 +25,12 @@ class MonitoringController extends Controller
         $startDate = $request->get('start_date');
         $endDate = $request->get('end_date');
         
+        if ($startDate && $endDate) {
+            $period = 'daily'; // Si hay fechas, forzamos diario para mejorar la granularidad
+        }
+        
         // Determinar fechas según el período
-        $dates = $this->getDateRange($period, $startDate, $endDate);
+        $dates = $this->getDateRange($period, $request->get('start_date'), $request->get('end_date'));
         $startDate = $dates['start'];
         $endDate = $dates['end'];
         
@@ -77,8 +81,9 @@ class MonitoringController extends Controller
         $userActivity = $this->getUserActivity($startDate, $endDate);
         
         // Obtener registros individuales para el historial
-        // Residuos: mostrar todos en general, sin filtrar por período
+        // Residuos: filtrar por el período seleccionado
         $organicRecords = Organic::with('creator')
+            ->whereBetween('created_at', [$startDate, $endDate])
             ->orderBy('created_at', 'desc')
             ->get()
             ->map(function($organic) {
@@ -341,8 +346,8 @@ class MonitoringController extends Controller
     {
         $fertilizers = Fertilizer::whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])->get();
         
-        // Por fecha (usando date que es un Carbon date según el cast)
-        $byDate = $this->groupByPeriod($fertilizers, $startDate, $endDate, $period, 'date');
+        // Por fecha (usando date que es un Carbon date según el cast) - sumar cantidad (amount)
+        $byDate = $this->groupByPeriodWithWeight($fertilizers, $startDate, $endDate, $period, 'date', 'amount');
         
         // Por tipo
         $byType = $fertilizers->groupBy('type')->map(function($group) {
@@ -490,9 +495,9 @@ class MonitoringController extends Controller
     }
     
     /**
-     * Group by period with weight (for organics)
+     * Group by period with weight (for organics and fertilizers)
      */
-    private function groupByPeriodWithWeight($collection, $startDate, $endDate, $period, $dateField = 'created_at')
+    private function groupByPeriodWithWeight($collection, $startDate, $endDate, $period, $dateField = 'created_at', $sumColumn = 'weight')
     {
         $grouped = [];
         
@@ -504,7 +509,7 @@ class MonitoringController extends Controller
                     $itemDate = $this->parseDate($item->$dateField);
                     return $itemDate && $itemDate->format('Y-m-d') === $current->format('Y-m-d');
                 });
-                $grouped[$key] = $filtered->sum('weight');
+                $grouped[$key] = $filtered->sum($sumColumn);
                 $current->addDay();
             }
         } elseif ($period === 'weekly' || $period === 'biweekly') {
