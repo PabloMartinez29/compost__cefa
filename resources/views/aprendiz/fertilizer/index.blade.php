@@ -752,7 +752,9 @@ function closeEditModal() {
 closeEditBtn.addEventListener('click', closeEditModal);
 cancelEditBtn.addEventListener('click', closeEditModal);
 editModal.addEventListener('click', (e) => {
-    if (e.target === editModal || e.target.closest('.modal-backdrop-blur') === editModal) {
+    // Cerrar solo cuando se hace clic directamente sobre el fondo del modal,
+    // evitando que se cierre al interactuar con el formulario interno.
+    if (e.target === editModal) {
         closeEditModal();
     }
 });

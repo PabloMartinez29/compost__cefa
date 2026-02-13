@@ -651,27 +651,42 @@ class MonitoringController extends Controller
         $startDate = $dates['start'];
         $endDate = $dates['end'];
         
-        $filename = 'monitoreo_' . $module . '_' . date('Y-m-d') . '.csv';
-        
+        // Usamos HTML simple con estilos básicos para que Excel
+        // muestre el contenido con bordes y márgenes agradables.
+        $filename = 'monitoreo_' . $module . '_' . date('Y-m-d') . '.xls';
+
         $headers = [
-            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Type' => 'application/vnd.ms-excel; charset=UTF-8',
             'Content-Disposition' => 'attachment; filename="' . $filename . '"',
         ];
-        
+
         $callback = function() use ($module, $startDate, $endDate, $period) {
-            $file = fopen('php://output', 'w');
-            
-            // BOM para Excel UTF-8
-            fprintf($file, chr(0xEF).chr(0xBB).chr(0xBF));
-            
+            echo '<meta charset="UTF-8">';
+            echo '<style>
+                table { border-collapse: collapse; margin: 10px; }
+                th, td { border: 1px solid #9ca3af; padding: 6px 10px; font-family: Arial, sans-serif; font-size: 11pt; }
+            </style>';
+
+            echo '<table>';
+
             switch ($module) {
                 case 'residuos':
                     $records = Organic::with('creator')
                         ->orderBy('created_at', 'desc')
                         ->get();
-                    
-                    fputcsv($file, ['Fecha', 'Tipo', 'Peso (Kg)', 'Entregado por', 'Recibido por', 'Creado por', 'Notas']);
-                    
+
+                    $headerStyle = ' style="background-color:#bbf7d0;color:#065f46;font-weight:bold;text-align:center;"';
+
+                    echo '<tr>
+                        <th' . $headerStyle . '>Fecha</th>
+                        <th' . $headerStyle . '>Tipo</th>
+                        <th' . $headerStyle . '>Peso (Kg)</th>
+                        <th' . $headerStyle . '>Entregado por</th>
+                        <th' . $headerStyle . '>Recibido por</th>
+                        <th' . $headerStyle . '>Creado por</th>
+                        <th' . $headerStyle . '>Notas</th>
+                    </tr>';
+
                     foreach ($records as $record) {
                         $typeMap = [
                             'Kitchen' => 'Cocina',
@@ -683,81 +698,111 @@ class MonitoringController extends Controller
                             'Other' => 'Otro'
                         ];
                         $typeName = $typeMap[$record->type] ?? $record->type;
-                        
-                        fputcsv($file, [
-                            $record->date->format('d/m/Y'),
-                            $typeName,
-                            $record->weight,
-                            $record->delivered_by ?? 'N/A',
-                            $record->received_by ?? 'N/A',
-                            $record->creator ? $record->creator->name : 'N/A',
-                            $record->notes ?? ''
-                        ]);
+                        $weight = number_format($record->weight, 2, ',', '');
+
+                        echo '<tr>';
+                        echo '<td>' . e($record->date->format('d/m/Y')) . '</td>';
+                        echo '<td>' . e($typeName) . '</td>';
+                        echo '<td style="text-align:right;">' . e($weight) . '</td>';
+                        echo '<td>' . e($record->delivered_by ?? 'N/A') . '</td>';
+                        echo '<td>' . e($record->received_by ?? 'N/A') . '</td>';
+                        echo '<td>' . e($record->creator ? $record->creator->name : 'N/A') . '</td>';
+                        echo '<td>' . e($record->notes ?? '') . '</td>';
+                        echo '</tr>';
                     }
                     break;
-                    
+
                 case 'pilas':
                     $records = Composting::with('creator')
                         ->whereBetween('created_at', [$startDate, $endDate])
                         ->orderBy('created_at', 'desc')
                         ->get();
-                    
-                    fputcsv($file, ['Fecha Creación', 'Código', 'Estado', 'Fecha Inicio', 'Fecha Fin', 'Creado por']);
-                    
+
+                    $headerStyle = ' style="background-color:#bbf7d0;color:#065f46;font-weight:bold;text-align:center;"';
+
+                    echo '<tr>
+                        <th' . $headerStyle . '>Fecha Creación</th>
+                        <th' . $headerStyle . '>Código</th>
+                        <th' . $headerStyle . '>Estado</th>
+                        <th' . $headerStyle . '>Fecha Inicio</th>
+                        <th' . $headerStyle . '>Fecha Fin</th>
+                        <th' . $headerStyle . '>Creado por</th>
+                    </tr>';
+
                     foreach ($records as $record) {
                         $status = $record->end_date ? 'Completada' : 'Activa';
-                        fputcsv($file, [
-                            $record->created_at->format('d/m/Y'),
-                            $record->code ?? 'N/A',
-                            $status,
-                            $record->start_date ? $record->start_date->format('d/m/Y') : 'N/A',
-                            $record->end_date ? $record->end_date->format('d/m/Y') : 'N/A',
-                            $record->creator ? $record->creator->name : 'N/A'
-                        ]);
+                        echo '<tr>';
+                        echo '<td>' . e($record->created_at->format('d/m/Y')) . '</td>';
+                        echo '<td>' . e($record->code ?? 'N/A') . '</td>';
+                        echo '<td>' . e($status) . '</td>';
+                        echo '<td>' . e($record->start_date ? $record->start_date->format('d/m/Y') : 'N/A') . '</td>';
+                        echo '<td>' . e($record->end_date ? $record->end_date->format('d/m/Y') : 'N/A') . '</td>';
+                        echo '<td>' . e($record->creator ? $record->creator->name : 'N/A') . '</td>';
+                        echo '</tr>';
                     }
                     break;
-                    
+
                 case 'abono':
                     $records = Fertilizer::whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
                         ->orderBy('date', 'desc')
                         ->get();
-                    
-                    fputcsv($file, ['Fecha', 'Tipo', 'Cantidad', 'Unidad', 'Descripción']);
-                    
+
+                    $headerStyle = ' style="background-color:#bbf7d0;color:#065f46;font-weight:bold;text-align:center;"';
+
+                    echo '<tr>
+                        <th' . $headerStyle . '>Fecha</th>
+                        <th' . $headerStyle . '>Tipo</th>
+                        <th' . $headerStyle . '>Cantidad</th>
+                        <th' . $headerStyle . '>Unidad</th>
+                        <th' . $headerStyle . '>Descripción</th>
+                    </tr>';
+
                     foreach ($records as $record) {
-                        fputcsv($file, [
-                            $record->date->format('d/m/Y'),
-                            $record->type ?? 'N/A',
-                            $record->amount ?? 0,
-                            $record->type === 'Liquid' ? 'L' : 'Kg',
-                            $record->description ?? ''
-                        ]);
+                        $amount = number_format($record->amount ?? 0, 2, ',', '');
+                        echo '<tr>';
+                        echo '<td>' . e($record->date->format('d/m/Y')) . '</td>';
+                        echo '<td>' . e($record->type ?? 'N/A') . '</td>';
+                        echo '<td style="text-align:right;">' . e($amount) . '</td>';
+                        echo '<td>' . e($record->type === 'Liquid' ? 'L' : 'Kg') . '</td>';
+                        echo '<td>' . e($record->description ?? '') . '</td>';
+                        echo '</tr>';
                     }
                     break;
-                    
+
                 case 'maquinaria':
                     $records = Machinery::with('maintenances')->orderBy('created_at', 'desc')->get();
-                    
-                    fputcsv($file, ['Nombre', 'Marca', 'Modelo', 'Serie', 'Ubicación', 'Estado', 'Fecha Inicio Funcionamiento', 'Frecuencia Mantenimiento']);
-                    
+
+                    $headerStyle = ' style="background-color:#bbf7d0;color:#065f46;font-weight:bold;text-align:center;"';
+
+                    echo '<tr>
+                        <th' . $headerStyle . '>Nombre</th>
+                        <th' . $headerStyle . '>Marca</th>
+                        <th' . $headerStyle . '>Modelo</th>
+                        <th' . $headerStyle . '>Serie</th>
+                        <th' . $headerStyle . '>Ubicación</th>
+                        <th' . $headerStyle . '>Estado</th>
+                        <th' . $headerStyle . '>Fecha Inicio Funcionamiento</th>
+                        <th' . $headerStyle . '>Frecuencia Mantenimiento</th>
+                    </tr>';
+
                     foreach ($records as $record) {
-                        fputcsv($file, [
-                            $record->name ?? 'N/A',
-                            $record->brand ?? 'N/A',
-                            $record->model ?? 'N/A',
-                            $record->serial ?? 'N/A',
-                            $record->location ?? 'N/A',
-                            $record->status ?? 'N/A',
-                            $record->start_func ? $record->start_func->format('d/m/Y') : 'N/A',
-                            $record->maint_freq ?? 'N/A'
-                        ]);
+                        echo '<tr>';
+                        echo '<td>' . e($record->name ?? 'N/A') . '</td>';
+                        echo '<td>' . e($record->brand ?? 'N/A') . '</td>';
+                        echo '<td>' . e($record->model ?? 'N/A') . '</td>';
+                        echo '<td>' . e($record->serial ?? 'N/A') . '</td>';
+                        echo '<td>' . e($record->location ?? 'N/A') . '</td>';
+                        echo '<td>' . e($record->status ?? 'N/A') . '</td>';
+                        echo '<td>' . e($record->start_func ? $record->start_func->format('d/m/Y') : 'N/A') . '</td>';
+                        echo '<td>' . e($record->maint_freq ?? 'N/A') . '</td>';
+                        echo '</tr>';
                     }
                     break;
             }
-            
-            fclose($file);
+
+            echo '</table>';
         };
-        
+
         return response()->stream($callback, 200, $headers);
     }
 }

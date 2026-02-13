@@ -85,26 +85,26 @@ class CompostingController extends Controller
      */
     public function create()
     {
-        // Obtener inventario actual de bodega por tipo
-        $inventory = WarehouseClassification::getInventoryByType();
-        
-        // Filtrar solo los tipos que tienen cantidad disponible
-        $availableTypes = array_filter($inventory, function($quantity) {
-            return $quantity > 0;
-        });
-        
-        // Obtener residuos orgánicos que tienen cantidad en bodega (todos los usuarios)
-        $availableOrganics = Organic::whereIn('type', array_keys($availableTypes))
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function($organic) use ($inventory) {
-                // Agregar información de cantidad disponible y datos formateados
-                $organic->available_quantity = $inventory[$organic->type] ?? 0;
-                $organic->type_in_spanish = $organic->getTypeInSpanishAttribute();
-                $organic->formatted_weight = $organic->getFormattedWeightAttribute();
-                return $organic;
-            })
-            ->toArray();
+        // Un solo ítem por tipo de residuo, con el total disponible en bodega (no duplicados por registro)
+        $types = ['Kitchen', 'Beds', 'Leaves', 'CowDung', 'ChickenManure', 'PigManure', 'Other'];
+        $availableOrganics = collect();
+        foreach ($types as $type) {
+            $availableQuantity = WarehouseClassification::getCurrentInventory($type);
+            if ($availableQuantity <= 0) {
+                continue;
+            }
+            $organic = Organic::where('type', $type)->first();
+            if (!$organic) {
+                continue;
+            }
+            $availableOrganics->push([
+                'id' => $organic->id,
+                'type' => $type,
+                'type_in_spanish' => $organic->type_in_spanish,
+                'available_quantity' => round($availableQuantity, 2),
+                'available_quantity_formatted' => number_format($availableQuantity, 2, '.', ''),
+            ]);
+        }
 
         return view('aprendiz.composting.create', compact('availableOrganics'));
     }

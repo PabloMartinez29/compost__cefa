@@ -141,6 +141,7 @@ Swal.fire({
                 <table id="usersTable" class="waste-table">
                     <thead>
                         <tr>
+                            <th style="width: 4rem;">Tipo</th>
                             <th>Identificación</th>
                             <th>Usuario</th>
                             <th>Email</th>
@@ -153,6 +154,7 @@ Swal.fire({
                     <tbody>
                         @foreach($users as $user)
                     <tr>
+                        <td class="font-mono text-center text-sm font-semibold text-gray-700">{{ $user->document_type ?? '—' }}</td>
                         <td class="font-mono">{{ $user->identification ?? 'ID' . str_pad($user->id, 6, '0', STR_PAD_LEFT) }}</td>
                         <td>
                             <div class="flex items-center">
@@ -282,12 +284,17 @@ Swal.fire({
                     </div>
 
                     <div class="waste-form-group">
+                        <label class="waste-form-label">Tipo de documento</label>
+                        <div class="waste-form-input bg-gray-50" id="viewUserDocumentType"></div>
+                    </div>
+
+                    <div class="waste-form-group">
                         <label class="waste-form-label">Rol</label>
                         <div class="waste-form-input bg-gray-50" id="viewUserRole"></div>
                     </div>
 
                     <div class="waste-form-group">
-                        <label class="waste-form-label">Estado de Verificación</label>
+                        <label class="waste-form-label">Estado</label>
                         <div class="waste-form-input bg-gray-50" id="viewUserVerified"></div>
                     </div>
 
@@ -368,10 +375,29 @@ Swal.fire({
                                    required>
                         </div>
 
+                        <!-- Tipo de documento -->
+                        <div class="waste-form-group">
+                            <label for="editDocumentType" class="waste-form-label">
+                                <i class="fas fa-id-card mr-2"></i>
+                                Tipo de documento *
+                            </label>
+                            <select id="editDocumentType" 
+                                    name="document_type" 
+                                    class="waste-form-input"
+                                    required>
+                                <option value="">Seleccione un tipo</option>
+                                <option value="CC">Cédula de Ciudadanía (CC)</option>
+                                <option value="TI">Tarjeta de Identidad (TI)</option>
+                                <option value="CE">Cédula de Extranjería (CE)</option>
+                                <option value="PEP">Permiso Especial de Permanencia (PEP)</option>
+                                <option value="PASAPORTE">Pasaporte</option>
+                            </select>
+                        </div>
+
                         <!-- Identification Field -->
                         <div class="waste-form-group">
                             <label for="editIdentification" class="waste-form-label">
-                                <i class="fas fa-id-card mr-2"></i>
+                                <i class="fas fa-hashtag mr-2"></i>
                                 Identificación *
                             </label>
                             <input type="text" 
@@ -475,6 +501,17 @@ function openViewModal(userId) {
             document.getElementById('viewUserEmail').textContent = data.email;
             document.getElementById('viewUserAvatar').textContent = data.name.substring(0, 2).toUpperCase();
             
+            // Tipo de documento (valores usados en Colombia)
+            const docTypeLabels = {
+                'CC': 'Cédula de Ciudadanía',
+                'TI': 'Tarjeta de Identidad',
+                'CE': 'Cédula de Extranjería',
+                'PEP': 'Permiso Especial de Permanencia',
+                'PASAPORTE': 'Pasaporte'
+            };
+            const docType = data.document_type || '';
+            document.getElementById('viewUserDocumentType').textContent = docTypeLabels[docType] || docType || 'No especificado';
+            
             // Rol
             const roleElement = document.getElementById('viewUserRole');
             if (data.role === 'admin') {
@@ -483,12 +520,12 @@ function openViewModal(userId) {
                 roleElement.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"><i class="fas fa-user-graduate mr-1"></i>Aprendiz</span>';
             }
             
-            // Estado de verificación
+            // Estado de la cuenta (activado/desactivado)
             const verifiedElement = document.getElementById('viewUserVerified');
-            if (data.email_verified_at) {
-                verifiedElement.innerHTML = '<span class="text-green-600"><i class="fas fa-check-circle mr-1"></i>Email Verificado</span>';
+            if (data.is_active) {
+                verifiedElement.innerHTML = '<span class="text-green-600 font-medium"><i class="fas fa-check-circle mr-1"></i>Estado Activado</span>';
             } else {
-                verifiedElement.innerHTML = '<span class="text-yellow-600"><i class="fas fa-clock mr-1"></i>Email Sin Verificar</span>';
+                verifiedElement.innerHTML = '<span class="text-red-600 font-medium"><i class="fas fa-times-circle mr-1"></i>Desactivado</span>';
             }
             
             // Fechas
@@ -557,6 +594,7 @@ function openEditModal(userId) {
             document.getElementById('editUserId').textContent = data.id;
             document.getElementById('editName').value = data.name;
             document.getElementById('editEmail').value = data.email;
+            document.getElementById('editDocumentType').value = data.document_type || '';
             document.getElementById('editIdentification').value = data.identification || '';
             document.getElementById('editRole').value = data.role;
             document.getElementById('editPassword').value = '';

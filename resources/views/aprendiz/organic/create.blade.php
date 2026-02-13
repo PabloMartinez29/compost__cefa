@@ -132,7 +132,7 @@
                 <div>
                     <label class="block text-sm font-semibold text-gray-700 mb-2">
                         <i class="fas fa-image text-green-500 mr-2"></i>
-                        Imagen (Requerido)
+                        Imagen (Obligatoria)
                     </label>
                     <div class="relative">
                         <input type="file" name="img" id="imageInput" 

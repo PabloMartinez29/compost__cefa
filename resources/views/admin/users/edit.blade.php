@@ -142,15 +142,15 @@
                             </div>
                             <div>
                                 <strong>Estado:</strong> 
-                                @if($user->email_verified_at)
+                                @if($user->is_active)
                                     <span class="text-green-600">
                                         <i class="fas fa-check-circle mr-1"></i>
-                                        Verificado
+                                        Estado Activado
                                     </span>
                                 @else
-                                    <span class="text-yellow-600">
-                                        <i class="fas fa-clock mr-1"></i>
-                                        Sin verificar
+                                    <span class="text-red-600">
+                                        <i class="fas fa-times-circle mr-1"></i>
+                                        Desactivado
                                     </span>
                                 @endif
                             </div>

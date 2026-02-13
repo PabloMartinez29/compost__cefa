@@ -221,8 +221,8 @@
                     <span class="detail-value">{{ $user->updated_at->format('d/m/Y H:i:s') }}</span>
                 </div>
                 <div class="detail-item">
-                    <span class="detail-label">Email verificado:</span>
-                    <span class="detail-value">{{ $user->email_verified_at ? 'Sí' : 'No' }}</span>
+                    <span class="detail-label">Estado:</span>
+                    <span class="detail-value">{{ $user->is_active ? 'Activado' : 'Desactivado' }}</span>
                 </div>
                 <div class="detail-item">
                     <span class="detail-label">ID del usuario:</span>
@@ -235,7 +235,7 @@
             <h3>Estado de la Cuenta</h3>
             <div class="status-item">
                 <span class="status-label">Estado de la cuenta:</span>
-                <span class="status-value">Activa</span>
+                <span class="status-value">{{ $user->is_active ? 'Activado' : 'Desactivado' }}</span>
             </div>
             <div class="status-item">
                 <span class="status-label">Permisos en el sistema:</span>

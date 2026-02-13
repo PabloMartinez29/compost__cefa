@@ -155,8 +155,31 @@ class NotificationController extends Controller
             return response()->json(['error' => 'No autorizado'], 403);
         }
 
-        $notification->update(['read_at' => now()]);
+        try {
+            $notification->update(['read_at' => now()]);
 
-        return response()->json(['success' => true]);
+            if ($notification->type === 'maintenance_reminder' && $notification->machinery_id) {
+                $machinery = \App\Models\Machinery::find($notification->machinery_id);
+                if ($machinery) {
+                    try {
+                        $machinery->scheduleNextMaintenanceDue();
+                    } catch (\Throwable $e) {
+                        \Log::warning('Al marcar recordatorio como leído no se pudo reiniciar cronómetro de maquinaria.', [
+                            'machinery_id' => $notification->machinery_id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+            }
+
+            return response()->json(['success' => true]);
+        } catch (\Throwable $e) {
+            \Log::error('Error al marcar notificación como leída', [
+                'notification_id' => $notification->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return response()->json(['error' => 'No se pudo marcar como leída.', 'message' => $e->getMessage()], 500);
+        }
     }
 }

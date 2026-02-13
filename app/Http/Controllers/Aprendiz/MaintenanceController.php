@@ -64,6 +64,7 @@ class MaintenanceController extends Controller
             ->toArray();
         
         $rejectedMaintenanceIds = array_unique(array_merge($rejectedMaintenanceIds, $rejectedFromPending));
+        $machineries = Machinery::orderBy('name')->get();
 
         return view('aprendiz.machinery.maintenances.index', compact(
             'maintenances', 
@@ -74,7 +75,8 @@ class MaintenanceController extends Controller
             'operationsCount',
             'approvedMaintenanceIds',
             'pendingMaintenanceIds',
-            'rejectedMaintenanceIds'
+            'rejectedMaintenanceIds',
+            'machineries'
         ));
     }
 
@@ -130,8 +132,9 @@ class MaintenanceController extends Controller
                 $data['type'] = 'O';
             }
             
+            $data['created_by'] = auth()->id();
             Maintenance::create($data);
-            
+
             return redirect()->route('aprendiz.machinery.maintenance.index')
                 ->with('success', 'Registro de mantenimiento creado exitosamente.');
         } catch (\Exception $e) {
@@ -237,14 +240,14 @@ class MaintenanceController extends Controller
         }
 
         try {
-            $data = $request->all();
+            $data = $request->only(['machinery_id', 'date', 'end_date', 'type', 'description', 'responsible']);
             
-            // Si se registra una fecha de fin de mantenimiento, cambiar el tipo a "O" (Operación)
-            if ($request->has('end_date') && $request->end_date && $request->type == 'M') {
-                $data['type'] = 'O';
-            }
-            
+            // Respetar siempre el tipo elegido en el formulario (M o O); no sobrescribir por end_date
             $maintenance->update($data);
+            // Si vuelve a Operación, reiniciar el cronómetro de la maquinaria
+            if (($data['type'] ?? '') === 'O' && $maintenance->machinery) {
+                $maintenance->machinery->scheduleNextMaintenanceDue();
+            }
             
             return redirect()->route('aprendiz.machinery.maintenance.index')
                 ->with('success', 'Registro de mantenimiento actualizado exitosamente.');
@@ -432,6 +435,40 @@ class MaintenanceController extends Controller
             ]);
         
         return $pdf->download('mantenimiento_' . $maintenance->id . '_' . date('Y-m-d') . '.pdf');
+    }
+
+    /**
+     * Devuelve la fecha/hora del próximo mantenimiento por frecuencia (para cronómetro).
+     */
+    public function nextMaintenanceDue(Request $request)
+    {
+        $machineryId = $request->query('machinery_id');
+        if (!$machineryId) {
+            return response()->json(['error' => 'machinery_id requerido'], 400);
+        }
+        $machinery = Machinery::find($machineryId);
+        if (!$machinery) {
+            return response()->json(['error' => 'Maquinaria no encontrada'], 404);
+        }
+        $nextDue = $machinery->getNextMaintenanceDueDateTime();
+        if (!$nextDue) {
+            return response()->json([
+                'next_due' => null,
+                'frequency' => $machinery->maint_freq,
+                'seconds_remaining' => null,
+                'due_now' => false,
+                'paused' => true, // Maquinaria en mantenimiento: cronómetro pausado
+            ]);
+        }
+        $dueNow = now()->gte($nextDue);
+        $secondsRemaining = $dueNow ? 0 : (int) now()->diffInSeconds($nextDue, false);
+        return response()->json([
+            'next_due' => $nextDue->toIso8601String(),
+            'frequency' => $machinery->maint_freq,
+            'seconds_remaining' => $secondsRemaining,
+            'due_now' => $dueNow,
+            'paused' => false,
+        ]);
     }
 }
 

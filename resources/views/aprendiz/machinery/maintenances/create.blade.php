@@ -65,7 +65,7 @@
                             Maquinaria *
                         </label>
                         <div class="relative">
-                            <select name="machinery_id" required
+                            <select name="machinery_id" id="machinery_id_select" required
                                     class="w-full px-4 py-4 pr-10 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 @error('machinery_id') border-red-500 @enderror appearance-none bg-white">
                                 <option value="">Seleccionar maquinaria</option>
                                 @foreach($machineries as $machinery)
@@ -81,6 +81,15 @@
                                 {{ $message }}
                             </p>
                         @enderror
+                        <!-- Cronómetro por frecuencia de mantenimiento (Identificación y especificaciones) -->
+                        <div id="countdown_container" class="hidden mt-4 p-4 bg-soft-gray-50 border-2 border-soft-green-200 rounded-xl">
+                            <p class="text-sm font-semibold text-soft-gray-700 mb-1">
+                                <i class="fas fa-clock text-soft-green-500 mr-2"></i>
+                                Próximo mantenimiento por frecuencia
+                            </p>
+                            <p class="text-2xl font-mono font-bold text-soft-green-600" id="countdown_display">--:--:--</p>
+                            <p class="text-xs text-soft-gray-500 mt-1" id="countdown_frequency"></p>
+                        </div>
                     </div>
 
                     <!-- Tipo -->
@@ -204,6 +213,83 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const nextDueUrl = '{{ route("aprendiz.machinery.maintenance.next-due") }}';
+    let countdownInterval = null;
+
+    function pad(n) { return n < 10 ? '0' + n : n; }
+    function formatCountdown(seconds) {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = seconds % 60;
+        return pad(h) + ':' + pad(m) + ':' + pad(s);
+    }
+
+    function startCountdown(machineryId) {
+        if (countdownInterval) clearInterval(countdownInterval);
+        const container = document.getElementById('countdown_container');
+        const display = document.getElementById('countdown_display');
+        const freqEl = document.getElementById('countdown_frequency');
+        if (!machineryId) {
+            container.classList.add('hidden');
+            return;
+        }
+        fetch(nextDueUrl + '?machinery_id=' + machineryId)
+            .then(r => r.json())
+            .then(data => {
+                container.classList.remove('hidden');
+                freqEl.textContent = 'Frecuencia: ' + (data.frequency || 'N/A');
+                let seconds = data.seconds_remaining != null ? data.seconds_remaining : 0;
+                if (data.due_now || seconds <= 0) {
+                    display.textContent = '00:00:00';
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            title: 'Recordatorio de Mantenimiento',
+                            text: 'La maquinaria requiere mantenimiento por frecuencia. La información se encuentra en Notificaciones.',
+                            icon: 'warning',
+                            timer: 15000,
+                            timerProgressBar: true,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Entendido'
+                        });
+                    }
+                    return;
+                }
+                display.textContent = formatCountdown(seconds);
+                countdownInterval = setInterval(function() {
+                    seconds--;
+                    if (seconds <= 0) {
+                        clearInterval(countdownInterval);
+                        countdownInterval = null;
+                        display.textContent = '00:00:00';
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                title: 'Recordatorio de Mantenimiento',
+                                text: 'La maquinaria requiere mantenimiento por frecuencia. La información se encuentra en Notificaciones.',
+                                icon: 'warning',
+                                timer: 15000,
+                                timerProgressBar: true,
+                                showConfirmButton: true,
+                                confirmButtonText: 'Entendido'
+                            });
+                        }
+                        return;
+                    }
+                    display.textContent = formatCountdown(seconds);
+                }, 1000);
+            })
+            .catch(() => {
+                container.classList.add('hidden');
+            });
+    }
+
+    const machinerySelect = document.getElementById('machinery_id_select');
+    if (machinerySelect) {
+        machinerySelect.addEventListener('change', function() {
+            startCountdown(this.value || null);
+        });
+        if (machinerySelect.value) startCountdown(machinerySelect.value);
+    }
+
     // Contador de caracteres para descripción
     const descriptionTextarea = document.querySelector('[name="description"]');
     const charCount = document.getElementById('char-count');

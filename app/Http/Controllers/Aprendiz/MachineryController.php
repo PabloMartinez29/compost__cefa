@@ -82,7 +82,7 @@ class MachineryController extends Controller
             'serial' => 'required|string|max:100|unique:machineries,serial',
             'start_func' => 'required|date|before_or_equal:today',
             'maint_freq' => 'required|string|max:100',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp',
         ], [
             'name.required' => 'El nombre de la maquinaria es obligatorio.',
             'name.max' => 'El nombre no debe exceder 150 caracteres.',
@@ -100,6 +100,7 @@ class MachineryController extends Controller
             'start_func.before_or_equal' => 'La fecha de inicio no puede ser futura.',
             'maint_freq.required' => 'La frecuencia de mantenimiento es obligatoria.',
             'maint_freq.max' => 'La frecuencia de mantenimiento no debe exceder 100 caracteres.',
+            'image.required' => 'La imagen es obligatoria.',
             'image.image' => 'El archivo debe ser una imagen.',
             'image.mimes' => 'La imagen debe ser de tipo: jpeg, png, jpg, gif o webp.',
         ]);
@@ -118,7 +119,8 @@ class MachineryController extends Controller
                 $data['image'] = $request->file('image')->store('machineries', 'public');
             }
             
-            Machinery::create($data);
+            $machinery = Machinery::create($data);
+            $machinery->scheduleNextMaintenanceDue();
             
             return redirect()->route('aprendiz.machinery.index')
                 ->with('success', 'Maquinaria registrada exitosamente.');
@@ -199,6 +201,8 @@ class MachineryController extends Controller
             }
             
             $machinery->update($data);
+            // Al editar (p. ej. cambiar frecuencia) se reinicia el cronómetro con la nueva frecuencia
+            $machinery->scheduleNextMaintenanceDue();
             
             return redirect()->route('aprendiz.machinery.index')
                 ->with('success', 'Maquinaria actualizada exitosamente.');

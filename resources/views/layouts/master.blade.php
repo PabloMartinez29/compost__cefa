@@ -364,6 +364,14 @@
                 <div class="flex items-center space-x-4">
                     <!-- Notifications Bell -->
                     <div class="relative">
+                        @php
+                            \App\Models\Machinery::ensureFrequencyBasedRemindersForUser(auth()->user());
+                            $showMaintenanceReminderAlert = \App\Models\Notification::where('user_id', auth()->id())
+                                ->where('type', 'maintenance_reminder')
+                                ->whereNull('read_at')
+                                ->where('created_at', '<=', now()->subMinute())
+                                ->exists();
+                        @endphp
                         <button onclick="toggleNotifications()" 
                             class="relative p-2 text-soft-gray-600 hover:text-soft-green-600 hover:bg-soft-gray-100 rounded-lg transition-all duration-200">
                             <i class="fas fa-bell text-lg"></i>
@@ -397,7 +405,7 @@
                                     ->whereIn('type', ['delete_request', 'maintenance_reminder'])
                                     ->where('status', 'pending')
                                     ->whereNull('read_at')
-                                    ->with(['fromUser', 'organic', 'composting', 'machinery'])
+                                    ->with(['fromUser', 'organic', 'composting', 'machinery', 'maintenance'])
                                     ->orderBy('created_at', 'desc')
                                     ->get();
                             @endphp
@@ -424,10 +432,6 @@
                                                     {{ $notification->created_at->diffForHumans() }}
                                                 </p>
                                                 <div class="flex space-x-2 mt-2">
-                                                    <a href="{{ route('admin.machinery.maintenance.create') }}" 
-                                                       class="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors">
-                                                        Registrar Mantenimiento
-                                                    </a>
                                                     <button onclick="markNotificationAsRead({{ $notification->id }})" 
                                                         class="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600 transition-colors">
                                                         Marcar como leída
@@ -769,8 +773,19 @@
             }
         });
 
-
-
+        @if(!empty($showMaintenanceReminderAlert))
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                title: 'Recordatorio de Mantenimiento',
+                text: 'Tiene recordatorios de mantenimiento sin leer. La información se encuentra en Notificaciones.',
+                icon: 'warning',
+                timer: 15000,
+                timerProgressBar: true,
+                showConfirmButton: true,
+                confirmButtonText: 'Entendido'
+            });
+        });
+        @endif
     </script>
 </body>
 </html>

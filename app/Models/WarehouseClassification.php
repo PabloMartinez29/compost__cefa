@@ -12,6 +12,7 @@ class WarehouseClassification extends Model
     protected $table = 'warehouse_classification';
 
     protected $fillable = [
+        'organic_id',
         'date',
         'type',
         'movement_type',
@@ -71,6 +72,14 @@ class WarehouseClassification extends Model
     public function getMovementTypeInSpanishAttribute()
     {
         return $this->movement_type === 'entry' ? 'Entrada' : 'Salida';
+    }
+
+    /**
+     * Relación con el residuo orgánico (solo para entradas automáticas desde residuos).
+     */
+    public function organic()
+    {
+        return $this->belongsTo(Organic::class);
     }
 
     // Método para calcular inventario actual por tipo

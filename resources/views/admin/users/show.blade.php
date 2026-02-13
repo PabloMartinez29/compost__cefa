@@ -90,14 +90,14 @@
                                 <p class="text-lg font-semibold text-gray-900">#{{ $user->id }}</p>
                             </div>
                             <div>
-                                <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Estado de Verificación</label>
+                                <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Estado</label>
                                 <div class="flex items-center">
-                                    @if($user->email_verified_at)
+                                    @if($user->is_active)
                                         <i class="fas fa-check-circle text-green-500 mr-2"></i>
-                                        <span class="text-green-600 font-medium">Email Verificado</span>
+                                        <span class="text-green-600 font-medium">Estado Activado</span>
                                     @else
-                                        <i class="fas fa-clock text-yellow-500 mr-2"></i>
-                                        <span class="text-yellow-600 font-medium">Email Sin Verificar</span>
+                                        <i class="fas fa-times-circle text-red-500 mr-2"></i>
+                                        <span class="text-red-600 font-medium">Desactivado</span>
                                     @endif
                                 </div>
                             </div>

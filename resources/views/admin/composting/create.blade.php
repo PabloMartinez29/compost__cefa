@@ -222,7 +222,7 @@ function addIngredient() {
                         class="waste-form-select @error('ingredients.*.organic_id') border-red-500 @enderror" required>
                     <option value="">Seleccionar residuo</option>
                     ${availableOrganics.map(organic => `
-                        <option value="${organic.id}">${organic.type_in_spanish} - ${organic.formatted_weight} (Disponible: ${organic.available_quantity} Kg)</option>
+                        <option value="${organic.id}">${organic.type_in_spanish} (Disponible: ${organic.available_quantity_formatted || organic.available_quantity} Kg)</option>
                     `).join('')}
                 </select>
             </div>

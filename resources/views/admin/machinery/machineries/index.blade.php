@@ -103,92 +103,96 @@
         </div>
 
         @if($machineries->count() > 0)
-            <!-- Tabla de maquinaria -->
+            <!-- Tabla de maquinaria (mismo estilo que Control de actividades) -->
             <div class="overflow-x-auto">
-                <!-- DataTables agregará los controles y la tabla aquí -->
-                <div id="machineriesTable_wrapper" class="p-6">
+                <div id="machineriesTable_wrapper" class="p-6 pr-12">
                     <!-- Contenedor para controles superiores -->
                     <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
                         <div id="dt-length-container" style="float: left;"></div>
                         <div id="dt-filter-container" style="float: right;"></div>
                     </div>
-                    <table id="machineriesTable" class="waste-table">
+                    <table id="machineriesTable" class="waste-table machineries-registros-table">
                         <thead>
                             <tr>
-                                <th>Imagen</th>
-                                <th>Maquinaria</th>
-                                <th>Ubicación</th>
-                                <th>Marca/Modelo</th>
-                                <th>Serie</th>
-                                <th>Estado</th>
-                                <th>Mantenimiento</th>
-                                <th>Acciones</th>
+                                <th style="width: 56px;">Imagen</th>
+                                <th style="width: 140px;">Maquinaria</th>
+                                <th style="width: 100px;">Ubicación</th>
+                                <th style="width: 100px;">Marca/Modelo</th>
+                                <th style="width: 110px;">Serie</th>
+                                <th style="width: 115px;">Estado</th>
+                                <th style="width: 95px;">Mantenimiento</th>
+                                <th style="width: 115px;">Cronómetro</th>
+                                <th class="text-center" style="width: 120px;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($machineries as $machinery)
                                 <tr>
-                                    <td class="text-center align-middle">
+                                    <td class="text-center align-middle py-2">
                                         @if($machinery->image)
-                                            <div class="w-12 h-12 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 mx-auto">
+                                            <div class="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 mx-auto">
                                                 <img src="{{ Storage::url($machinery->image) }}" 
                                                      alt="{{ $machinery->name }}" 
                                                      class="w-full h-full object-cover">
                                             </div>
                                         @else
-                                            <div class="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0 mx-auto">
-                                                <i class="fas fa-cogs text-green-600"></i>
+                                            <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0 mx-auto">
+                                                <i class="fas fa-cogs text-green-600 text-sm"></i>
                                             </div>
                                         @endif
                                     </td>
-                                    <td class="text-left align-middle">
-                                        <div>
-                                            <div class="text-sm font-medium text-gray-900 break-words">
-                                                {{ $machinery->name }}
-                                            </div>
-                                            <div class="text-xs text-gray-500 break-words">
-                                                Desde {{ $machinery->start_func->format('d/m/Y') }}
-                                            </div>
+                                    <td class="text-left align-middle py-2">
+                                        <div class="max-w-[140px]">
+                                            <div class="text-sm font-medium text-gray-900 truncate" title="{{ $machinery->name }}">{{ $machinery->name }}</div>
+                                            <div class="text-xs text-gray-500">Desde {{ $machinery->start_func->format('d/m/Y') }}</div>
                                         </div>
                                     </td>
-                                    <td class="text-left align-middle">
-                                        <div class="text-sm text-gray-900 break-words">{{ $machinery->location }}</div>
+                                    <td class="text-left align-middle py-2">
+                                        <div class="text-sm text-gray-900 truncate max-w-[100px]" title="{{ $machinery->location }}">{{ $machinery->location }}</div>
                                     </td>
-                                    <td class="text-left align-middle">
-                                        <div class="text-sm text-gray-900 break-words">{{ $machinery->brand }}</div>
-                                        <div class="text-xs text-gray-500 break-words">{{ $machinery->model }}</div>
+                                    <td class="text-left align-middle py-2">
+                                        <div class="text-sm text-gray-900 truncate max-w-[100px]" title="{{ $machinery->brand }} {{ $machinery->model }}">{{ $machinery->brand }}</div>
+                                        <div class="text-xs text-gray-500 truncate max-w-[100px]">{{ $machinery->model }}</div>
                                     </td>
-                                    <td class="text-left align-middle">
-                                        <div class="text-sm font-mono text-gray-900 break-words">{{ $machinery->serial }}</div>
+                                    <td class="text-left align-middle py-2">
+                                        <div class="text-sm font-mono text-gray-900 truncate max-w-[110px]" title="{{ $machinery->serial }}">{{ $machinery->serial }}</div>
                                     </td>
-                                    <td class="text-center align-middle">
+                                    <td class="text-center align-middle py-2">
                                         @php
                                             $status = $machinery->status;
                                             $statusClass = match($status) {
-                                                'Operación' => 'bg-green-100 text-green-800',
-                                                'En mantenimiento' => 'bg-yellow-100 text-yellow-800',
-                                                'Mantenimiento requerido' => 'bg-red-100 text-red-800',
+                                                'Operación' => 'waste-badge waste-badge-success',
+                                                'En mantenimiento' => 'waste-badge waste-badge-danger',
+                                                'Mantenimiento requerido' => 'waste-badge waste-badge-danger',
                                                 'Sin actividad' => 'bg-gray-100 text-gray-800',
                                                 default => 'bg-gray-100 text-gray-800'
                                             };
                                         @endphp
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $statusClass }} break-words">
-                                            {{ $status }}
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $statusClass }}">
+                                            {{ $status === 'En mantenimiento' ? 'Mantenimiento' : $status }}
                                         </span>
                                     </td>
-                                    <td class="text-center align-middle">
-                                        <div class="text-sm text-gray-900 break-words">{{ $machinery->maint_freq }}</div>
+                                    <td class="text-center align-middle py-2">
+                                        <div class="text-sm text-gray-900">{{ $machinery->maint_freq }}</div>
                                     </td>
-                                    <td class="text-center align-middle">
-                                        <div class="flex items-center justify-center space-x-2">
+                                    <td class="text-center align-middle py-2">
+                                        @if($machinery->status === 'En mantenimiento')
+                                            <span class="text-sm font-semibold text-amber-600">Pausado</span>
+                                        @else
+                                            @php $nextDue = $machinery->getNextMaintenanceDueDateTime(); @endphp
+                                            <span class="machinery-countdown text-sm font-mono font-semibold text-gray-800" data-next-due="{{ $nextDue?->toIso8601String() ?? '' }}">--</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-center align-middle py-2" style="white-space: nowrap;">
+                                        <div class="flex flex-nowrap items-center justify-center gap-0.5">
                                             <a href="{{ route('admin.machinery.show', $machinery) }}" 
-                                               class="inline-flex items-center text-blue-400 hover:text-blue-500"
+                                               class="inline-flex items-center justify-center text-blue-400 hover:text-blue-500 w-7 h-7 rounded hover:bg-blue-50 transition-colors shrink-0"
                                                title="Ver detalles">
-                                                <i class="fas fa-eye"></i>
+                                                <i class="fas fa-eye text-sm"></i>
                                             </a>
                                             <button type="button"
                                                     onclick="confirmEdit({{ $machinery->id }})"
-                                                    class="inline-flex items-center text-green-500 hover:text-green-700"
+                                                    class="inline-flex items-center justify-center text-green-500 hover:text-green-700 w-7 h-7 rounded hover:bg-green-50 transition-colors shrink-0"
                                                     title="Editar"
                                                     data-id="{{ $machinery->id }}"
                                                     data-name="{{ $machinery->name }}"
@@ -199,23 +203,23 @@
                                                     data-start_func="{{ $machinery->start_func->format('Y-m-d') }}"
                                                     data-maint_freq="{{ $machinery->maint_freq }}"
                                                     data-image="{{ $machinery->image ? Storage::url($machinery->image) : '' }}">
-                                                <i class="fas fa-edit"></i>
+                                                <i class="fas fa-edit text-sm"></i>
                                             </button>
                                             <a href="{{ route('admin.machinery.download.pdf', $machinery) }}" 
-                                               class="inline-flex items-center text-red-800 hover:text-red-900"
+                                               class="inline-flex items-center justify-center text-red-800 hover:text-red-900 w-7 h-7 rounded hover:bg-red-50 transition-colors shrink-0"
                                                title="Descargar PDF">
-                                                <i class="fas fa-file-pdf"></i>
+                                                <i class="fas fa-file-pdf text-sm"></i>
                                             </a>
                                             <form action="{{ route('admin.machinery.destroy', $machinery) }}" 
                                                   method="POST" 
-                                                  class="inline"
+                                                  class="inline-flex shrink-0"
                                                   onsubmit="return confirmDelete(event, this)">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" 
-                                                        class="inline-flex items-center text-red-500 hover:text-red-700"
+                                                        class="inline-flex items-center justify-center text-red-500 hover:text-red-700 w-7 h-7 rounded hover:bg-red-50 transition-colors"
                                                         title="Eliminar">
-                                                    <i class="fas fa-trash"></i>
+                                                    <i class="fas fa-trash text-sm"></i>
                                                 </button>
                                             </form>
                                         </div>
@@ -660,6 +664,32 @@
                 }
             }
         });
+
+        // Actualizar cronómetros de maquinaria cada segundo
+        function formatCountdown(totalSeconds) {
+            if (totalSeconds == null || totalSeconds < 0) return '--';
+            if (totalSeconds <= 0) return '0d 0h 0m 0s';
+            const d = Math.floor(totalSeconds / 86400);
+            const h = Math.floor((totalSeconds % 86400) / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const s = totalSeconds % 60;
+            return d + 'd ' + h + 'h ' + m + 'm ' + s + 's';
+        }
+        function updateMachineryCountdowns() {
+            document.querySelectorAll('.machinery-countdown').forEach(function(el) {
+                const nextDue = el.getAttribute('data-next-due');
+                if (!nextDue) {
+                    el.textContent = '--';
+                    return;
+                }
+                const end = new Date(nextDue);
+                const now = new Date();
+                const sec = Math.max(0, Math.floor((end - now) / 1000));
+                el.textContent = formatCountdown(sec);
+            });
+        }
+        updateMachineryCountdowns();
+        setInterval(updateMachineryCountdowns, 1000);
     });
 </script>
 
@@ -795,6 +825,21 @@
     content: "";
     display: table;
     clear: both;
+}
+
+/* Tabla Registros de Maquinaria más compacta */
+.machineries-registros-table {
+    table-layout: fixed;
+    width: 100%;
+    max-width: 100%;
+}
+.machineries-registros-table th,
+.machineries-registros-table td {
+    padding: 0.5rem 0.4rem;
+    vertical-align: middle;
+}
+.machineries-registros-table .dataTables_wrapper {
+    overflow-x: auto;
 }
 </style>
 
