@@ -13,7 +13,7 @@ return new class extends Migration
     {
         if (!Schema::hasColumn('users', 'document_type')) {
             Schema::table('users', function (Blueprint $table) {
-                $table->string('document_type', 10)->nullable()->after('identification');
+                $table->string('document_type', 10)->nullable()->after('email');
             });
         }
     }

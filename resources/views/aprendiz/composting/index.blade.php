@@ -7,28 +7,28 @@
     use Illuminate\Support\Facades\Storage;
 @endphp
 
-<div class="container mx-auto px-6 py-8">
+<div class="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
     <!-- Header -->
     <div class="waste-header animate-fade-in-up">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="waste-title">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+            <div class="flex-1 min-w-0">
+                <h1 class="waste-title text-xl sm:text-2xl">
                     <i class="fas fa-mountain waste-icon"></i>
                     Registro de Pilas de Compostaje
                 </h1>
-                <p class="waste-subtitle">
+                <p class="waste-subtitle text-sm sm:text-base">
                     <i class="fas fa-user-graduate text-green-400 mr-2"></i>
-                    {{ Auth::user()->name }} - Panel de Aprendiz
+                    <span class="break-words">{{ Auth::user()->name }} - Panel de Aprendiz</span>
                 </p>
             </div>
-            <div class="text-right">
-                <div class="text-green-400 font-bold text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
+            <div class="text-left sm:text-right flex-shrink-0">
+                <div class="text-green-400 font-bold text-base sm:text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
             </div>
         </div>
     </div>
 
     <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <!-- Total Pilas -->
         <div class="waste-card waste-card-primary animate-fade-in-up animate-delay-1">
             <div class="flex items-center justify-between">
@@ -85,22 +85,23 @@
     <!-- Main Content -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
         <!-- Table Header -->
-        <div class="p-6 border-b border-gray-200 bg-gray-50">
-            <!-- Primera fila: Título y botones -->
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+        <div class="p-3 sm:p-4 md:p-6 border-b border-gray-200 bg-gray-50">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4">
+                <h2 class="text-base sm:text-lg font-semibold text-gray-800 flex items-center">
                     <i class="fas fa-mountain text-green-600 mr-2"></i>
                     Pilas de Compostaje Registradas
                 </h2>
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
                     @if($compostings->count() > 0)
-                        <button type="button" id="btn-download-all-pdf" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm" title="Descargar PDF de los registros visibles (filtrados)">
+                        <button type="button" id="btn-download-all-pdf" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm text-sm sm:text-base" title="Descargar PDF">
                             <i class="fas fa-file-pdf"></i>
+                            <span class="hidden sm:inline ml-2">PDF</span>
                         </button>
                     @endif
-                    <a href="{{ route('aprendiz.composting.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                    <a href="{{ route('aprendiz.composting.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm text-sm sm:text-base flex-1 sm:flex-initial justify-center">
                         <i class="fas fa-plus mr-2"></i>
-                        Nueva Pila
+                        <span class="hidden sm:inline">Nueva Pila</span>
+                        <span class="sm:hidden">Nueva</span>
                     </a>
                 </div>
             </div>
@@ -119,9 +120,39 @@
         @endif
 
         @if($compostings->count() > 0)
-            <!-- Tabla de pilas -->
-            <div id="compostingsTable_wrapper" class="p-6">
-                <!-- Contenedor para controles superiores -->
+            <!-- Vista móvil: tarjetas -->
+            <div class="block md:hidden p-3 sm:p-4 space-y-4">
+                @foreach($compostings as $composting)
+                    <div class="waste-mobile-card bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm" data-id="{{ $composting->id }}">
+                        <div class="flex gap-3">
+                            <div class="flex-shrink-0">
+                                @if($composting->image)
+                                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 cursor-pointer" onclick="openImageModal('{{ Storage::url($composting->image) }}')">
+                                        <img src="{{ Storage::url($composting->image) }}" alt="{{ $composting->formatted_pile_num }}" class="w-full h-full object-cover" onerror="this.style.display='none';">
+                                        <div class="w-full h-full bg-gray-200 flex items-center justify-center" style="display: none;"><i class="fas fa-mountain text-gray-400"></i></div>
+                                    </div>
+                                @else
+                                    <div class="w-14 h-14 rounded-xl bg-green-100 flex items-center justify-center"><i class="fas fa-mountain text-green-600 text-xl"></i></div>
+                                @endif
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-gray-900">{{ $composting->formatted_pile_num }}</h3>
+                                <p class="text-sm text-gray-600">{{ $composting->formatted_start_date }} · {{ $composting->formatted_end_date ?? 'En proceso' }}</p>
+                                {!! $composting->formatted_status !!}
+                                @if($composting->total_kg)<span class="text-green-600 font-medium">{{ $composting->formatted_total_kg }}</span>@endif
+                            </div>
+                        </div>
+                        <div class="waste-mobile-card-actions mt-4 pt-3 border-t border-gray-200">
+                            <button type="button" onclick="openViewModal({{ $composting->id }})" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg flex-shrink-0" title="Ver"><i class="fas fa-eye"></i></button>
+                            <a href="{{ route('aprendiz.composting.edit', $composting) }}" class="p-2 text-green-600 hover:bg-green-50 rounded-lg flex-shrink-0" title="Editar"><i class="fas fa-edit"></i></a>
+                            <form action="{{ route('aprendiz.composting.destroy', $composting) }}" method="POST" class="inline flex-shrink-0" onsubmit="return confirmDelete(event, this)">@csrf @method('DELETE')<button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Eliminar"><i class="fas fa-trash"></i></button></form>
+                            <a href="{{ route('aprendiz.composting.download.pdf', $composting) }}" class="p-2 text-red-700 hover:bg-red-50 rounded-lg flex-shrink-0" title="PDF"><i class="fas fa-file-pdf"></i></a>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+            <div class="hidden md:block overflow-x-auto -mx-3 sm:mx-0">
+            <div id="compostingsTable_wrapper" class="p-3 sm:p-4 md:p-6">
                 <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
                     <div id="dt-length-container" style="float: left;"></div>
                     <div id="dt-filter-container" style="float: right;"></div>
@@ -293,6 +324,7 @@
                         @endforeach
                     </tbody>
                 </table>
+            </div>
             </div>
         @else
             <!-- Estado vacío -->
@@ -1096,3 +1128,9 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endsection
+
+
+
+
+
+

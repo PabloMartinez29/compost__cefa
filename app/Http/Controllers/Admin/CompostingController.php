@@ -107,7 +107,9 @@ class CompostingController extends Controller
             // Handle image upload
             $imagePath = null;
             if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('compostings', 'public');
+                $file = $request->file('image');
+                $name = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
+                $imagePath = $file->storeAs('compostings', $name, 'public');
             }
             
             // Crear el compostaje
@@ -315,14 +317,14 @@ class CompostingController extends Controller
             ];
             
             if ($request->hasFile('image')) {
-                // Eliminar imagen anterior si existe
                 if ($composting->image && Storage::disk('public')->exists($composting->image)) {
                     Storage::disk('public')->delete($composting->image);
                 }
-                $data['image'] = $request->file('image')->store('compostings', 'public');
+                $file = $request->file('image');
+                $name = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
+                $data['image'] = $file->storeAs('compostings', $name, 'public');
             }
             
-            // Si se envía remove_image, eliminar la imagen
             if ($request->has('remove_image') && $request->remove_image == '1') {
                 if ($composting->image && Storage::disk('public')->exists($composting->image)) {
                     Storage::disk('public')->delete($composting->image);
@@ -356,7 +358,6 @@ class CompostingController extends Controller
     {
         DB::beginTransaction();
         try {
-            // Delete image if exists
             if ($composting->image && Storage::disk('public')->exists($composting->image)) {
                 Storage::disk('public')->delete($composting->image);
             }

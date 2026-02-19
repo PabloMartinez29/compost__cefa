@@ -95,8 +95,18 @@
         @apply w-full bg-cyan-200 hover:bg-cyan-300 text-cyan-800 font-medium py-3 px-4 rounded-lg transition-all duration-300 hover:shadow-lg hover:transform hover:-translate-y-1 flex items-center justify-center;
     }
     
+    /* Tarjetas móviles: evita desbordamiento de iconos de acción */
+    .waste-mobile-card {
+        overflow: hidden;
+        min-width: 0;
+    }
+    .waste-mobile-card-actions {
+        @apply flex flex-wrap items-center justify-end gap-2;
+    }
+
     .waste-table {
         @apply w-full bg-white rounded-lg overflow-hidden border border-gray-200;
+        min-width: 900px; /* scroll horizontal en móvil cuando está dentro de overflow-x-auto */
     }
     
     .waste-table th {
@@ -218,4 +228,111 @@
 
 .animate-delay-4 {
     animation-delay: 0.4s;
+}
+
+/* Responsive Styles */
+@media (max-width: 640px) {
+    .waste-container {
+        @apply p-4;
+    }
+    
+    .waste-header {
+        @apply p-4;
+    }
+    
+    .waste-title {
+        @apply text-xl;
+    }
+    
+    .waste-subtitle {
+        @apply text-base;
+    }
+    
+    .waste-card {
+        @apply p-4;
+    }
+    
+    .waste-card-header {
+        @apply px-4 py-3;
+    }
+    
+    /* Responsive Tables */
+    .overflow-x-auto {
+        -webkit-overflow-scrolling: touch;
+        overflow-x: auto;
+        width: 100%;
+    }
+    
+    .waste-table {
+        font-size: 0.875rem;
+        min-width: 600px;
+    }
+    
+    .waste-table th,
+    .waste-table td {
+        @apply py-2 px-2;
+        white-space: nowrap;
+    }
+    
+    /* Responsive Buttons */
+    .waste-btn,
+    .waste-btn-secondary,
+    .waste-btn-warning,
+    .waste-btn-info {
+        @apply text-sm py-2 px-3;
+    }
+    
+    /* Responsive Forms */
+    .waste-form {
+        @apply p-4;
+    }
+    
+    .waste-form-input,
+    .waste-form-select,
+    .waste-form-textarea {
+        @apply text-base;
+    }
+    
+    /* Responsive Grids in Forms */
+    .grid {
+        grid-template-columns: 1fr !important;
+    }
+    
+    /* Responsive DataTables Controls */
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter {
+        float: none !important;
+        width: 100% !important;
+        margin-bottom: 0.75rem;
+        text-align: left !important;
+    }
+    
+    .dataTables_wrapper .dataTables_length label,
+    .dataTables_wrapper .dataTables_filter label {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    
+    .dataTables_wrapper .dataTables_length select,
+    .dataTables_wrapper .dataTables_filter input {
+        width: 100%;
+        margin-top: 0.25rem;
+    }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+    .waste-table {
+        font-size: 0.9rem;
+    }
+    
+    .waste-table th,
+    .waste-table td {
+        @apply py-2.5 px-3;
+    }
+    
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_filter {
+        margin-bottom: 0.5rem;
+    }
 }

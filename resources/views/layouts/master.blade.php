@@ -7,9 +7,9 @@
     <title>Sistema de Compostaje</title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{{ asset('img/logo-compost-cefa.png') }}">
-    <link rel="shortcut icon" type="image/png" href="{{ asset('img/logo-compost-cefa.png') }}">
-    <link rel="apple-touch-icon" href="{{ asset('img/logo-compost-cefa.png') }}">
+    <link rel="icon" type="image/webp" href="{{ asset('img/logo-compost-cefa.webp') }}">
+    <link rel="shortcut icon" type="image/webp" href="{{ asset('img/logo-compost-cefa.webp') }}">
+    <link rel="apple-touch-icon" href="{{ asset('img/logo-compost-cefa.webp') }}">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -64,6 +64,9 @@
             }
         }
     </script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -132,16 +135,110 @@
         nav::-webkit-scrollbar-thumb:hover {
             background-color: #9ca3af;
         }
+
+        [x-cloak] { display: none !important; }
+        
+        /* Responsive Tables */
+        .table-responsive {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            width: 100%;
+        }
+        
+        .table-responsive table {
+            min-width: 600px;
+        }
+        
+        @media (max-width: 640px) {
+            .table-responsive table {
+                min-width: 100%;
+                font-size: 0.875rem;
+            }
+            
+            .table-responsive th,
+            .table-responsive td {
+                padding: 0.5rem;
+                white-space: nowrap;
+            }
+        }
+        
+        /* Responsive Cards */
+        @media (max-width: 640px) {
+            .grid {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .grid-cols-2 {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .grid-cols-3 {
+                grid-template-columns: 1fr !important;
+            }
+            
+            .grid-cols-4 {
+                grid-template-columns: 1fr !important;
+            }
+        }
+        
+        @media (min-width: 641px) and (max-width: 1024px) {
+            .grid-cols-4 {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+        }
+        
+        /* Responsive Header */
+        @media (max-width: 640px) {
+            header {
+                padding: 0.5rem 1rem;
+            }
+            
+            header h1 {
+                font-size: 1.25rem;
+            }
+            
+            header .text-2xl {
+                font-size: 1.125rem;
+            }
+        }
+        
+        /* Responsive Content Padding */
+        @media (max-width: 640px) {
+            main {
+                padding: 0.75rem !important;
+            }
+        }
+        
+        /* Responsive Buttons */
+        @media (max-width: 640px) {
+            .btn-group {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .btn-group button,
+            .btn-group a {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+        }
     </style>
 </head>
 
-<body class="bg-soft-gray-50 font-sans">
+<body class="bg-soft-gray-50 font-sans" x-data="{ sidebarOpen: false }">
     <div class="flex h-screen overflow-hidden">
+        <!-- Mobile sidebar overlay -->
+        <div x-show="sidebarOpen" @click="sidebarOpen = false" x-transition:enter="transition-opacity ease-linear duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity ease-linear duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-20 bg-black bg-opacity-50 lg:hidden" x-cloak></div>
+
         <!-- Sidebar -->
-        <div class="w-64 bg-white shadow-lg sidebar-transition flex flex-col h-screen overflow-hidden">
+        <div :class="sidebarOpen ? 'translate-x-0 ease-out' : '-translate-x-full ease-in'" class="fixed inset-y-0 left-0 z-30 w-64 sm:w-72 bg-white shadow-lg transition duration-300 transform lg:translate-x-0 lg:static lg:inset-0 flex flex-col h-screen overflow-hidden">
             <!-- Logo/Brand -->
             <div class="h-32 flex items-center justify-center border-b border-soft-gray-200 px-4 flex-shrink-0">
-                <img src="{{ asset('img/logo-compost-cefa.png') }}" alt="COMPOST CEFA" class="h-28 w-auto max-w-full object-contain">
+                <img src="{{ asset('img/logo-compost-cefa.webp') }}" alt="COMPOST CEFA" class="h-28 w-auto max-w-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="h-28 hidden items-center justify-center gap-2 text-soft-green-700 font-bold text-lg" style="display: none;">
+                    <i class="fas fa-seedling text-2xl"></i>
+                    <span>COMPOST CEFA</span>
+                </div>
             </div>
             
             <!-- Navigation -->
@@ -355,13 +452,18 @@
         <!-- Main Content -->
         <div class="flex-1 flex flex-col overflow-hidden">
             <!-- Top Navigation -->
-            <header class="h-16 bg-green-100 shadow-sm border-b border-soft-gray-200 flex items-center justify-between px-6">
-                <div class="flex items-center space-x-4">
-                    <h2 class="text-xl font-semibold text-soft-gray-800">Panel de Administración</h2>
+            <header class="h-14 sm:h-16 bg-green-100 shadow-sm border-b border-soft-gray-200 flex items-center justify-between px-3 sm:px-4 lg:px-6">
+                <div class="flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0">
+                    <!-- Hamburger menu button -->
+                    <button @click="sidebarOpen = true" class="text-soft-gray-600 focus:outline-none lg:hidden flex-shrink-0 p-2">
+                        <i class="fas fa-bars text-lg sm:text-xl"></i>
+                    </button>
+                    
+                    <h2 class="text-base sm:text-lg lg:text-xl font-semibold text-soft-gray-800 truncate">Panel de Administración</h2>
                 </div>
                 
                 <!-- User Menu -->
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-1 sm:space-x-2 lg:space-x-4 flex-shrink-0">
                     <!-- Notifications Bell -->
                     <div class="relative">
                         @php
@@ -373,8 +475,8 @@
                                 ->exists();
                         @endphp
                         <button onclick="toggleNotifications()" 
-                            class="relative p-2 text-soft-gray-600 hover:text-soft-green-600 hover:bg-soft-gray-100 rounded-lg transition-all duration-200">
-                            <i class="fas fa-bell text-lg"></i>
+                            class="relative p-1.5 sm:p-2 text-soft-gray-600 hover:text-soft-green-600 hover:bg-soft-gray-100 rounded-lg transition-all duration-200">
+                            <i class="fas fa-bell text-base sm:text-lg"></i>
                             <!-- Notification Badge -->
                             @php
                                 $pendingNotifications = \App\Models\Notification::where('user_id', auth()->id())
@@ -391,7 +493,7 @@
                         </button>
                         
                         <!-- Notifications Dropdown -->
-                        <div id="notificationsMenu" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-soft-gray-200 py-2 z-50 max-h-96 overflow-y-auto">
+                        <div id="notificationsMenu" class="hidden absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-lg shadow-lg border border-soft-gray-200 py-2 z-50 max-h-96 overflow-y-auto">
                             <div class="px-4 py-2 border-b border-soft-gray-100 flex items-center justify-between">
                                 <h3 class="text-sm font-semibold text-soft-gray-800">Notificaciones</h3>
                                 <a href="{{ route('admin.notifications.history') }}" 
@@ -496,22 +598,26 @@
                     
                     <div class="relative">
                         <button onclick="toggleSubmenu('userMenu', 'userArrow')" 
-                            class="flex items-center space-x-3 hover:bg-soft-gray-100 rounded-lg px-3 py-2 transition-all duration-200">
-                            <div class="w-8 h-8 bg-gradient-to-br from-soft-green-500 to-soft-green-600 rounded-full flex items-center justify-center">
-                                <i class="fas fa-user text-white text-sm"></i>
+                            class="flex items-center space-x-1 sm:space-x-2 lg:space-x-3 hover:bg-soft-gray-100 rounded-lg px-1.5 sm:px-2 lg:px-3 py-1.5 sm:py-2 transition-all duration-200">
+                            <div class="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-soft-green-500 to-soft-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-user text-white text-xs sm:text-sm"></i>
                             </div>
-                            <div class="text-right">
-                                <p class="text-sm font-medium text-soft-gray-800">{{ Auth::user()?->name ?? 'Usuario' }}</p>
+                            <div class="text-right hidden md:block">
+                                <p class="text-xs sm:text-sm font-medium text-soft-gray-800 truncate max-w-[100px] sm:max-w-none">{{ Auth::user()?->name ?? 'Usuario' }}</p>
                                 <p class="text-xs text-soft-gray-500">Administrador</p>
                             </div>
-                            <i id="userArrow" class="fas fa-chevron-down text-soft-gray-400 text-xs transition-transform duration-200"></i>
+                            <i id="userArrow" class="fas fa-chevron-down text-soft-gray-400 text-xs transition-transform duration-200 hidden md:block"></i>
                         </button>
                         
                         <!-- Dropdown Menu -->
                         <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-soft-gray-200 py-2 z-50">
-                            <!-- User Info -->
-                            <div class="px-4 py-2 border-b border-soft-gray-100">
+                            <!-- User Info (Visible only on mobile in dropdown) -->
+                            <div class="px-4 py-2 border-b border-soft-gray-100 sm:hidden">
                                 <p class="text-sm font-medium text-soft-gray-800">{{ Auth::user()?->name ?? 'Usuario' }}</p>
+                                <p class="text-xs text-soft-gray-500">Administrador</p>
+                            </div>
+                            <!-- User Email -->
+                            <div class="px-4 py-2 border-b border-soft-gray-100">
                                 <p class="text-xs text-soft-gray-500">{{ Auth::user()?->email ?? 'N/A' }}</p>
                             </div>
                             
@@ -541,8 +647,10 @@
             </header>
             
             <!-- Page Content -->
-            <main class="flex-1 overflow-y-auto bg-soft-gray-50 p-6">
-                @yield('content')
+            <main class="flex-1 overflow-y-auto bg-soft-gray-50 p-3 sm:p-4 lg:p-6">
+                <div class="w-full max-w-full overflow-x-hidden">
+                    @yield('content')
+                </div>
             </main>
         </div>                              
     </div>

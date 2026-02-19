@@ -552,28 +552,28 @@ function requestDeletePermission(trackingId) {
 </script>
 @endif
 
-<div class="waste-container">
+<div class="waste-container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
     <!-- Header -->
     <div class="waste-header animate-fade-in-up">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="waste-title">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+            <div class="flex-1 min-w-0">
+                <h1 class="waste-title text-xl sm:text-2xl">
                     <i class="fas fa-chart-line waste-icon"></i>
                     Seguimiento de Pilas
                 </h1>
-                <p class="waste-subtitle">
+                <p class="waste-subtitle text-sm sm:text-base">
                     <i class="fas fa-user-graduate text-green-400 mr-2"></i>
-                    {{ Auth::user()->name }} - Panel de Aprendiz
+                    <span class="break-words">{{ Auth::user()->name }} - Panel de Aprendiz</span>
                 </p>
             </div>
-            <div class="text-right">
-                <div class="text-green-400 font-bold text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
+            <div class="text-left sm:text-right flex-shrink-0">
+                <div class="text-green-400 font-bold text-base sm:text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
             </div>
         </div>
     </div>
 
     <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <div class="waste-card waste-card-primary animate-fade-in-up animate-delay-1">
             <div class="flex items-center justify-between">
                 <div>
@@ -614,9 +614,9 @@ function requestDeletePermission(trackingId) {
     <!-- Pilas con Seguimientos -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
         <!-- Table Header -->
-        <div class="p-6 border-b border-gray-200 bg-gray-50">
-            <div class="flex items-center justify-between">
-                <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+        <div class="p-3 sm:p-4 md:p-6 border-b border-gray-200 bg-gray-50">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+                <h2 class="text-base sm:text-lg font-semibold text-gray-800 flex items-center">
                     <i class="fas fa-chart-line text-green-600 mr-2"></i>
                     Pilas de Compostaje
                 </h2>
@@ -631,10 +631,10 @@ function requestDeletePermission(trackingId) {
         @if($compostings->count() > 0)
             <div class="divide-y divide-gray-200">
                 @foreach($compostings as $composting)
-                    <div class="p-6 hover:bg-gray-50 transition-colors duration-200">
-                        <div class="flex items-start justify-between">
-                            <div class="flex-1">
-                                <div class="flex items-center space-x-4">
+                    <div class="p-3 sm:p-4 md:p-6 hover:bg-gray-50 transition-colors duration-200">
+                        <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                            <div class="flex-1 min-w-0">
+                                <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:space-x-4">
                                     <div class="flex-shrink-0">
                                         @if($composting->image)
                                             <img src="{{ Storage::url($composting->image) }}" 
@@ -655,7 +655,7 @@ function requestDeletePermission(trackingId) {
                                         <h3 class="text-lg font-semibold text-gray-900">
                                             {{ $composting->formatted_pile_num }}
                                         </h3>
-                                        <div class="flex items-center space-x-4 mt-1">
+                                        <div class="flex flex-wrap gap-x-4 gap-y-1 mt-1">
                                             <span class="text-sm text-gray-600">
                                                 <i class="fas fa-calendar-alt mr-1"></i>
                                                 Inicio: {{ $composting->formatted_start_date }}
@@ -696,7 +696,7 @@ function requestDeletePermission(trackingId) {
                                     </div>
                                 </div>
                             </div>
-                            <div class="flex items-center space-x-2 mt-8">
+                            <div class="flex items-center flex-wrap gap-2 sm:mt-0 mt-4">
                                 @if($composting->trackings->count() > 0 || $composting->status === 'Completada' || $composting->days_elapsed >= 1)
                                     <button onclick="openTrackingModal({{ $composting->id }})" 
                                             class="inline-flex items-center text-blue-400 hover:text-blue-500"
@@ -716,8 +716,8 @@ function requestDeletePermission(trackingId) {
 
                         <!-- Seguimientos recientes -->
                         @if($composting->trackings->count() > 0)
-                            <div class="mt-4 ml-16">
-                                <div class="flex items-center space-x-4 text-sm text-gray-600">
+                            <div class="mt-4 sm:ml-16">
+                                <div class="flex flex-wrap items-center gap-2 sm:space-x-4 text-sm text-gray-600">
                                     <span class="font-medium">Últimos seguimientos:</span>
                                     @foreach($composting->trackings->take(3) as $tracking)
                                         <span class="bg-gray-100 px-2 py-1 rounded">

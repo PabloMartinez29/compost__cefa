@@ -74,9 +74,10 @@ class MachineryController extends Controller
         try {
             $data = $request->all();
             
-            // Handle image upload
             if ($request->hasFile('image')) {
-                $data['image'] = $request->file('image')->store('machineries', 'public');
+                $file = $request->file('image');
+                $name = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
+                $data['image'] = $file->storeAs('machineries', $name, 'public');
             }
             
             $machinery = Machinery::create($data);
@@ -151,13 +152,13 @@ class MachineryController extends Controller
         try {
             $data = $request->all();
             
-            // Handle image upload
             if ($request->hasFile('image')) {
-                // Delete old image if exists
-                if ($machinery->image) {
+                if ($machinery->image && Storage::disk('public')->exists($machinery->image)) {
                     Storage::disk('public')->delete($machinery->image);
                 }
-                $data['image'] = $request->file('image')->store('machineries', 'public');
+                $file = $request->file('image');
+                $name = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
+                $data['image'] = $file->storeAs('machineries', $name, 'public');
             }
             
             $machinery->update($data);
@@ -179,7 +180,6 @@ class MachineryController extends Controller
     public function destroy(Machinery $machinery)
     {
         try {
-            // Delete image if exists
             if ($machinery->image && Storage::disk('public')->exists($machinery->image)) {
                 Storage::disk('public')->delete($machinery->image);
             }

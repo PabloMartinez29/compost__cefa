@@ -28,6 +28,11 @@ class Machinery extends Model
         'next_maintenance_due_at' => 'datetime',
     ];
 
+    /**
+     * Atributos que se incluyen automáticamente al serializar a JSON
+     */
+    protected $appends = ['status'];
+
     // Relación con mantenimientos
     public function maintenances()
     {
@@ -48,20 +53,41 @@ class Machinery extends Model
 
     /**
      * Estado en Identificación y especificaciones. Sincronizado con Control de actividades:
-     * se usa el último registro (por updated_at y fecha); tipo M → "En mantenimiento", O → "Operación".
+     * se usa el último registro de control de actividades (por updated_at y fecha);
+     * status 'mantenimiento' → "Mantenimiento requerido", 'operativa' → "Operativa".
      */
     public function getStatusAttribute()
     {
+        // Buscar en usageControls primero (Control de actividades)
+        $lastUsageControl = $this->usageControls()
+            ->orderByDesc('updated_at')
+            ->orderByDesc('start_date')
+            ->first();
+
+        if ($lastUsageControl && $lastUsageControl->status) {
+            return $lastUsageControl->status === 'mantenimiento' 
+                ? 'Mantenimiento requerido' 
+                : 'Operativa';
+        }
+
+        // Fallback a maintenances si no hay usageControls
+        // Buscar el último registro de mantenimiento
         $lastActivity = $this->maintenances()
             ->orderByDesc('updated_at')
             ->orderByDesc('date')
             ->first();
 
         if (!$lastActivity) {
-            return 'Sin actividad';
+            return 'Sin mantenimiento registrado';
         }
 
-        return $lastActivity->type === 'M' ? 'En mantenimiento' : 'Operación';
+        // Si el último registro es tipo 'M' (Mantenimiento) y NO tiene fecha de fin, está en mantenimiento
+        if ($lastActivity->type === 'M' && is_null($lastActivity->end_date)) {
+            return 'Mantenimiento requerido';
+        }
+
+        // Si es tipo 'O' (Operación) o tiene fecha de fin, está operativa
+        return 'Operativa';
     }
 
     /**

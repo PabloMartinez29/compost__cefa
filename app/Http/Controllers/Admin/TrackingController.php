@@ -520,8 +520,8 @@ class TrackingController extends Controller
         
         // Convertir imagen de la pila a base64 si existe
         $imageBase64 = null;
-        if ($tracking->composting && $tracking->composting->image && Storage::disk('public')->exists($tracking->composting->image)) {
-            $imagePath = Storage::disk('public')->path($tracking->composting->image);
+        if ($tracking->composting && $tracking->composting->image && file_exists(public_path($tracking->composting->image))) {
+            $imagePath = public_path($tracking->composting->image);
             $imageData = file_get_contents($imagePath);
             $imageInfo = getimagesize($imagePath);
             $mimeType = $imageInfo['mime'];

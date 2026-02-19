@@ -7,9 +7,9 @@
     <title>Sistema de Compostaje - Aprendiz</title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{{ asset('img/logo-compost-cefa.png') }}">
-    <link rel="shortcut icon" type="image/png" href="{{ asset('img/logo-compost-cefa.png') }}">
-    <link rel="apple-touch-icon" href="{{ asset('img/logo-compost-cefa.png') }}">
+    <link rel="icon" type="image/webp" href="{{ asset('img/logo-compost-cefa.webp') }}">
+    <link rel="shortcut icon" type="image/webp" href="{{ asset('img/logo-compost-cefa.webp') }}">
+    <link rel="apple-touch-icon" href="{{ asset('img/logo-compost-cefa.webp') }}">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -103,7 +103,11 @@
         <div class="w-64 bg-white shadow-lg sidebar-transition flex flex-col h-screen overflow-hidden">
             <!-- Logo/Brand -->
             <div class="h-32 flex items-center justify-center border-b border-soft-gray-200 px-4 flex-shrink-0">
-                <img src="{{ asset('img/logo-compost-cefa.png') }}" alt="COMPOST CEFA" class="h-28 w-auto max-w-full object-contain">
+                <img src="{{ asset('img/logo-compost-cefa.webp') }}" alt="COMPOST CEFA" class="h-28 w-auto max-w-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="h-28 hidden items-center justify-center gap-2 text-soft-green-700 font-bold text-lg" style="display: none;">
+                    <i class="fas fa-seedling text-2xl"></i>
+                    <span>COMPOST CEFA</span>
+                </div>
             </div>
             
             <!-- Navigation -->

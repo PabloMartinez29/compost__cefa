@@ -1,5 +1,9 @@
 @extends('layouts.master')
 
+@php
+use Illuminate\Support\Facades\Storage;
+@endphp
+
 @section('content')
 @vite(['resources/css/waste.css'])
 
@@ -94,7 +98,7 @@
                     <div class="waste-form-group">
                         <label class="waste-form-label">Current Image</label>
                         <div class="relative">
-                            <img src="{{ asset($organic->img) }}" 
+                            <img src="{{ Storage::url($organic->img) }}" 
                                  alt="Current organic waste image" 
                                  class="w-full h-32 object-cover rounded-lg border border-gray-200">
                         </div>

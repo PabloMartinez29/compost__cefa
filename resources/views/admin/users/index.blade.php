@@ -43,28 +43,28 @@ Swal.fire({
 </script>
 @endif
 
-<div class="container mx-auto px-6 py-8">
+<div class="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
     <!-- Header -->
     <div class="waste-header animate-fade-in-up">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="waste-title">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+            <div class="flex-1 min-w-0">
+                <h1 class="waste-title text-xl sm:text-2xl">
                     <i class="fas fa-users waste-icon"></i>
                     Gestión de Usuarios
                 </h1>
-                <p class="waste-subtitle">
+                <p class="waste-subtitle text-sm sm:text-base">
                     <i class="fas fa-user-shield text-green-400 mr-2"></i>
-                    {{ Auth::user()->name }} - Panel de Administración
+                    <span class="break-words">{{ Auth::user()->name }} - Panel de Administración</span>
                 </p>
             </div>
-            <div class="text-right">
-                <div class="text-green-400 font-bold text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
+            <div class="text-left sm:text-right flex-shrink-0">
+                <div class="text-green-400 font-bold text-base sm:text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
             </div>
         </div>
     </div>
 
     <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <!-- Total Users -->
         <div class="waste-card waste-card-primary animate-fade-in-up animate-delay-1">
             <div class="flex items-center justify-between">
@@ -109,30 +109,59 @@ Swal.fire({
     <!-- Users Table -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
         <!-- Table Header -->
-        <div class="p-6 border-b border-gray-200 bg-gray-50">
+        <div class="p-3 sm:p-4 md:p-6 border-b border-gray-200 bg-gray-50">
             <!-- Primera fila: Título y botones -->
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4">
+                <h2 class="text-base sm:text-lg font-semibold text-gray-800 flex items-center">
                     <i class="fas fa-users text-green-600 mr-2"></i>
                     Lista de Usuarios
                 </h2>
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
                     @if($users->count() > 0)
-                        <button type="button" id="btn-download-all-pdf" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm" title="Descargar PDF de los registros visibles (filtrados)">
+                        <button type="button" id="btn-download-all-pdf" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm text-sm sm:text-base" title="Descargar PDF de los registros visibles (filtrados)">
                             <i class="fas fa-file-pdf"></i>
+                            <span class="hidden sm:inline ml-2">PDF</span>
                         </button>
                     @endif
-                    <a href="{{ route('admin.users.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                    <a href="{{ route('admin.users.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm text-sm sm:text-base flex-1 sm:flex-initial justify-center">
                         <i class="fas fa-plus mr-2"></i>
-                        Nuevo Usuario
+                        <span class="hidden sm:inline">Nuevo Usuario</span>
+                        <span class="sm:hidden">Nuevo</span>
                     </a>
                 </div>
             </div>
         </div>
         
         @if($users->count() > 0)
+            <!-- Vista móvil: tarjetas -->
+            <div class="block md:hidden p-3 sm:p-4 space-y-4">
+                @foreach($users as $user)
+                    <div class="waste-mobile-card bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm" data-id="{{ $user->id }}">
+                        <div class="flex gap-3">
+                            <div class="w-12 h-12 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-sm flex-shrink-0">{{ strtoupper(substr($user->name, 0, 2)) }}</div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-gray-900 truncate">{{ $user->name }}@if($user->id === auth()->id()) <span class="text-green-600 text-xs">(Tú)</span>@endif</h3>
+                                <p class="text-sm text-gray-600 truncate">{{ $user->email }}</p>
+                                <div class="flex flex-wrap gap-1 mt-1">
+                                    @if($user->role === 'admin')<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Admin</span>@else<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">Aprendiz</span>@endif
+                                    @if($user->is_active)<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Activo</span>@else<span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-200 text-gray-700">Inactivo</span>@endif
+                                </div>
+                            </div>
+                        </div>
+                        <div class="waste-mobile-card-actions mt-4 pt-3 border-t border-gray-200">
+                            <button type="button" onclick="openViewModal({{ $user->id }})" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg flex-shrink-0" title="Ver"><i class="fas fa-eye"></i></button>
+                            <button type="button" onclick="openEditModal({{ $user->id }})" class="p-2 text-green-600 hover:bg-green-50 rounded-lg flex-shrink-0" title="Editar"><i class="fas fa-edit"></i></button>
+                            @if($user->id !== auth()->id())
+                                @if($user->is_active)<button type="button" onclick="deactivateUser({{ $user->id }}, '{{ addslashes($user->name) }}')" class="p-2 text-yellow-500 hover:bg-yellow-50 rounded-lg flex-shrink-0" title="Desactivar"><i class="fas fa-user-slash"></i></button>@else<button type="button" onclick="activateUser({{ $user->id }}, '{{ addslashes($user->name) }}')" class="p-2 text-green-500 hover:bg-green-50 rounded-lg flex-shrink-0" title="Activar"><i class="fas fa-user-check"></i></button>@endif
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            <div class="hidden md:block overflow-x-auto -mx-3 sm:mx-0">
             <!-- DataTables agregará los controles y la tabla aquí -->
-            <div id="usersTable_wrapper" class="p-6">
+            <div id="usersTable_wrapper" class="p-3 sm:p-4 md:p-6">
                 <!-- Contenedor para controles superiores -->
                 <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
                     <div id="dt-length-container" style="float: left;"></div>
@@ -235,6 +264,7 @@ Swal.fire({
                     </tbody>
                 </table>
             </div>
+        </div>
         @else
             <!-- Estado vacío -->
             <div class="text-center py-12">
@@ -1158,5 +1188,6 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('DataTables configurado:', window.usersDataTable);
 });
 </script>
-
 @endsection
+
+

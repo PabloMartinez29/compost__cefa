@@ -45,6 +45,8 @@ Route::get('/developers', function () {
     return view('developers');
 })->name('developers');
 
+Route::get('/soporte', [App\Http\Controllers\SupportController::class, 'index'])->name('soporte');
+
 // Ruta general del dashboard que redirige según el rol
 Route::get('/dashboard', function () {
     if (Auth::check()) {
@@ -61,6 +63,8 @@ Route::get('/dashboard', function () {
 Route::middleware(['auth','role:admin'])->group(function(){
 
     Route::get('/admin/dashboard', [AdminController::class, 'index'])->name('dashboard.admin');
+
+    Route::post('/soporte/upload', [App\Http\Controllers\SupportController::class, 'upload'])->name('soporte.upload');
     
     // Monitoring Routes
     Route::get('admin/monitoring', [\App\Http\Controllers\Admin\MonitoringController::class, 'index'])->name('admin.monitoring.index');

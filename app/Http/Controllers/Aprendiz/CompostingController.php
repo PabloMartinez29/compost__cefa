@@ -151,16 +151,9 @@ class CompostingController extends Controller
             // Handle image upload
             $imagePath = null;
             if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('compostings', 'public');
-                \Log::info('Image uploaded for composting (aprendiz)', [
-                    'image_path' => $imagePath,
-                    'file_exists' => Storage::disk('public')->exists($imagePath)
-                ]);
-            } else {
-                \Log::info('No image file in request for composting (aprendiz)', [
-                    'has_file' => $request->hasFile('image'),
-                    'all_files' => $request->allFiles()
-                ]);
+                $file = $request->file('image');
+                $name = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
+                $imagePath = $file->storeAs('compostings', $name, 'public');
             }
             
             // Crear el compostaje
@@ -177,13 +170,6 @@ class CompostingController extends Controller
             // Recargar el modelo para asegurar que la imagen esté disponible
             $composting->refresh();
             
-            \Log::info('Composting created (aprendiz)', [
-                'composting_id' => $composting->id,
-                'image' => $composting->image,
-                'image_path' => $imagePath,
-                'image_exists' => $composting->image ? Storage::disk('public')->exists($composting->image) : false
-            ]);
-
             // Crear los ingredientes y restar del inventario
             foreach ($request->ingredients as $ingredientData) {
                 // Crear el ingrediente
@@ -368,7 +354,6 @@ class CompostingController extends Controller
             // Handle image upload
             $imagePath = $composting->image; // Mantener la imagen actual por defecto
             
-            // Si se solicita eliminar la imagen actual
             if ($request->has('remove_image') && $request->remove_image == '1') {
                 if ($composting->image && Storage::disk('public')->exists($composting->image)) {
                     Storage::disk('public')->delete($composting->image);
@@ -376,13 +361,13 @@ class CompostingController extends Controller
                 $imagePath = null;
             }
             
-            // Si se sube una nueva imagen
             if ($request->hasFile('image')) {
-                // Eliminar la imagen anterior si existe
                 if ($composting->image && Storage::disk('public')->exists($composting->image)) {
                     Storage::disk('public')->delete($composting->image);
                 }
-                $imagePath = $request->file('image')->store('compostings', 'public');
+                $file = $request->file('image');
+                $name = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
+                $imagePath = $file->storeAs('compostings', $name, 'public');
             }
             
             // Actualizar el compostaje (solo los campos permitidos, los ingredientes no se tocan)
@@ -443,7 +428,6 @@ class CompostingController extends Controller
         
         DB::beginTransaction();
         try {
-            // Eliminar la imagen si existe
             if ($composting->image && Storage::disk('public')->exists($composting->image)) {
                 Storage::disk('public')->delete($composting->image);
             }
