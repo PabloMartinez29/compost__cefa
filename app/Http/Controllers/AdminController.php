@@ -6,6 +6,8 @@ use App\Models\Admin;
 use App\Models\Machinery;
 use App\Models\Notification;
 use App\Models\Organic;
+use App\Models\Composting;
+use App\Models\Fertilizer;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -22,6 +24,21 @@ class AdminController extends Controller
             'total' => $totalMachinery,
             'operational' => $totalMachinery > 0 ? ceil($totalMachinery * 0.8) : 0, // Aproximación del 80%
             'needs_maintenance' => $totalMachinery > 0 ? floor($totalMachinery * 0.2) : 0 // Aproximación del 20%
+        ];
+
+        // Obtener estadísticas reales de pilas de compostaje
+        $compostingStats = [
+            'total' => Composting::count(),
+            'active' => Composting::whereNull('end_date')->count(),
+            'completed' => Composting::whereNotNull('end_date')->count(),
+        ];
+
+        // Obtener estadísticas reales de abonos (fertilizantes)
+        $fertilizerStats = [
+            'total_amount' => Fertilizer::sum('amount'),
+            'total_records' => Fertilizer::count(),
+            'solid_amount' => Fertilizer::where('type', 'Solid')->sum('amount'),
+            'liquid_amount' => Fertilizer::where('type', 'Liquid')->sum('amount'),
         ];
 
         // Obtener estadísticas de residuos orgánicos
@@ -57,7 +74,14 @@ class AdminController extends Controller
                                            ->count()
         ];
 
-        return view('admin.dashboard', compact('machineryStats', 'organicStats', 'userStats', 'notificationStats'));
+        return view('admin.dashboard', compact(
+            'machineryStats',
+            'organicStats',
+            'userStats',
+            'notificationStats',
+            'compostingStats',
+            'fertilizerStats'
+        ));
     }
 
     /**

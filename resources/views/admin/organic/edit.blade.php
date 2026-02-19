@@ -1,5 +1,9 @@
 @extends('layouts.master')
 
+@php
+use Illuminate\Support\Facades\Storage;
+@endphp
+
 @section('content')
 @vite(['resources/css/waste.css'])
 
@@ -42,16 +46,16 @@
 
                 <!-- Type -->
                 <div class="waste-form-group">
-                    <label class="waste-form-label">Waste Type *</label>
+                    <label class="waste-form-label">Tipo de Residuo *</label>
                     <select name="type" class="waste-form-select @error('type') border-red-500 @enderror" required>
-                        <option value="">Select waste type</option>
-                        <option value="Kitchen" {{ old('type', $organic->type) == 'Kitchen' ? 'selected' : '' }}>Kitchen</option>
-                        <option value="Beds" {{ old('type', $organic->type) == 'Beds' ? 'selected' : '' }}>Beds</option>
-                        <option value="Leaves" {{ old('type', $organic->type) == 'Leaves' ? 'selected' : '' }}>Leaves</option>
-                        <option value="CowDung" {{ old('type', $organic->type) == 'CowDung' ? 'selected' : '' }}>Cow Dung</option>
-                        <option value="ChickenManure" {{ old('type', $organic->type) == 'ChickenManure' ? 'selected' : '' }}>Chicken Manure</option>
-                        <option value="PigManure" {{ old('type', $organic->type) == 'PigManure' ? 'selected' : '' }}>Pig Manure</option>
-                        <option value="Other" {{ old('type', $organic->type) == 'Other' ? 'selected' : '' }}>Other</option>
+                        <option value="">Seleccionar tipo de residuo</option>
+                        <option value="Kitchen" {{ old('type', $organic->type) == 'Kitchen' ? 'selected' : '' }}>Cocina</option>
+                        <option value="Beds" {{ old('type', $organic->type) == 'Beds' ? 'selected' : '' }}>Camas</option>
+                        <option value="Leaves" {{ old('type', $organic->type) == 'Leaves' ? 'selected' : '' }}>Hojas</option>
+                        <option value="CowDung" {{ old('type', $organic->type) == 'CowDung' ? 'selected' : '' }}>Estiércol de Vaca</option>
+                        <option value="ChickenManure" {{ old('type', $organic->type) == 'ChickenManure' ? 'selected' : '' }}>Estiércol de Pollo</option>
+                        <option value="PigManure" {{ old('type', $organic->type) == 'PigManure' ? 'selected' : '' }}>Estiércol de Cerdo</option>
+                        <option value="Other" {{ old('type', $organic->type) == 'Other' ? 'selected' : '' }}>Otro</option>
                     </select>
                     @error('type')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
@@ -94,7 +98,7 @@
                     <div class="waste-form-group">
                         <label class="waste-form-label">Current Image</label>
                         <div class="relative">
-                            <img src="{{ asset($organic->img) }}" 
+                            <img src="{{ Storage::url($organic->img) }}" 
                                  alt="Current organic waste image" 
                                  class="w-full h-32 object-cover rounded-lg border border-gray-200">
                         </div>

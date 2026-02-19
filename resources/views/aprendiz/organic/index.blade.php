@@ -34,28 +34,28 @@ use Illuminate\Support\Facades\Storage;
     @endforeach
 @endif
 
-<div class="container mx-auto px-6 py-8">
+<div class="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
     <!-- Header -->
     <div class="waste-header animate-fade-in-up">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="waste-title">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+            <div class="flex-1 min-w-0">
+                <h1 class="waste-title text-xl sm:text-2xl">
                     <i class="fas fa-recycle waste-icon"></i>
                     Gestión de Residuos Orgánicos
                 </h1>
-                <p class="waste-subtitle">
+                <p class="waste-subtitle text-sm sm:text-base">
                     <i class="fas fa-user-graduate text-green-400 mr-2"></i>
-                    {{ Auth::user()->name }} - Panel de Aprendiz
+                    <span class="break-words">{{ Auth::user()->name }} - Panel de Aprendiz</span>
                 </p>
             </div>
-            <div class="text-right">
-                <div class="text-green-400 font-bold text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
+            <div class="text-left sm:text-right flex-shrink-0">
+                <div class="text-green-400 font-bold text-base sm:text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
             </div>
         </div>
     </div>
 
     <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <!-- Total Weight -->
         <div class="waste-card waste-card-primary animate-fade-in-up animate-delay-1">
             <div class="flex items-center justify-between">
@@ -112,22 +112,23 @@ use Illuminate\Support\Facades\Storage;
     <!-- Main Content -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
         <!-- Table Header -->
-        <div class="p-6 border-b border-gray-200 bg-gray-50">
-            <!-- Primera fila: Título y botones -->
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+        <div class="p-3 sm:p-4 md:p-6 border-b border-gray-200 bg-gray-50">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4">
+                <h2 class="text-base sm:text-lg font-semibold text-gray-800 flex items-center">
                     <i class="fas fa-recycle text-green-600 mr-2"></i>
                     Registros de Residuos Orgánicos
                 </h2>
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
                     @if($organics->count() > 0)
-                        <a href="{{ route('aprendiz.organic.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                        <button type="button" id="btn-download-all-pdf" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm text-sm sm:text-base" title="Descargar PDF">
                             <i class="fas fa-file-pdf"></i>
-                        </a>
+                            <span class="hidden sm:inline ml-2">PDF</span>
+                        </button>
                     @endif
-                    <a href="{{ route('aprendiz.organic.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                    <a href="{{ route('aprendiz.organic.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm text-sm sm:text-base flex-1 sm:flex-initial justify-center">
                         <i class="fas fa-plus mr-2"></i>
-                        Nuevo Registro
+                        <span class="hidden sm:inline">Nuevo Registro</span>
+                        <span class="sm:hidden">Nuevo</span>
                     </a>
                 </div>
             </div>
@@ -147,10 +148,40 @@ use Illuminate\Support\Facades\Storage;
         @endif
 
         @if($organics->count() > 0)
-            <!-- Tabla de residuos -->
-            <div class="overflow-x-auto">
-                <!-- DataTables agregará los controles y la tabla aquí -->
-                <div id="organicsTable_wrapper" class="p-6">
+            <!-- Vista móvil: tarjetas -->
+            <div class="block md:hidden p-3 sm:p-4 space-y-4">
+                @foreach($organics as $organic)
+                    <div class="waste-mobile-card bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm" data-id="{{ $organic->id }}">
+                        <div class="flex gap-3">
+                            <div class="flex-shrink-0">
+                                @if($organic->img && Storage::disk('public')->exists($organic->img))
+                                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 cursor-pointer" onclick="openImageModal('{{ Storage::url($organic->img) }}')">
+                                        <img src="{{ Storage::url($organic->img) }}" alt="Residuo" class="w-full h-full object-cover" onerror="this.style.display='none';">
+                                        <div class="w-full h-full bg-gray-200 flex items-center justify-center" style="display: none;"><i class="fas fa-image text-gray-400"></i></div>
+                                    </div>
+                                @else
+                                    <div class="w-14 h-14 rounded-xl bg-green-100 flex items-center justify-center"><i class="fas fa-recycle text-green-600 text-xl"></i></div>
+                                @endif
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-gray-900">#{{ str_pad($organic->id, 3, '0', STR_PAD_LEFT) }} · {{ $organic->formatted_date }}</h3>
+                                <p class="text-sm text-gray-600">{{ $organic->delivered_by }} → {{ $organic->received_by }}</p>
+                                <span class="waste-badge @if($organic->type == 'Kitchen') waste-badge-success @elseif($organic->type == 'Beds') waste-badge-info @elseif($organic->type == 'Leaves') waste-badge-warning @else waste-badge-primary @endif">{{ $organic->type_in_spanish }}</span>
+                                <span class="ml-2 font-semibold text-gray-800">{{ $organic->formatted_weight }}</span>
+                            </div>
+                        </div>
+                        <div class="waste-mobile-card-actions mt-4 pt-3 border-t border-gray-200">
+                            <button type="button" onclick="openViewModal({{ $organic->id }})" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg flex-shrink-0" title="Ver"><i class="fas fa-eye"></i></button>
+                            <button type="button" onclick="confirmEdit({{ $organic->id }})" class="p-2 text-green-600 hover:bg-green-50 rounded-lg flex-shrink-0" title="Editar"><i class="fas fa-edit"></i></button>
+                            <form action="{{ route('aprendiz.organic.destroy', $organic) }}" method="POST" class="inline flex-shrink-0" onsubmit="return confirmDelete(event, this)">@csrf @method('DELETE')<button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Eliminar"><i class="fas fa-trash"></i></button></form>
+                            <a href="{{ route('aprendiz.organic.download.pdf', $organic) }}" class="p-2 text-red-700 hover:bg-red-50 rounded-lg flex-shrink-0" title="PDF"><i class="fas fa-file-pdf"></i></a>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+            <!-- Tabla (escritorio) -->
+            <div class="hidden md:block overflow-x-auto -mx-3 sm:mx-0">
+                <div id="organicsTable_wrapper" class="p-3 sm:p-4 md:p-6">
                     <!-- Contenedor para controles superiores -->
                     <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
                         <div id="dt-length-container" style="float: left;"></div>
@@ -172,13 +203,13 @@ use Illuminate\Support\Facades\Storage;
                         </thead>
                         <tbody>
                             @foreach($organics as $organic)
-                        <tr>
+                        <tr data-id="{{ $organic->id }}">
                             <td class="font-mono">#{{ str_pad($organic->id, 3, '0', STR_PAD_LEFT) }}</td>
                             <td>{{ $organic->formatted_date }}</td>
                             <td>
-                                @if($organic->img && file_exists(public_path($organic->img)))
+                                @if($organic->img && Storage::disk('public')->exists($organic->img))
                                     @php
-                                        $imageUrl = asset($organic->img);
+                                        $imageUrl = Storage::url($organic->img);
                                     @endphp
                                     <img src="{{ $imageUrl }}?v={{ $organic->updated_at->timestamp }}" 
                                          alt="Imagen del residuo" 
@@ -328,7 +359,6 @@ use Illuminate\Support\Facades\Storage;
         <div class="py-6">
             <form id="createForm" action="{{ route('aprendiz.organic.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Fecha -->
                     <div>
@@ -416,12 +446,12 @@ use Illuminate\Support\Facades\Storage;
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 mb-2">
                             <i class="fas fa-image text-green-500 mr-2"></i>
-                            Imagen (Requerido)
+                            Imagen (Obligatoria)
                         </label>
                         <div class="relative">
-                            <input type="file" name="img" id="imageInput" 
+                            <input type="file" name="img" id="imageInput" required
                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 @error('img') border-red-500 @enderror" 
-                                   accept="image/*" onchange="previewImage(this)" required>
+                                   accept="image/*" onchange="previewImage(this)">
                             <div id="imagePreview" class="mt-3 hidden">
                                 <img id="previewImg" class="w-32 h-32 object-cover rounded-lg border border-gray-200" alt="Preview">
                             </div>
@@ -604,7 +634,7 @@ use Illuminate\Support\Facades\Storage;
                             <option value="Beds">Camas</option>
                             <option value="Leaves">Hojas</option>
                             <option value="CowDung">Estiércol de Vaca</option>
-                            <option value="ChickenManure">Gallinaza</option>
+                            <option value="ChickenManure">Estiércol de Pollo</option>
                             <option value="PigManure">Estiércol de Cerdo</option>
                             <option value="Other">Otro</option>
                         </select>
@@ -656,8 +686,8 @@ use Illuminate\Support\Facades\Storage;
                 <!-- New Image Upload -->
                 <div class="waste-form-group">
                     <label class="waste-form-label">Nueva Imagen (Opcional)</label>
-                    <input type="file" name="img" class="waste-form-input @error('img') border-red-500 @enderror" 
-                           accept="image/*">
+                    <input type="file" name="img" id="editImageInput" class="waste-form-input @error('img') border-red-500 @enderror" 
+                           accept="image/*" onchange="previewEditImage(this)">
                     @error('img')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -696,6 +726,16 @@ function openCreateModal() {
     document.getElementById('createModal').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 }
+
+// Abrir modal de crear si hay errores de validación para conservar los datos
+document.addEventListener('DOMContentLoaded', function() {
+    @if($errors->any())
+    if (document.getElementById('createModal')) {
+        openCreateModal();
+        document.body.style.overflow = 'hidden';
+    }
+    @endif
+});
 
 function closeCreateModal() {
     document.getElementById('createModal').classList.add('hidden');
@@ -797,6 +837,13 @@ function openEditModal(organicId) {
                 document.getElementById('imageReplaceWarning').classList.add('hidden');
             }
             
+            // Limpiar input de nueva imagen y guardar URL actual para restaurar si cambian de opinión
+            const editImageInput = document.getElementById('editImageInput');
+            if (editImageInput) {
+                editImageInput.value = '';
+            }
+            document.getElementById('editForm').setAttribute('data-current-img-url', data.img_url || '');
+            
             // Configurar acción del formulario
             document.getElementById('editForm').action = `/aprendiz/organic/${organicId}`;
             
@@ -813,6 +860,33 @@ function openEditModal(organicId) {
 function closeEditModal() {
     document.getElementById('editModal').classList.add('hidden');
     document.body.style.overflow = 'auto';
+}
+
+// Actualizar vista previa de imagen en el modal de edición al elegir un archivo
+function previewEditImage(input) {
+    const currentImage = document.getElementById('currentImage');
+    const currentImageContainer = document.getElementById('currentImageContainer');
+    if (!currentImage || !currentImageContainer) return;
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            currentImage.src = e.target.result;
+            currentImageContainer.classList.remove('hidden');
+            document.getElementById('imageReplaceWarning').classList.remove('hidden');
+        };
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        const editForm = document.getElementById('editForm');
+        const imgUrl = editForm.getAttribute('data-current-img-url');
+        if (imgUrl) {
+            currentImage.src = imgUrl;
+        }
+        if (!imgUrl) {
+            currentImageContainer.classList.add('hidden');
+            document.getElementById('imageReplaceWarning').classList.add('hidden');
+        }
+    }
 }
 
 // Cerrar modal de editar al hacer clic fuera
@@ -1033,7 +1107,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('Inicializando DataTables...');
     
-    let table = new DataTable('#organicsTable', {
+    window.organicsDataTable = new DataTable('#organicsTable', {
         language: {
             search: 'Buscar:',
             lengthMenu: 'Mostrar _MENU_ registros',
@@ -1102,22 +1176,35 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (lengthSelect) {
                 lengthSelect.addEventListener('change', function() {
-                    table.page.len(parseInt(this.value)).draw();
+                    window.organicsDataTable.page.len(parseInt(this.value)).draw();
                 });
             }
             
             if (searchInput) {
                 searchInput.addEventListener('keyup', function() {
-                    table.search(this.value).draw();
+                    window.organicsDataTable.search(this.value).draw();
                 });
             }
         }
     });
+
+    document.getElementById('btn-download-all-pdf')?.addEventListener('click', function() {
+        let url = '{{ route("aprendiz.organic.download.all-pdf") }}';
+        if (window.organicsDataTable) {
+            const ids = [];
+            window.organicsDataTable.rows({ search: 'applied' }).every(function() {
+                const row = this.node();
+                const id = row.getAttribute('data-id');
+                if (id) ids.push(id);
+            });
+            if (ids.length > 0) url += '?ids=' + ids.join(',');
+        }
+        window.location.href = url;
+    });
     
-    console.log('DataTables configurado:', table);
+    console.log('DataTables configurado:', window.organicsDataTable);
 });
 </script>
-@endsection
 
 <style>
 /* Estilos para DataTables */
@@ -1278,3 +1365,4 @@ document.addEventListener('DOMContentLoaded', function() {
     animation: slideInRight 0.3s ease-in-out;
 }
 </style>
+@endsection

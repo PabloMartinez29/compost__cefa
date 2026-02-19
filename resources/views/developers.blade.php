@@ -68,6 +68,7 @@
                     <a href="{{ url('/') }}#about" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Acerca de</a>
                     <a href="{{ url('/') }}#modules" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Módulos</a>
                     <a href="{{ url('/') }}#features" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Características</a>
+                    <a href="{{ route('soporte') }}" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Soporte</a>
                     <a href="{{ route('developers') }}" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105 border-b-2 border-compost-600 pb-1">Desarrolladores</a>
                     @if (Route::has('login'))
                         @auth
@@ -104,7 +105,10 @@
                     <div class="p-6">
                         <!-- Profile Image -->
                         <div class="flex justify-center mb-6 relative">
-                            <img id="dev1-img" src="{{ asset('img/developers/juan-pablo-martinez.jpeg') }}" alt="Juan Pablo Martinez Lievano" class="w-40 h-40 rounded-full object-cover object-top shadow-lg border-4 border-compost-200 cursor-pointer hover:scale-105 transition-transform duration-300 developer-image" onclick="openImageModal(this.src)" onerror="this.style.display='none'; this.nextElementSibling.classList.add('show');" loading="eager" decoding="async">
+                            <picture>
+                                <source srcset="{{ asset('img/developers/juan-pablo-martinez.webp') }}" type="image/webp">
+                                <img id="dev1-img" src="{{ asset('img/developers/juan-pablo-martinez.jpeg') }}" alt="Juan Pablo Martinez Lievano" class="w-40 h-40 rounded-full object-cover object-top shadow-lg border-4 border-compost-200 cursor-pointer hover:scale-105 transition-transform duration-300 developer-image" onclick="openImageModal(this.currentSrc || this.src)" onerror="this.style.display='none'; this.parentElement.nextElementSibling.classList.add('show');" loading="eager" decoding="async">
+                            </picture>
                             <div class="w-40 h-40 bg-gradient-to-br from-compost-600 to-compost-700 rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-105 transition-transform duration-300 developer-placeholder absolute top-0 left-1/2 transform -translate-x-1/2" id="dev1-placeholder">
                                 <i class="fas fa-user text-white text-5xl"></i>
                             </div>
@@ -139,7 +143,10 @@
                     <div class="p-6">
                         <!-- Profile Image -->
                         <div class="flex justify-center mb-6 relative">
-                            <img id="dev2-img" src="{{ asset('img/developers/Ivan-Dario-Perdomo-Perez.png') }}" alt="Ivan Dario Perdomo Perez" class="w-40 h-40 rounded-full object-cover object-top shadow-lg border-4 border-compost-200 cursor-pointer hover:scale-105 transition-transform duration-300 developer-image" onclick="openImageModal(this.src)" onerror="this.style.display='none'; this.nextElementSibling.classList.add('show');" loading="eager" decoding="async">
+                            <picture>
+                                <source srcset="{{ asset('img/developers/Ivan-Dario-Perdomo-Perez.webp') }}" type="image/webp">
+                                <img id="dev2-img" src="{{ asset('img/developers/Ivan-Dario-Perdomo-Perez.png') }}" alt="Ivan Dario Perdomo Perez" class="w-40 h-40 rounded-full object-cover object-top shadow-lg border-4 border-compost-200 cursor-pointer hover:scale-105 transition-transform duration-300 developer-image" onclick="openImageModal(this.currentSrc || this.src)" onerror="this.style.display='none'; this.parentElement.nextElementSibling.classList.add('show');" loading="eager" decoding="async">
+                            </picture>
                             <div class="w-40 h-40 bg-gradient-to-br from-compost-600 to-compost-700 rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-105 transition-transform duration-300 developer-placeholder absolute top-0 left-1/2 transform -translate-x-1/2" id="dev2-placeholder">
                                 <i class="fas fa-user text-white text-5xl"></i>
                             </div>
@@ -174,7 +181,10 @@
                     <div class="p-6">
                         <!-- Profile Image -->
                         <div class="flex justify-center mb-6 relative">
-                            <img id="dev3-img" src="{{ asset('img/developers/Anggie-Anaya.png') }}" alt="Anggie Lizeth Anaya Perdomo" class="w-40 h-40 rounded-full object-cover object-top shadow-lg border-4 border-compost-200 cursor-pointer hover:scale-105 transition-transform duration-300 developer-image" onclick="openImageModal(this.src)" onerror="this.style.display='none'; this.nextElementSibling.classList.add('show');" loading="eager" decoding="async">
+                            <picture>
+                                <source srcset="{{ asset('img/developers/Anggie-Anaya.webp') }}" type="image/webp">
+                                <img id="dev3-img" src="{{ asset('img/developers/Anggie-Anaya.png') }}" alt="Anggie Lizeth Anaya Perdomo" class="w-40 h-40 rounded-full object-cover object-top shadow-lg border-4 border-compost-200 cursor-pointer hover:scale-105 transition-transform duration-300 developer-image" onclick="openImageModal(this.currentSrc || this.src)" onerror="this.style.display='none'; this.parentElement.nextElementSibling.classList.add('show');" loading="eager" decoding="async">
+                            </picture>
                             <div class="w-40 h-40 bg-gradient-to-br from-compost-600 to-compost-700 rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-105 transition-transform duration-300 developer-placeholder absolute top-0 left-1/2 transform -translate-x-1/2" id="dev3-placeholder">
                                 <i class="fas fa-user text-white text-5xl"></i>
                             </div>
@@ -209,7 +219,10 @@
                     <div class="p-6">
                         <!-- Profile Image -->
                         <div class="flex justify-center mb-6 relative">
-                            <img id="dev4-img" src="{{ asset('img/developers/Juan-Almanza.png') }}" alt="Juan Andres Almanza Salinas" class="w-40 h-40 rounded-full object-cover object-top shadow-lg border-4 border-compost-200 cursor-pointer hover:scale-105 transition-transform duration-300 developer-image" onclick="openImageModal(this.src)" onerror="this.style.display='none'; this.nextElementSibling.classList.add('show');" loading="eager" decoding="async">
+                            <picture>
+                                <source srcset="{{ asset('img/developers/Juan-Almanza.webp') }}" type="image/webp">
+                                <img id="dev4-img" src="{{ asset('img/developers/Juan-Almanza.png') }}" alt="Juan Andres Almanza Salinas" class="w-40 h-40 rounded-full object-cover object-top shadow-lg border-4 border-compost-200 cursor-pointer hover:scale-105 transition-transform duration-300 developer-image" onclick="openImageModal(this.currentSrc || this.src)" onerror="this.style.display='none'; this.parentElement.nextElementSibling.classList.add('show');" loading="eager" decoding="async">
+                            </picture>
                             <div class="w-40 h-40 bg-gradient-to-br from-compost-600 to-compost-700 rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-105 transition-transform duration-300 developer-placeholder absolute top-0 left-1/2 transform -translate-x-1/2" id="dev4-placeholder">
                                 <i class="fas fa-user text-white text-5xl"></i>
                             </div>
@@ -454,24 +467,6 @@
                         <h3 class="text-lg font-bold text-compost-800 mb-2">VS Code</h3>
                         <p class="text-sm text-gray-600 mb-4">Editor de Código</p>
                         <a href="https://code.visualstudio.com" target="_blank" class="inline-flex items-center justify-center space-x-2 w-full bg-compost-600 hover:bg-compost-700 text-white px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105">
-                            <span>Más Info</span>
-                            <i class="fas fa-external-link-alt text-xs"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Cursor -->
-                <div class="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-100 overflow-hidden">
-                    <div class="p-6 text-center">
-                        <div class="flex justify-center mb-4">
-                            <img src="{{ asset('img/credits/cursor.png') }}" alt="Cursor" class="w-20 h-20 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="w-20 h-20 bg-purple-600 rounded-lg flex items-center justify-center shadow-md" style="display:none;">
-                                <i class="fas fa-mouse-pointer text-white text-4xl"></i>
-                            </div>
-                        </div>
-                        <h3 class="text-lg font-bold text-compost-800 mb-2">Cursor</h3>
-                        <p class="text-sm text-gray-600 mb-4">Editor de Código</p>
-                        <a href="https://cursor.sh" target="_blank" class="inline-flex items-center justify-center space-x-2 w-full bg-compost-600 hover:bg-compost-700 text-white px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105">
                             <span>Más Info</span>
                             <i class="fas fa-external-link-alt text-xs"></i>
                         </a>

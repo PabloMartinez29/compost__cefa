@@ -3,24 +3,25 @@
 @section('content')
 @vite(['resources/css/waste.css'])
 
-<div class="container mx-auto px-6 py-8">
+<div class="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
     <!-- Header -->
     <div class="waste-header animate-fade-in-up">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="waste-title">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+            <div class="flex-1 min-w-0">
+                <h1 class="waste-title text-xl sm:text-2xl">
                     <i class="fas fa-user-plus waste-icon"></i>
                     Crear Nuevo Usuario
                 </h1>
-                <p class="waste-subtitle">
+                <p class="waste-subtitle text-sm sm:text-base">
                     <i class="fas fa-user-shield text-green-400 mr-2"></i>
-                    {{ Auth::user()->name }} - Panel de Administración
+                    <span class="break-words">{{ Auth::user()->name }} - Panel de Administración</span>
                 </p>
             </div>
-            <div class="text-right">
-                <a href="{{ route('admin.users.index') }}" class="waste-btn waste-btn-secondary">
+            <div class="text-left sm:text-right w-full sm:w-auto">
+                <a href="{{ route('admin.users.index') }}" class="waste-btn waste-btn-secondary text-sm sm:text-base">
                     <i class="fas fa-arrow-left mr-2"></i>
-                    Volver a Usuarios
+                    <span class="hidden sm:inline">Volver a Usuarios</span>
+                    <span class="sm:hidden">Volver</span>
                 </a>
             </div>
         </div>
@@ -28,10 +29,10 @@
 
     <!-- Form Card -->
     <div class="waste-card animate-fade-in-up">
-        <form action="{{ route('admin.users.store') }}" method="POST" class="space-y-6">
+        <form action="{{ route('admin.users.store') }}" method="POST" class="space-y-4 sm:space-y-6">
             @csrf
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 <!-- Name Field -->
                 <div class="waste-form-group">
                     <label for="name" class="waste-form-label">

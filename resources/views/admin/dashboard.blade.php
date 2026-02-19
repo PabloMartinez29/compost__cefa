@@ -3,27 +3,27 @@
 @section('content')
 @vite(['resources/css/dashboard-admin.css'])
 
-<div class="container mx-auto px-6 py-8">
+<div class="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
     <!-- Header de Bienvenida -->
     <div class="dashboard-header animate-fade-in-up">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="welcome-title">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+            <div class="flex-1 min-w-0">
+                <h1 class="welcome-title text-xl sm:text-2xl">
                     Bienvenido Administrador
                 </h1>
-                <p class="welcome-subtitle">
+                <p class="welcome-subtitle text-sm sm:text-base">
                     <i class="fas fa-user-circle text-green-600 mr-2"></i>
-                    {{ Auth::user()->name }} - Panel de Control del Sistema de Compostaje
+                    <span class="break-words">{{ Auth::user()->name }} - Panel de Control del Sistema de Compostaje</span>
                 </p>
             </div>
-            <div class="text-right">
-                <div class="text-green-600 font-bold text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
+            <div class="text-left sm:text-right flex-shrink-0">
+                <div class="text-green-600 font-bold text-base sm:text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
             </div>
         </div>
     </div>
 
     <!-- Tarjetas de Estadísticas Básicas -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mt-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6 mt-6 sm:mt-8">
         <!-- Pasantes -->
         <div class="stats-card stats-card-primary animate-fade-in-up animate-delay-1">
             <div class="flex items-center justify-between">
@@ -42,7 +42,8 @@
             <div class="flex items-center justify-between">
                 <div>
                     <div class="stats-label">Pilas Activas</div>
-                    <div class="stats-number">0</div>
+                    <div class="stats-number">{{ $compostingStats['active'] }}</div>
+                    <div class="text-xs text-gray-500 mt-1">{{ $compostingStats['total'] }} registradas</div>
                 </div>
                 <div class="stats-icon text-green-300">
                     <i class="fas fa-mountain"></i>
@@ -83,7 +84,8 @@
             <div class="flex items-center justify-between">
                 <div>
                     <div class="stats-label">Abono (Kg)</div>
-                    <div class="stats-number">0</div>
+                    <div class="stats-number">{{ number_format($fertilizerStats['total_amount'], 1) }}</div>
+                    <div class="text-xs text-gray-500 mt-1">{{ $fertilizerStats['total_records'] }} registros</div>
                 </div>
                 <div class="stats-icon text-yellow-300">
                     <i class="fas fa-seedling"></i>
@@ -93,7 +95,7 @@
     </div>
 
     <!-- Contenido Principal -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mt-6 sm:mt-8">
         <!-- Información del Sistema -->
         <div class="info-card animate-fade-in-up animate-delay-2">
             <h2 class="section-title">

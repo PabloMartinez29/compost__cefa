@@ -99,7 +99,7 @@
                                                 data-total-kg="{{ $composting->total_kg }}"
                                                 {{ old('composting_id') == $composting->id ? 'selected' : '' }}>
                                             {{ $composting->formatted_pile_num }} - {{ $composting->status }} 
-                                            ({{ $composting->formatted_start_date }} → {{ $composting->formatted_end_date }})
+                                            ({{ $composting->formatted_start_date }} → {{ $composting->formatted_end_date }}) — Disponible: {{ number_format($composting->total_kg ?? 0, 2) }} Kg
                                         </option>
                                     @endforeach
                                 </select>

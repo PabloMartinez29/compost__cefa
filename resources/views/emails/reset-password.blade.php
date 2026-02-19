@@ -25,7 +25,7 @@
     </style>
     <!--
         Reemplaza el contenido del div.logo por la imagen del logo cuando lo tengas disponible:
-        <img src="{{ asset('img/logo-compost-cefa.png') }}" alt="COMPOST CEFA" />
+        <img src="{{ asset('img/logo-compost-cefa.webp') }}" alt="COMPOST CEFA" />
     -->
     
 </head>

@@ -192,6 +192,13 @@
                                 {{ $message }}
                             </p>
                         @enderror
+                        <div id="countdownEditBlock" class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-xl">
+                            <p class="text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-clock text-soft-green-500 mr-2"></i>
+                                Próximo mantenimiento (cronómetro)
+                            </p>
+                            <div id="countdownEditDisplay" class="text-2xl font-mono font-bold text-gray-800">--</div>
+                        </div>
                     </div>
                 </div>
 
@@ -201,7 +208,7 @@
                     <div class="space-y-2">
                         <label class="flex items-center text-sm font-semibold text-soft-gray-700">
                             <i class="fas fa-image text-soft-green-500 mr-2"></i>
-                            Imagen (Opcional)
+                            Imagen (Obligatoria)
                         </label>
                         
                         <!-- Imagen actual -->
@@ -302,6 +309,47 @@
         // Exponer funciones globalmente
         window.previewImage = previewImage;
         window.removeImage = removeImage;
+
+        const countdownEl = document.getElementById('countdownEditDisplay');
+        const nextDueUrl = '{{ route("aprendiz.machinery.maintenance.next-due", ["machinery_id" => $machinery->id]) }}';
+        if (countdownEl) {
+            let secondsLeft = null;
+            let tick = null;
+            function formatCountdown(totalSeconds) {
+                if (totalSeconds == null || totalSeconds < 0) return '--';
+                if (totalSeconds <= 0) return '0d 0h 0m 0s';
+                const d = Math.floor(totalSeconds / 86400);
+                const h = Math.floor((totalSeconds % 86400) / 3600);
+                const m = Math.floor((totalSeconds % 3600) / 60);
+                const s = totalSeconds % 60;
+                return d + 'd ' + h + 'h ' + m + 'm ' + s + 's';
+            }
+            function updateDisplay() {
+                if (secondsLeft == null) return;
+                countdownEl.textContent = formatCountdown(secondsLeft);
+                if (secondsLeft <= 0) {
+                    if (tick) clearInterval(tick);
+                    tick = null;
+                }
+            }
+            fetch(nextDueUrl)
+                .then(r => r.json())
+                .then(data => {
+                    if (data.seconds_remaining != null) {
+                        secondsLeft = data.seconds_remaining;
+                        updateDisplay();
+                        if (secondsLeft > 0) {
+                            tick = setInterval(function() {
+                                secondsLeft--;
+                                updateDisplay();
+                            }, 1000);
+                        }
+                    } else {
+                        countdownEl.textContent = (data.paused ? 'Pausado' : '--');
+                    }
+                })
+                .catch(() => { countdownEl.textContent = '--'; });
+        }
         
         // Confirmación antes de enviar el formulario
         const form = document.querySelector('form');
@@ -397,22 +445,6 @@
         });
     @endif
 
-    // Mostrar errores de validación si existen
-    @if($errors->any())
-        Swal.fire({
-            title: 'Errores de validación',
-            html: '<ul class="text-left list-disc list-inside">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>',
-            icon: 'error',
-            confirmButtonColor: '#ef4444',
-            confirmButtonText: 'Entendido',
-            customClass: {
-                popup: 'rounded-lg',
-                title: 'text-lg font-semibold text-red-600',
-                content: 'text-sm text-gray-600',
-                confirmButton: 'px-4 py-2 rounded-lg font-medium'
-            }
-        });
-    @endif
 </script>
 @endsection
 

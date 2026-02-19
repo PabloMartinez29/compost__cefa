@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\UsageControl;
 use App\Models\Machinery;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
@@ -43,11 +44,26 @@ class UsageControlController extends Controller
      */
     public function create()
     {
-        // Mostrar maquinarias que NO tienen registros activos (sin fecha de fin)
-        // Las maquinarias con registros completados (con fecha de fin) pueden volver a aparecer
-        $machineries = Machinery::whereDoesntHave('usageControls', function($query) {
-            $query->whereNull('end_date');
-        })->orderBy('name')->get();
+        // Mostrar solo maquinarias que:
+        // 1. NO tienen registros activos de uso (sin fecha de fin)
+        // 2. NO están en mantenimiento según Control de Actividades (maintenances con tipo 'M' sin fecha de fin)
+        // 3. NO están en mantenimiento según Control de Uso Diario (usage_controls con status 'mantenimiento')
+        
+        // Excluir maquinarias con mantenimientos activos (tipo 'M' sin fecha de fin) en Control de Actividades
+        $machineries = Machinery::whereDoesntHave('maintenances', function($query) {
+            $query->where('type', 'M')
+                  ->whereNull('end_date');
+        })
+        // Excluir maquinarias con registros activos de uso (sin fecha de fin) O con status 'mantenimiento'
+        ->whereDoesntHave('usageControls', function($query) {
+            $query->where(function($q) {
+                $q->whereNull('end_date')
+                  ->orWhere('status', 'mantenimiento');
+            });
+        })
+        ->orderBy('name')
+        ->get();
+        
         return view('admin.machinery.usage-controls.create', compact('machineries'));
     }
 
@@ -84,7 +100,7 @@ class UsageControlController extends Controller
         }
 
         try {
-            $data = $request->all();
+            $data = $request->only(['machinery_id', 'start_date', 'end_date', 'hours', 'responsible', 'description']);
             // Convertir datetime-local a formato datetime para la base de datos
             $startDate = \Carbon\Carbon::parse($request->start_date);
             
@@ -143,7 +159,7 @@ class UsageControlController extends Controller
                 'created_at' => $usageControl->created_at->format('d/m/Y H:i:s'),
                 'created_at_formatted' => $usageControl->created_at->format('d/m/Y H:i:s'),
                 'machinery_image_url' => $usageControl->machinery && $usageControl->machinery->image 
-                    ? \Illuminate\Support\Facades\Storage::url($usageControl->machinery->image) 
+                    ? asset($usageControl->machinery->image) 
                     : null,
             ]);
         }
@@ -156,8 +172,28 @@ class UsageControlController extends Controller
      */
     public function edit(UsageControl $usageControl)
     {
-        // En edición, mostrar todas las maquinarias para permitir cambios
-        $machineries = Machinery::orderBy('name')->get();
+        // En edición, mostrar maquinarias que NO están en mantenimiento
+        // (excepto la maquinaria actual del registro que se está editando)
+        $currentMachineryId = $usageControl->machinery_id;
+        
+        // Obtener todas las maquinarias que NO están en mantenimiento
+        $query = Machinery::whereDoesntHave('maintenances', function($q) {
+            $q->where('type', 'M')->whereNull('end_date');
+        });
+        if (Schema::hasColumn('usage_controls', 'status')) {
+            $query->whereDoesntHave('usageControls', function($q) {
+                $q->where('status', 'mantenimiento');
+            });
+        }
+        $availableMachineries = $query->orderBy('name')->get();
+        
+        // Siempre incluir la maquinaria actual del registro (aunque esté en mantenimiento)
+        $currentMachinery = Machinery::find($currentMachineryId);
+        $machineries = $availableMachineries;
+        
+        if ($currentMachinery && !$machineries->contains('id', $currentMachineryId)) {
+            $machineries = $machineries->push($currentMachinery)->sortBy('name')->values();
+        }
         
         // Si es una petición AJAX, devolver JSON con maquinarias
         if (request()->ajax() || request()->wantsJson()) {
@@ -218,7 +254,7 @@ class UsageControlController extends Controller
         }
 
         try {
-            $data = $request->all();
+            $data = $request->only(['machinery_id', 'start_date', 'end_date', 'hours', 'responsible', 'description']);
             // Convertir datetime-local a formato datetime para la base de datos
             $startDate = \Carbon\Carbon::parse($request->start_date);
             
@@ -269,12 +305,21 @@ class UsageControlController extends Controller
     }
 
     /**
-     * Generate PDF for all usage controls
+     * Generate PDF for all usage controls (o solo los filtrados si se pasan ids)
      */
-    public function downloadAllUsageControlsPDF()
+    public function downloadAllUsageControlsPDF(Request $request)
     {
-        $usageControls = UsageControl::with('machinery')->orderBy('date', 'desc')->get();
-        
+        $query = UsageControl::with('machinery')->orderBy('date', 'desc');
+
+        if ($request->filled('ids')) {
+            $ids = array_filter(array_map('intval', explode(',', $request->ids)));
+            if (!empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+        }
+
+        $usageControls = $query->get();
+
         $pdf = PDF::loadView('admin.machinery.usage-controls.pdf.all-usage-controls', compact('usageControls'))
             ->setPaper('a4', 'landscape')
             ->setOptions([
@@ -296,8 +341,8 @@ class UsageControlController extends Controller
         
         // Convertir imagen a base64 si existe
         $imageBase64 = null;
-        if ($usageControl->machinery && $usageControl->machinery->image && Storage::disk('public')->exists($usageControl->machinery->image)) {
-            $imagePath = Storage::disk('public')->path($usageControl->machinery->image);
+        if ($usageControl->machinery && $usageControl->machinery->image && file_exists(public_path($usageControl->machinery->image))) {
+            $imagePath = public_path($usageControl->machinery->image);
             $imageData = file_get_contents($imagePath);
             $imageInfo = getimagesize($imagePath);
             $mimeType = $imageInfo['mime'];

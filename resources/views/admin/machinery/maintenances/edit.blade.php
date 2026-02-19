@@ -371,22 +371,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 @endif
 
-// Mostrar errores de validación si existen
-@if($errors->any())
-    Swal.fire({
-        title: 'Errores de validación',
-        html: '<ul class="text-left list-disc list-inside">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>',
-        icon: 'error',
-        confirmButtonColor: '#ef4444',
-        confirmButtonText: 'Entendido',
-        customClass: {
-            popup: 'rounded-lg',
-            title: 'text-lg font-semibold text-red-600',
-            content: 'text-sm text-gray-600',
-            confirmButton: 'px-4 py-2 rounded-lg font-medium'
-        }
-    });
-@endif
 </script>
 @endsection
 

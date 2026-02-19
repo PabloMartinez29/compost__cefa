@@ -28,24 +28,20 @@ class FertilizerController extends Controller
 
     /**
      * Show the form for creating a new resource.
+     * Pilas completadas con kg disponibles (total_kg = saldo restante); se permiten varias ventas por pila.
      */
     public function create()
     {
-        // Obtener solo las pilas completadas que no tengan abono registrado
-        // Una pila está completada según el mismo criterio usado en el modelo (accessor status)
-        $completedCompostings = Composting::whereDoesntHave('fertilizers')
-            ->with(['creator', 'trackings'])
+        $completedCompostings = Composting::with(['creator', 'trackings'])
             ->get()
             ->filter(function($composting) {
-                // Usar el accessor de estado para mantener la misma lógica que en seguimiento de pilas
-                return $composting->status === 'Completada';
+                return $composting->status === 'Completada' && ($composting->total_kg ?? 0) > 0;
             })
             ->sortByDesc(function($composting) {
-                // Ordenar por end_date si existe, sino por fecha de creación
                 return $composting->end_date ? $composting->end_date->timestamp : $composting->created_at->timestamp;
             })
             ->values();
-        
+
         return view('admin.fertilizer.create', compact('completedCompostings'));
     }
 
@@ -77,14 +73,7 @@ class FertilizerController extends Controller
                 ->with('error', 'La pila seleccionada no está completada. Solo se pueden registrar abonos de pilas completadas.');
         }
 
-        // Verificar que no exista ya un abono para esta pila
-        if (Fertilizer::where('composting_id', $request->composting_id)->exists()) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'Ya existe un registro de abono para esta pila.');
-        }
-
-        // Validar que la cantidad no exceda los kilogramos beneficiados disponibles
+        // total_kg en la pila es el saldo restante; se actualiza en cada venta
         $availableKg = $composting->total_kg ?? 0;
         if ($request->amount > $availableKg) {
             return redirect()->back()
@@ -219,26 +208,30 @@ class FertilizerController extends Controller
      */
     public function destroy(Fertilizer $fertilizer)
     {
-        // Devolver la cantidad a los kilogramos beneficiados de la pila
-        $composting = $fertilizer->composting;
-        if ($composting) {
-            $currentTotalKg = $composting->total_kg ?? 0;
-            $newTotalKg = $currentTotalKg + $fertilizer->amount;
-            $composting->update(['total_kg' => $newTotalKg]);
-        }
-
+        // Importante: al eliminar un registro de abono NO se deben
+        // devolver los kilogramos beneficiados a la pila, para evitar
+        // que se altere el historial real de salida de abono.
         $fertilizer->delete();
 
         return redirect()->route('admin.fertilizer.index')->with('success', '¡Registro de abono eliminado exitosamente!');
     }
 
     /**
-     * Generate PDF for all fertilizers
+     * Generate PDF for all fertilizers (o solo los filtrados si se pasan ids)
      */
-    public function downloadAllFertilizersPDF()
+    public function downloadAllFertilizersPDF(Request $request)
     {
-        $fertilizers = Fertilizer::with('composting')->orderBy('date', 'desc')->orderBy('time', 'desc')->get();
-        
+        $query = Fertilizer::with('composting')->orderBy('date', 'desc')->orderBy('time', 'desc');
+
+        if ($request->filled('ids')) {
+            $ids = array_filter(array_map('intval', explode(',', $request->ids)));
+            if (!empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+        }
+
+        $fertilizers = $query->get();
+
         $pdf = PDF::loadView('admin.fertilizer.pdf.all-fertilizers', compact('fertilizers'))
             ->setPaper('a4', 'landscape')
             ->setOptions([

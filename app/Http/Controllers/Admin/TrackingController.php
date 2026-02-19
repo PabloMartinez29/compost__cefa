@@ -463,14 +463,22 @@ class TrackingController extends Controller
     }
 
     /**
-     * Generate PDF for all trackings
+     * Generate PDF for all trackings (o solo los filtrados si se pasan ids)
      */
-    public function downloadAllTrackingsPDF()
+    public function downloadAllTrackingsPDF(Request $request)
     {
-        $trackings = Tracking::with('composting')
-            ->orderBy('date', 'desc')
-            ->get();
-        
+        $query = Tracking::with('composting')
+            ->orderBy('date', 'desc');
+
+        if ($request->filled('ids')) {
+            $ids = array_filter(array_map('intval', explode(',', $request->ids)));
+            if (!empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+        }
+
+        $trackings = $query->get();
+
         $pdf = PDF::loadView('admin.tracking.pdf.all-trackings', compact('trackings'))
             ->setPaper('a4', 'landscape')
             ->setOptions([
@@ -512,8 +520,8 @@ class TrackingController extends Controller
         
         // Convertir imagen de la pila a base64 si existe
         $imageBase64 = null;
-        if ($tracking->composting && $tracking->composting->image && Storage::disk('public')->exists($tracking->composting->image)) {
-            $imagePath = Storage::disk('public')->path($tracking->composting->image);
+        if ($tracking->composting && $tracking->composting->image && file_exists(public_path($tracking->composting->image))) {
+            $imagePath = public_path($tracking->composting->image);
             $imageData = file_get_contents($imagePath);
             $imageInfo = getimagesize($imagePath);
             $mimeType = $imageInfo['mime'];

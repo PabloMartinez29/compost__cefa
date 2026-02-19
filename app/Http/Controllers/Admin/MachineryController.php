@@ -42,7 +42,7 @@ class MachineryController extends Controller
             'serial' => 'required|string|max:100|unique:machineries,serial',
             'start_func' => 'required|date|before_or_equal:today',
             'maint_freq' => 'required|string|max:100',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp',
         ], [
             'name.required' => 'El nombre de la maquinaria es obligatorio.',
             'name.max' => 'El nombre no debe exceder 150 caracteres.',
@@ -60,6 +60,7 @@ class MachineryController extends Controller
             'start_func.before_or_equal' => 'La fecha de inicio no puede ser futura.',
             'maint_freq.required' => 'La frecuencia de mantenimiento es obligatoria.',
             'maint_freq.max' => 'La frecuencia de mantenimiento no debe exceder 100 caracteres.',
+            'image.required' => 'La imagen es obligatoria.',
             'image.image' => 'El archivo debe ser una imagen.',
             'image.mimes' => 'La imagen debe ser de tipo: jpeg, png, jpg, gif o webp.',
         ]);
@@ -73,12 +74,14 @@ class MachineryController extends Controller
         try {
             $data = $request->all();
             
-            // Handle image upload
             if ($request->hasFile('image')) {
-                $data['image'] = $request->file('image')->store('machineries', 'public');
+                $file = $request->file('image');
+                $name = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
+                $data['image'] = $file->storeAs('machineries', $name, 'public');
             }
             
-            Machinery::create($data);
+            $machinery = Machinery::create($data);
+            $machinery->scheduleNextMaintenanceDue();
             
             return redirect()->route('admin.machinery.index')
                 ->with('success', 'Maquinaria registrada exitosamente.');
@@ -149,16 +152,18 @@ class MachineryController extends Controller
         try {
             $data = $request->all();
             
-            // Handle image upload
             if ($request->hasFile('image')) {
-                // Delete old image if exists
-                if ($machinery->image) {
+                if ($machinery->image && Storage::disk('public')->exists($machinery->image)) {
                     Storage::disk('public')->delete($machinery->image);
                 }
-                $data['image'] = $request->file('image')->store('machineries', 'public');
+                $file = $request->file('image');
+                $name = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
+                $data['image'] = $file->storeAs('machineries', $name, 'public');
             }
             
             $machinery->update($data);
+            // Al editar (p. ej. cambiar frecuencia Semanal → Diario) se reinicia el cronómetro con la nueva frecuencia
+            $machinery->scheduleNextMaintenanceDue();
             
             return redirect()->route('admin.machinery.index')
                 ->with('success', 'Maquinaria actualizada exitosamente.');
@@ -175,7 +180,6 @@ class MachineryController extends Controller
     public function destroy(Machinery $machinery)
     {
         try {
-            // Delete image if exists
             if ($machinery->image && Storage::disk('public')->exists($machinery->image)) {
                 Storage::disk('public')->delete($machinery->image);
             }
@@ -210,12 +214,21 @@ class MachineryController extends Controller
     }
 
     /**
-     * Generate PDF for all machineries
+     * Generate PDF for all machineries (o solo los filtrados si se pasan ids)
      */
-    public function downloadAllMachineriesPDF()
+    public function downloadAllMachineriesPDF(Request $request)
     {
-        $machineries = Machinery::latest()->get();
-        
+        $query = Machinery::latest();
+
+        if ($request->filled('ids')) {
+            $ids = array_filter(array_map('intval', explode(',', $request->ids)));
+            if (!empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+        }
+
+        $machineries = $query->get();
+
         $pdf = PDF::loadView('admin.machinery.machineries.pdf.all-machineries', compact('machineries'))
             ->setPaper('a4', 'landscape')
             ->setOptions([

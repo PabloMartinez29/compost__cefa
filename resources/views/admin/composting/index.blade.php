@@ -7,28 +7,28 @@
     use Illuminate\Support\Facades\Storage;
 @endphp
 
-<div class="container mx-auto px-6 py-8">
+<div class="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
     <!-- Header -->
     <div class="waste-header animate-fade-in-up">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="waste-title">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+            <div class="flex-1 min-w-0">
+                <h1 class="waste-title text-xl sm:text-2xl">
                     <i class="fas fa-mountain waste-icon"></i>
                     Registro de Pilas de Compostaje
                 </h1>
-                <p class="waste-subtitle">
+                <p class="waste-subtitle text-sm sm:text-base">
                     <i class="fas fa-user-shield text-green-400 mr-2"></i>
-                    {{ Auth::user()->name }} - Panel de Administración
+                    <span class="break-words">{{ Auth::user()->name }} - Panel de Administración</span>
                 </p>
             </div>
-            <div class="text-right">
-                <div class="text-green-400 font-bold text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
+            <div class="text-left sm:text-right flex-shrink-0">
+                <div class="text-green-400 font-bold text-base sm:text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
             </div>
         </div>
     </div>
 
     <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <!-- Total Pilas -->
         <div class="waste-card waste-card-primary animate-fade-in-up animate-delay-1">
             <div class="flex items-center justify-between">
@@ -85,42 +85,77 @@
     <!-- Main Content -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
         <!-- Table Header -->
-        <div class="p-6 border-b border-gray-200 bg-gray-50">
+        <div class="p-3 sm:p-4 md:p-6 border-b border-gray-200 bg-gray-50">
             <!-- Primera fila: Título y botones -->
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4">
+                <h2 class="text-base sm:text-lg font-semibold text-gray-800 flex items-center">
                     <i class="fas fa-mountain text-green-600 mr-2"></i>
                     Pilas de Compostaje Registradas
                 </h2>
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
                     @if($compostings->count() > 0)
-                        <a href="{{ route('admin.composting.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                        <button type="button" id="btn-download-all-pdf" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm text-sm sm:text-base" title="Descargar PDF de los registros visibles (filtrados)">
                             <i class="fas fa-file-pdf"></i>
-                        </a>
+                            <span class="hidden sm:inline ml-2">PDF</span>
+                        </button>
                     @endif
-                    <a href="{{ route('admin.composting.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                    <a href="{{ route('admin.composting.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm text-sm sm:text-base flex-1 sm:flex-initial justify-center">
                         <i class="fas fa-plus mr-2"></i>
-                        Nueva Pila
+                        <span class="hidden sm:inline">Nueva Pila</span>
+                        <span class="sm:hidden">Nueva</span>
                     </a>
                 </div>
             </div>
         </div>
 
         @if(session('success'))
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded m-6">
+            <div class="bg-green-100 border border-green-400 text-green-700 px-3 sm:px-4 py-2 sm:py-3 rounded m-3 sm:m-6 text-sm sm:text-base">
                 {{ session('success') }}
             </div>
         @endif
 
         @if(session('error'))
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded m-6">
+            <div class="bg-red-100 border border-red-400 text-red-700 px-3 sm:px-4 py-2 sm:py-3 rounded m-3 sm:m-6 text-sm sm:text-base">
                 {{ session('error') }}
             </div>
         @endif
 
         @if($compostings->count() > 0)
-            <!-- Tabla de pilas -->
-            <div id="compostingsTable_wrapper" class="p-6">
+            <!-- Vista móvil: tarjetas -->
+            <div class="block md:hidden p-3 sm:p-4 space-y-4">
+                @foreach($compostings as $composting)
+                    <div class="waste-mobile-card bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm" data-id="{{ $composting->id }}">
+                        <div class="flex gap-3">
+                            <div class="flex-shrink-0">
+                                @if($composting->image)
+                                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 cursor-pointer" onclick="openImageModal('{{ Storage::url($composting->image) }}')">
+                                        <img src="{{ Storage::url($composting->image) }}" alt="{{ $composting->formatted_pile_num }}" class="w-full h-full object-cover" onerror="this.style.display='none';">
+                                        <div class="w-full h-full bg-gray-200 flex items-center justify-center" style="display: none;"><i class="fas fa-mountain text-gray-400"></i></div>
+                                    </div>
+                                @else
+                                    <div class="w-14 h-14 rounded-xl bg-green-100 flex items-center justify-center"><i class="fas fa-mountain text-green-600 text-xl"></i></div>
+                                @endif
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-gray-900">{{ $composting->formatted_pile_num }}</h3>
+                                <p class="text-sm text-gray-600">{{ $composting->formatted_start_date }} · {{ $composting->formatted_end_date ?? 'En proceso' }}</p>
+                                {!! $composting->formatted_status !!}
+                                @if($composting->total_kg)<span class="text-green-600 font-medium">{{ $composting->formatted_total_kg }}</span>@endif
+                            </div>
+                        </div>
+                        <div class="waste-mobile-card-actions mt-4 pt-3 border-t border-gray-200">
+                            <button type="button" onclick="openViewModal({{ $composting->id }})" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg flex-shrink-0" title="Ver"><i class="fas fa-eye"></i></button>
+                            <a href="{{ route('admin.composting.edit', $composting) }}" class="p-2 text-green-600 hover:bg-green-50 rounded-lg flex-shrink-0" title="Editar"><i class="fas fa-edit"></i></a>
+                            <form action="{{ route('admin.composting.destroy', $composting) }}" method="POST" class="inline flex-shrink-0" onsubmit="return confirmDelete(event, this)">@csrf @method('DELETE')<button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Eliminar"><i class="fas fa-trash"></i></button></form>
+                            <a href="{{ route('admin.composting.download.pdf', $composting) }}" class="p-2 text-red-700 hover:bg-red-50 rounded-lg flex-shrink-0" title="PDF"><i class="fas fa-file-pdf"></i></a>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            <div class="hidden md:block overflow-x-auto -mx-3 sm:mx-0">
+            <!--Tabla de pilas -->
+            <div id="compostingsTable_wrapper" class="p-3 sm:p-4 md:p-6">
                 <!-- Contenedor para controles superiores -->
                 <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
                     <div id="dt-length-container" style="float: left;"></div>
@@ -143,7 +178,7 @@
                     </thead>
                     <tbody>
                         @foreach($compostings as $composting)
-                        <tr>
+                        <tr data-id="{{ $composting->id }}">
                             <td class="text-center">
                                 @if($composting->image)
                                     <img src="{{ Storage::url($composting->image) }}" 
@@ -206,16 +241,20 @@
                                         title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
+                                    <form action="{{ route('admin.composting.destroy', $composting) }}" 
+                                          method="POST" class="inline" 
+                                          onsubmit="return confirmDelete(event, this)">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="inline-flex items-center text-red-500 hover:text-red-700" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
                                     <a href="{{ route('admin.composting.download.pdf', $composting) }}" 
                                        class="inline-flex items-center text-red-800 hover:text-red-900" 
                                        title="Descargar PDF">
                                         <i class="fas fa-file-pdf"></i>
                                     </a>
-                                    <button onclick="confirmDelete({{ $composting->id }})" 
-                                        class="inline-flex items-center text-red-500 hover:text-red-700" 
-                                        title="Eliminar">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -784,7 +823,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('Inicializando DataTables...');
     
-    let table = new DataTable('#compostingsTable', {
+    window.compostingsDataTable = new DataTable('#compostingsTable', {
         language: {
             search: 'Buscar:',
             lengthMenu: 'Mostrar _MENU_ registros',
@@ -857,19 +896,39 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (lengthSelect) {
                 lengthSelect.addEventListener('change', function() {
-                    table.page.len(parseInt(this.value)).draw();
+                    window.compostingsDataTable.page.len(parseInt(this.value)).draw();
                 });
             }
             
             if (searchInput) {
                 searchInput.addEventListener('keyup', function() {
-                    table.search(this.value).draw();
+                    window.compostingsDataTable.search(this.value).draw();
                 });
             }
         }
     });
+
+    document.getElementById('btn-download-all-pdf')?.addEventListener('click', function() {
+        let url = '{{ route("admin.composting.download.all-pdf") }}';
+        if (window.compostingsDataTable) {
+            const ids = [];
+            window.compostingsDataTable.rows({ search: 'applied' }).every(function() {
+                const row = this.node();
+                const id = row.getAttribute('data-id');
+                if (id) ids.push(id);
+            });
+            if (ids.length > 0) {
+                url += '?ids=' + ids.join(',');
+            }
+        }
+        window.location.href = url;
+    });
     
-    console.log('DataTables configurado:', table);
+    console.log('DataTables configurado:', window.compostingsDataTable);
 });
 </script>
 @endsection
+
+@endsection
+
+

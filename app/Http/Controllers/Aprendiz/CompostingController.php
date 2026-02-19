@@ -85,26 +85,26 @@ class CompostingController extends Controller
      */
     public function create()
     {
-        // Obtener inventario actual de bodega por tipo
-        $inventory = WarehouseClassification::getInventoryByType();
-        
-        // Filtrar solo los tipos que tienen cantidad disponible
-        $availableTypes = array_filter($inventory, function($quantity) {
-            return $quantity > 0;
-        });
-        
-        // Obtener residuos orgánicos que tienen cantidad en bodega (todos los usuarios)
-        $availableOrganics = Organic::whereIn('type', array_keys($availableTypes))
-            ->orderBy('created_at', 'desc')
-            ->get()
-            ->map(function($organic) use ($inventory) {
-                // Agregar información de cantidad disponible y datos formateados
-                $organic->available_quantity = $inventory[$organic->type] ?? 0;
-                $organic->type_in_spanish = $organic->getTypeInSpanishAttribute();
-                $organic->formatted_weight = $organic->getFormattedWeightAttribute();
-                return $organic;
-            })
-            ->toArray();
+        // Un solo ítem por tipo de residuo, con el total disponible en bodega (no duplicados por registro)
+        $types = ['Kitchen', 'Beds', 'Leaves', 'CowDung', 'ChickenManure', 'PigManure', 'Other'];
+        $availableOrganics = collect();
+        foreach ($types as $type) {
+            $availableQuantity = WarehouseClassification::getCurrentInventory($type);
+            if ($availableQuantity <= 0) {
+                continue;
+            }
+            $organic = Organic::where('type', $type)->first();
+            if (!$organic) {
+                continue;
+            }
+            $availableOrganics->push([
+                'id' => $organic->id,
+                'type' => $type,
+                'type_in_spanish' => $organic->type_in_spanish,
+                'available_quantity' => round($availableQuantity, 2),
+                'available_quantity_formatted' => number_format($availableQuantity, 2, '.', ''),
+            ]);
+        }
 
         return view('aprendiz.composting.create', compact('availableOrganics'));
     }
@@ -151,16 +151,9 @@ class CompostingController extends Controller
             // Handle image upload
             $imagePath = null;
             if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('compostings', 'public');
-                \Log::info('Image uploaded for composting (aprendiz)', [
-                    'image_path' => $imagePath,
-                    'file_exists' => Storage::disk('public')->exists($imagePath)
-                ]);
-            } else {
-                \Log::info('No image file in request for composting (aprendiz)', [
-                    'has_file' => $request->hasFile('image'),
-                    'all_files' => $request->allFiles()
-                ]);
+                $file = $request->file('image');
+                $name = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
+                $imagePath = $file->storeAs('compostings', $name, 'public');
             }
             
             // Crear el compostaje
@@ -177,13 +170,6 @@ class CompostingController extends Controller
             // Recargar el modelo para asegurar que la imagen esté disponible
             $composting->refresh();
             
-            \Log::info('Composting created (aprendiz)', [
-                'composting_id' => $composting->id,
-                'image' => $composting->image,
-                'image_path' => $imagePath,
-                'image_exists' => $composting->image ? Storage::disk('public')->exists($composting->image) : false
-            ]);
-
             // Crear los ingredientes y restar del inventario
             foreach ($request->ingredients as $ingredientData) {
                 // Crear el ingrediente
@@ -368,7 +354,6 @@ class CompostingController extends Controller
             // Handle image upload
             $imagePath = $composting->image; // Mantener la imagen actual por defecto
             
-            // Si se solicita eliminar la imagen actual
             if ($request->has('remove_image') && $request->remove_image == '1') {
                 if ($composting->image && Storage::disk('public')->exists($composting->image)) {
                     Storage::disk('public')->delete($composting->image);
@@ -376,13 +361,13 @@ class CompostingController extends Controller
                 $imagePath = null;
             }
             
-            // Si se sube una nueva imagen
             if ($request->hasFile('image')) {
-                // Eliminar la imagen anterior si existe
                 if ($composting->image && Storage::disk('public')->exists($composting->image)) {
                     Storage::disk('public')->delete($composting->image);
                 }
-                $imagePath = $request->file('image')->store('compostings', 'public');
+                $file = $request->file('image');
+                $name = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
+                $imagePath = $file->storeAs('compostings', $name, 'public');
             }
             
             // Actualizar el compostaje (solo los campos permitidos, los ingredientes no se tocan)
@@ -443,7 +428,6 @@ class CompostingController extends Controller
         
         DB::beginTransaction();
         try {
-            // Eliminar la imagen si existe
             if ($composting->image && Storage::disk('public')->exists($composting->image)) {
                 Storage::disk('public')->delete($composting->image);
             }
@@ -619,14 +603,22 @@ class CompostingController extends Controller
     }
 
     /**
-     * Generate PDF for all compostings
+     * Generate PDF for all compostings (o solo los filtrados si se pasan ids)
      */
-    public function downloadAllCompostingsPDF()
+    public function downloadAllCompostingsPDF(Request $request)
     {
-        $compostings = Composting::with(['ingredients.organic', 'creator'])
-            ->orderBy('created_at', 'desc')
-            ->get();
-        
+        $query = Composting::with(['ingredients.organic', 'creator'])
+            ->orderBy('created_at', 'desc');
+
+        if ($request->filled('ids')) {
+            $ids = array_filter(array_map('intval', explode(',', $request->ids)));
+            if (!empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+        }
+
+        $compostings = $query->get();
+
         $pdf = PDF::loadView('aprendiz.composting.pdf.all-compostings', compact('compostings'))
             ->setPaper('a4', 'landscape')
             ->setOptions([

@@ -2,17 +2,17 @@
 @vite(['resources/css/waste.css'])
 
 @section('content')
-<div class="min-h-screen bg-soft-gray-50 py-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="min-h-screen bg-soft-gray-50 py-4 sm:py-8">
+    <div class="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
         <!-- Header -->
-        <div class="mb-8">
-            <div class="flex items-center space-x-3">
-                <div class="w-12 h-12 bg-gradient-to-br from-soft-green-500 to-soft-green-600 rounded-xl flex items-center justify-center shadow-sm">
+        <div class="mb-6 sm:mb-8">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                <div class="w-12 h-12 bg-gradient-to-br from-soft-green-500 to-soft-green-600 rounded-xl flex items-center justify-center shadow-sm flex-shrink-0">
                     <i class="fas fa-warehouse text-white text-xl"></i>
                 </div>
-                <div>
-                    <h1 class="text-3xl font-bold text-soft-gray-900">Bodega de Clasificación</h1>
-                    <p class="text-soft-gray-600">Inventario general de residuos orgánicos</p>
+                <div class="min-w-0">
+                    <h1 class="text-xl sm:text-3xl font-bold text-soft-gray-900">Bodega de Clasificación</h1>
+                    <p class="text-sm sm:text-base text-soft-gray-600">Inventario general de residuos orgánicos</p>
                 </div>
             </div>
         </div>
@@ -95,8 +95,25 @@
             </div>
             <div class="p-6">
                 @if($recentMovements->count() > 0)
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
+                    <!-- Vista móvil: tarjetas -->
+                    <div class="block md:hidden space-y-4">
+                        @foreach($recentMovements as $movement)
+                            <div class="bg-soft-gray-50 border border-soft-gray-200 rounded-xl p-4">
+                                <div class="flex justify-between items-start gap-2">
+                                    <div class="min-w-0">
+                                        <p class="font-medium text-soft-gray-900">{{ $movement->formatted_date }}</p>
+                                        <p class="text-sm text-soft-gray-600">{{ $movement->type_in_spanish }}</p>
+                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $movement->movement_type === 'entry' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">{{ $movement->movement_type_in_spanish }}</span>
+                                        <span class="ml-2 text-sm font-semibold">{{ $movement->formatted_weight }}</span>
+                                        <p class="text-xs text-soft-gray-500 mt-1">{{ $movement->processed_by }}</p>
+                                    </div>
+                                    <button type="button" onclick="openMovementModal({{ $movement->id }})" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg flex-shrink-0" title="Ver detalles"><i class="fas fa-eye"></i></button>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <div class="hidden md:block overflow-x-auto">
+                        <table class="w-full min-w-[700px]">
                             <thead>
                                 <tr class="text-left border-b border-soft-gray-200">
                                     <th class="pb-3 text-sm font-semibold text-soft-gray-700">Fecha</th>

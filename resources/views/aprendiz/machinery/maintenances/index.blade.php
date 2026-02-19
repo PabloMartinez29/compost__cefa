@@ -10,28 +10,28 @@
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<div class="container mx-auto px-6 py-8">
+<div class="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
     <!-- Header -->
     <div class="waste-header animate-fade-in-up">
-        <div class="flex items-center justify-between">
-        <div>
-                <h1 class="waste-title">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+            <div class="flex-1 min-w-0">
+                <h1 class="waste-title text-xl sm:text-2xl">
                     <i class="fas fa-wrench waste-icon"></i>
                     Control de Actividades
-            </h1>
-                <p class="waste-subtitle">
+                </h1>
+                <p class="waste-subtitle text-sm sm:text-base">
                     <i class="fas fa-user-shield text-green-400 mr-2"></i>
-                    {{ Auth::user()->name }} - Panel de Aprendiz
+                    <span class="break-words">{{ Auth::user()->name }} - Panel de Aprendiz</span>
                 </p>
             </div>
-            <div class="text-right">
-                <div class="text-green-400 font-bold text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
+            <div class="text-left sm:text-right flex-shrink-0">
+                <div class="text-green-400 font-bold text-base sm:text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
             </div>
         </div>
     </div>
 
     <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <!-- Total Registros -->
         <div class="waste-card waste-card-primary animate-fade-in-up animate-delay-1">
             <div class="flex items-center justify-between">
@@ -88,38 +88,64 @@
     <!-- Main Content -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
         <!-- Table Header -->
-        <div class="p-6 border-b border-gray-200 bg-gray-50">
-            <!-- Primera fila: Título y botones -->
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+        <div class="p-3 sm:p-4 md:p-6 border-b border-gray-200 bg-gray-50">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4">
+                <h2 class="text-base sm:text-lg font-semibold text-gray-800 flex items-center">
                     <i class="fas fa-wrench text-green-600 mr-2"></i>
                     Registros de Actividades
                 </h2>
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
                     @if($maintenances->count() > 0)
-                        <a href="{{ route('aprendiz.machinery.maintenance.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                        <button type="button" id="btn-download-all-pdf" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm text-sm sm:text-base" title="Descargar PDF">
                             <i class="fas fa-file-pdf"></i>
-                        </a>
+                            <span class="hidden sm:inline ml-2">PDF</span>
+                        </button>
                     @endif
-                    <a href="{{ route('aprendiz.machinery.maintenance.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                    <a href="{{ route('aprendiz.machinery.maintenance.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm text-sm sm:text-base flex-1 sm:flex-initial justify-center">
                         <i class="fas fa-plus mr-2"></i>
-                        Nuevo Registro
+                        <span class="hidden sm:inline">Nuevo Registro</span>
+                        <span class="sm:hidden">Nuevo</span>
                     </a>
                 </div>
             </div>
         </div>
 
         @if($maintenances->count() > 0)
-            <!-- Tabla de mantenimientos -->
-            <div class="overflow-x-auto">
-                <!-- DataTables agregará los controles y la tabla aquí -->
-                <div id="maintenancesTable_wrapper" class="p-6">
-                    <!-- Contenedor para controles superiores -->
+            <!-- Vista móvil: tarjetas -->
+            <div class="block md:hidden p-3 sm:p-4 space-y-4">
+                @foreach($maintenances as $maintenance)
+                    <div class="waste-mobile-card bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm" data-id="{{ $maintenance->id }}">
+                        <div class="flex gap-3">
+                            @if($maintenance->machinery && $maintenance->machinery->image)
+                                <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 cursor-pointer" onclick="openImageModal('{{ Storage::url($maintenance->machinery->image) }}')">
+                                    <img src="{{ Storage::url($maintenance->machinery->image) }}" alt="" class="w-full h-full object-cover">
+                                </div>
+                            @else
+                                <div class="w-14 h-14 rounded-xl bg-gray-200 flex items-center justify-center flex-shrink-0"><i class="fas fa-wrench text-gray-400 text-xl"></i></div>
+                            @endif
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-gray-900 truncate">{{ $maintenance->machinery->name ?? 'N/A' }}</h3>
+                                <p class="text-sm text-gray-600">{{ $maintenance->date->format('d/m/Y') }} · {{ $maintenance->type_in_spanish ?? $maintenance->type }}</p>
+                                <p class="text-xs text-gray-500">{{ $maintenance->responsible }}</p>
+                            </div>
+                        </div>
+                        <div class="waste-mobile-card-actions mt-4 pt-3 border-t border-gray-200">
+                            <button type="button" onclick="openViewModal({{ $maintenance->id }})" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg flex-shrink-0" title="Ver"><i class="fas fa-eye"></i></button>
+                            <button type="button" onclick="confirmEdit({{ $maintenance->id }})" class="p-2 text-green-600 hover:bg-green-50 rounded-lg flex-shrink-0" title="Editar"><i class="fas fa-edit"></i></button>
+                            <form action="{{ route('aprendiz.machinery.maintenance.destroy', $maintenance) }}" method="POST" class="inline flex-shrink-0" onsubmit="return confirmDelete(event, this)">@csrf @method('DELETE')<button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Eliminar"><i class="fas fa-trash"></i></button></form>
+                            <a href="{{ route('aprendiz.machinery.maintenance.download.pdf', $maintenance) }}" class="p-2 text-red-700 hover:bg-red-50 rounded-lg flex-shrink-0" title="PDF"><i class="fas fa-file-pdf"></i></a>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+            <!-- Tabla (escritorio) -->
+            <div class="hidden md:block overflow-x-auto -mx-3 sm:mx-0">
+                <div id="maintenancesTable_wrapper" class="p-3 sm:p-4 md:p-6">
                     <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
                         <div id="dt-length-container" style="float: left;"></div>
                         <div id="dt-filter-container" style="float: right;"></div>
                     </div>
-                    <table id="maintenancesTable" class="waste-table">
+                    <table id="maintenancesTable" class="waste-table min-w-[900px]">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -129,12 +155,13 @@
                                 <th>Tipo</th>
                                 <th>Descripción</th>
                                 <th>Responsable</th>
+                                <th>Próx. mantenimiento</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach($maintenances as $maintenance)
-                                <tr>
+                                <tr data-id="{{ $maintenance->id }}">
                                     <td class="font-mono">#{{ str_pad($maintenance->id, 3, '0', STR_PAD_LEFT) }}</td>
                                     <td>
                                         @if($maintenance->machinery && $maintenance->machinery->image)
@@ -171,6 +198,18 @@
                                     </div>
                                 </td>
                                     <td>{{ $maintenance->responsible }}</td>
+                                <td class="text-center">
+                                    @if($maintenance->machinery)
+                                        @if($maintenance->machinery->status === 'En mantenimiento')
+                                            <span class="text-sm font-semibold text-amber-600">Pausado</span>
+                                        @else
+                                            @php $machNextDue = $maintenance->machinery->getNextMaintenanceDueDateTime(); @endphp
+                                            <span class="maintenance-row-countdown text-sm font-mono font-semibold text-gray-800" data-next-due="{{ $machNextDue?->toIso8601String() ?? '' }}">--</span>
+                                        @endif
+                                    @else
+                                        --
+                                    @endif
+                                </td>
                                 <td>
                                     <div class="flex space-x-2 items-center">
                                             <button onclick="openViewModal({{ $maintenance->id }})" 
@@ -181,11 +220,6 @@
                                                class="inline-flex items-center text-green-500 hover:text-green-700" title="Editar">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <a href="{{ route('aprendiz.machinery.maintenance.download.pdf', $maintenance) }}" 
-                                               class="inline-flex items-center text-red-500 hover:text-red-700" 
-                                               title="Descargar PDF">
-                                                <i class="fas fa-file-pdf"></i>
-                                            </a>
                                             
                                             @php
                                                 $isApproved = isset($approvedMaintenanceIds) && in_array($maintenance->id, $approvedMaintenanceIds);
@@ -217,6 +251,11 @@
                                                     <i class="fas fa-trash"></i>
                                                 </button>
                                             @endif
+                                            <a href="{{ route('aprendiz.machinery.maintenance.download.pdf', $maintenance) }}" 
+                                               class="inline-flex items-center text-red-500 hover:text-red-700" 
+                                               title="Descargar PDF">
+                                                <i class="fas fa-file-pdf"></i>
+                                            </a>
                                     </div>
                                 </td>
                             </tr>
@@ -342,7 +381,7 @@
             <form id="editForm" method="POST">
                 @csrf
                 @method('PUT')
-                
+                <input type="hidden" name="type" id="edit_type_hidden" value="">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Fecha -->
                     <div class="waste-form-group">
@@ -362,21 +401,21 @@
                         </div>
                     </div>
 
-                    <!-- Tipo de Registro -->
+                    <!-- Tipo de Registro (valor real en edit_type_hidden para que siempre se envíe al guardar) -->
                     <div class="waste-form-group md:col-span-2">
                         <label class="waste-form-label">Tipo de Registro *</label>
                         <div class="grid grid-cols-2 gap-3">
                             <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-green-50 transition-all duration-200">
-                                <input type="radio" name="type" value="M" id="edit_type_maintenance"
-                                       class="sr-only peer" required>
+                                <input type="radio" name="type_radio" value="M" id="edit_type_maintenance"
+                                       class="sr-only peer">
                                 <div class="w-4 h-4 border-2 border-gray-300 rounded-full peer-checked:border-green-500 peer-checked:bg-green-500 mr-3 flex items-center justify-center">
                                     <div class="w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100"></div>
                                 </div>
                                 <span class="text-sm font-medium text-gray-700 peer-checked:text-green-700">M: Mantenimiento</span>
                             </label>
                             <label class="flex items-center p-3 border border-gray-300 rounded-lg cursor-pointer hover:bg-green-50 transition-all duration-200">
-                                <input type="radio" name="type" value="O" id="edit_type_operation"
-                                       class="sr-only peer" required>
+                                <input type="radio" name="type_radio" value="O" id="edit_type_operation"
+                                       class="sr-only peer">
                                 <div class="w-4 h-4 border-2 border-gray-300 rounded-full peer-checked:border-green-500 peer-checked:bg-green-500 mr-3 flex items-center justify-center">
                                     <div class="w-2 h-2 bg-white rounded-full opacity-0 peer-checked:opacity-100"></div>
                                 </div>
@@ -542,9 +581,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (editModal) {
         editModal.addEventListener('click', (e) => {
-            if (e.target === editModal || e.target.closest('.modal-backdrop-blur') === editModal) {
+            if (e.target === editModal) {
                 closeEditModal();
             }
+        });
+    }
+    // Asegurar que el tipo se envíe al guardar: sincronizar hidden con el radio seleccionado en cada submit
+    if (editForm) {
+        editForm.addEventListener('submit', function() {
+            const checked = document.querySelector('input[name="type_radio"]:checked');
+            const typeHidden = document.getElementById('edit_type_hidden');
+            if (checked && typeHidden) typeHidden.value = checked.value;
         });
     }
 });
@@ -680,11 +727,14 @@ function openEditMaintenanceModal(maintenanceId) {
                 document.getElementById('edit_end_date').value = data.end_date || '';
             }
             
-            // Seleccionar tipo
+            // Seleccionar tipo y sincronizar campo oculto (name="type") que es el que se envía al guardar
+            const typeHidden = document.getElementById('edit_type_hidden');
             if (data.type === 'M') {
                 document.getElementById('edit_type_maintenance').checked = true;
+                if (typeHidden) typeHidden.value = 'M';
             } else {
                 document.getElementById('edit_type_operation').checked = true;
+                if (typeHidden) typeHidden.value = 'O';
             }
             
             // Llenar select de maquinarias
@@ -700,24 +750,28 @@ function openEditMaintenanceModal(maintenanceId) {
                 select.appendChild(option);
             });
             
-            // Configurar eventos para mostrar/ocultar fecha de fin
+            // Configurar eventos para mostrar/ocultar fecha de fin (sin clonar los radios para que type se envíe al guardar)
             const typeMaintenance = document.getElementById('edit_type_maintenance');
             const typeOperation = document.getElementById('edit_type_operation');
             const dateInput = document.getElementById('edit_date');
             const endDateInput = document.getElementById('edit_end_date');
             
-            // Remover listeners anteriores si existen
-            const newTypeMaintenance = typeMaintenance.cloneNode(true);
-            const newTypeOperation = typeOperation.cloneNode(true);
-            typeMaintenance.parentNode.replaceChild(newTypeMaintenance, typeMaintenance);
-            typeOperation.parentNode.replaceChild(newTypeOperation, typeOperation);
-            
-            newTypeMaintenance.addEventListener('change', toggleEndDateField);
-            newTypeOperation.addEventListener('change', toggleEndDateField);
+            typeMaintenance.removeEventListener('change', toggleEndDateField);
+            typeOperation.removeEventListener('change', toggleEndDateField);
+            typeMaintenance.addEventListener('change', function() {
+                toggleEndDateField();
+                const h = document.getElementById('edit_type_hidden');
+                if (h) h.value = 'M';
+            });
+            typeOperation.addEventListener('change', function() {
+                toggleEndDateField();
+                const h = document.getElementById('edit_type_hidden');
+                if (h) h.value = 'O';
+            });
             
             if (dateInput) {
                 dateInput.addEventListener('change', function() {
-                    if (endDateInput && newTypeMaintenance.checked) {
+                    if (endDateInput && typeMaintenance.checked) {
                         endDateInput.min = this.value;
                     }
                 });
@@ -892,7 +946,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    let table = new DataTable('#maintenancesTable', {
+    window.maintenancesDataTable = new DataTable('#maintenancesTable', {
         language: {
             search: 'Buscar:',
             lengthMenu: 'Mostrar _MENU_ registros',
@@ -951,17 +1005,58 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (lengthSelect) {
                 lengthSelect.addEventListener('change', function() {
-                    table.page.len(parseInt(this.value)).draw();
+                    window.maintenancesDataTable.page.len(parseInt(this.value)).draw();
                 });
             }
             
             if (searchInput) {
                 searchInput.addEventListener('keyup', function() {
-                    table.search(this.value).draw();
+                    window.maintenancesDataTable.search(this.value).draw();
                 });
             }
         }
     });
+
+    document.getElementById('btn-download-all-pdf')?.addEventListener('click', function() {
+        let url = '{{ route("aprendiz.machinery.maintenance.download.all-pdf") }}';
+        if (window.maintenancesDataTable) {
+            const ids = [];
+            window.maintenancesDataTable.rows({ search: 'applied' }).every(function() {
+                const row = this.node();
+                const id = row.getAttribute('data-id');
+                if (id) ids.push(id);
+            });
+            if (ids.length > 0) {
+                url += '?ids=' + ids.join(',');
+            }
+        }
+        window.location.href = url;
+    });
+
+    function formatRowCountdown(totalSeconds) {
+        if (totalSeconds == null || totalSeconds < 0) return '--';
+        if (totalSeconds <= 0) return '0d 0h 0m 0s';
+        const d = Math.floor(totalSeconds / 86400);
+        const h = Math.floor((totalSeconds % 86400) / 3600);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        const s = totalSeconds % 60;
+        return d + 'd ' + h + 'h ' + m + 'm ' + s + 's';
+    }
+    function updateMaintenanceRowCountdowns() {
+        document.querySelectorAll('.maintenance-row-countdown').forEach(function(el) {
+            const nextDue = el.getAttribute('data-next-due');
+            if (!nextDue) {
+                el.textContent = '--';
+                return;
+            }
+            const end = new Date(nextDue);
+            const now = new Date();
+            const sec = Math.max(0, Math.floor((end - now) / 1000));
+            el.textContent = formatRowCountdown(sec);
+        });
+    }
+    updateMaintenanceRowCountdowns();
+    setInterval(updateMaintenanceRowCountdowns, 1000);
 });
 </script>
 
