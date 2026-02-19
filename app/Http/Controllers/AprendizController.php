@@ -110,12 +110,23 @@ class AprendizController extends Controller
      */
     public function markNotificationAsRead(Notification $notification)
     {
-        // Verify that the notification belongs to the authenticated user
-        if ($notification->from_user_id !== auth()->id()) {
+        // Permitir si es el destinatario (user_id) o el remitente (from_user_id) en solicitudes aprobadas/rechazadas
+        $isRecipient = $notification->user_id === auth()->id();
+        $isSenderAndProcessed = $notification->from_user_id === auth()->id()
+            && in_array($notification->status, ['approved', 'rejected'], true);
+
+        if (! $isRecipient && ! $isSenderAndProcessed) {
             return response()->json(['success' => false, 'message' => 'No autorizado'], 403);
         }
 
         $notification->update(['read_at' => now()]);
+
+        if ($notification->type === 'maintenance_reminder' && $notification->machinery_id) {
+            $machinery = \App\Models\Machinery::find($notification->machinery_id);
+            if ($machinery) {
+                $machinery->scheduleNextMaintenanceDue();
+            }
+        }
         
         return response()->json(['success' => true, 'message' => 'Notificación marcada como leída']);
     }

@@ -5,9 +5,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         
         <!-- Favicon -->
-        <link rel="icon" type="image/png" href="{{ asset('img/logo-compost-cefa.png') }}">
-        <link rel="shortcut icon" type="image/png" href="{{ asset('img/logo-compost-cefa.png') }}">
-        <link rel="apple-touch-icon" href="{{ asset('img/logo-compost-cefa.png') }}">
+        <link rel="icon" type="image/webp" href="{{ asset('img/logo-compost-cefa.webp') }}">
+        <link rel="shortcut icon" type="image/webp" href="{{ asset('img/logo-compost-cefa.webp') }}">
+        <link rel="apple-touch-icon" href="{{ asset('img/logo-compost-cefa.webp') }}">
         
         <title>COMPOST CEFA - Sistema de Registro</title>
 
@@ -136,11 +136,11 @@
         }
             </style>
     </head>
-<body class="font-inter bg-white min-h-screen">
+<body class="font-inter bg-white min-h-screen" x-data="{ mobileMenuOpen: false }">
     <!-- Header -->
     <header class="bg-gradient-to-r from-compost-100 to-compost-200 border-b border-compost-200 fixed top-0 left-0 right-0 z-50 shadow-lg transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <nav class="flex justify-between items-center py-4">
+            <nav class="flex justify-between items-center py-4 relative">
                 <div class="flex items-center space-x-4">
                     <div class="w-12 h-12 bg-gradient-to-br from-compost-600 to-compost-700 rounded-xl flex items-center justify-center shadow-lg">
                         <i class="fas fa-seedling text-white text-xl"></i>
@@ -154,6 +154,7 @@
                     <a href="#about" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Acerca de</a>
                     <a href="#modules" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Módulos</a>
                     <a href="#features" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Características</a>
+                    <a href="{{ route('soporte') }}" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Soporte</a>
                     <a href="{{ route('developers') }}" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Desarrolladores</a>
             @if (Route::has('login'))
                     @auth
@@ -193,10 +194,7 @@
                                         <i class="fas fa-tachometer-alt w-4 text-compost-600 mr-3"></i>
                                         Dashboard
                                     </a>
-                                    <a href="#" class="flex items-center px-4 py-2 text-sm text-compost-700 hover:bg-compost-50 transition-colors duration-200">
-                                        <i class="fas fa-user-cog w-4 text-compost-600 mr-3"></i>
-                                        Perfil
-                                    </a>
+
                                 </div>
                                 
                                 <!-- Divider -->
@@ -219,16 +217,59 @@
                         @endauth
                         @endif
                 </div>
+                
+                <!-- Mobile Menu Button -->
+                <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden p-2 rounded-lg text-compost-700 hover:bg-compost-100 transition-colors duration-200">
+                    <i class="fas fa-bars text-xl" x-show="!mobileMenuOpen"></i>
+                    <i class="fas fa-times text-xl" x-show="mobileMenuOpen" x-cloak></i>
+                </button>
                 </nav>
+                
+                <!-- Mobile Menu -->
+                <div x-show="mobileMenuOpen" 
+                     x-cloak
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 -translate-y-4"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-200"
+                     x-transition:leave-start="opacity-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 -translate-y-4"
+                     class="md:hidden absolute top-full left-0 right-0 bg-white border-t border-compost-200 shadow-lg z-40">
+                    <div class="px-4 py-4 space-y-3">
+                        <a href="#about" @click="mobileMenuOpen = false" class="block px-4 py-2 text-compost-700 hover:bg-compost-50 rounded-lg font-semibold transition-colors duration-200">Acerca de</a>
+                        <a href="#modules" @click="mobileMenuOpen = false" class="block px-4 py-2 text-compost-700 hover:bg-compost-50 rounded-lg font-semibold transition-colors duration-200">Módulos</a>
+                        <a href="#features" @click="mobileMenuOpen = false" class="block px-4 py-2 text-compost-700 hover:bg-compost-50 rounded-lg font-semibold transition-colors duration-200">Características</a>
+                        <a href="{{ route('soporte') }}" @click="mobileMenuOpen = false" class="block px-4 py-2 text-compost-700 hover:bg-compost-50 rounded-lg font-semibold transition-colors duration-200">Soporte</a>
+                        <a href="{{ route('developers') }}" @click="mobileMenuOpen = false" class="block px-4 py-2 text-compost-700 hover:bg-compost-50 rounded-lg font-semibold transition-colors duration-200">Desarrolladores</a>
+                        @if (Route::has('login'))
+                            @auth
+                                <div class="pt-2 border-t border-compost-200">
+                                    <a href="{{ url('/dashboard') }}" @click="mobileMenuOpen = false" class="block px-4 py-2 text-compost-700 hover:bg-compost-50 rounded-lg font-semibold transition-colors duration-200">
+                                        <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                                    </a>
+                                    <form method="POST" action="{{ route('logout') }}" class="block">
+                                        @csrf
+                                        <button type="submit" @click="mobileMenuOpen = false" class="w-full text-left px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg font-semibold transition-colors duration-200">
+                                            <i class="fas fa-sign-out-alt mr-2"></i>Cerrar Sesión
+                                        </button>
+                                    </form>
+                                </div>
+                            @else
+                                <a href="{{ route('login') }}" @click="mobileMenuOpen = false" class="block px-4 py-2 bg-gradient-to-r from-compost-600 to-compost-700 text-white rounded-lg font-bold text-center hover:from-compost-700 hover:to-compost-800 transition-all duration-300">
+                                    <i class="fas fa-sign-in-alt mr-2"></i>Iniciar Sesión
+                                </a>
+                            @endauth
+                        @endif
+                    </div>
+                </div>
         </div>
         </header>
 
     <!-- Hero Section -->
-    <section id="hero-section" class="pt-32 pb-20 relative overflow-hidden min-h-screen flex items-center" style="height: 100vh;">
+    <section id="hero-section" class="pt-24 md:pt-32 pb-20 relative overflow-hidden min-h-screen flex items-center" style="min-height: 100vh;">
         <!-- Video Background -->
         <video id="hero-video" autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover z-0" style="transform-origin: center center;">
             <source src="{{ asset('videos/hero-background.mp4') }}" type="video/mp4">
-            <!-- Fallback si el video no carga -->
         </video>
         
         <!-- Overlay con opacidad para legibilidad del texto -->
@@ -238,37 +279,37 @@
         <div id="hero-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
             <div class="text-center">
                 <!-- Main Title with Typewriter Effect -->
-                <div class="mb-8">
-                    <h1 class="text-6xl md:text-8xl lg:text-9xl font-black text-compost-600 mb-4 typewriter-text" id="typewriter-title">
+                <div class="mb-6 md:mb-8">
+                    <h1 class="text-4xl sm:text-5xl md:text-7xl lg:text-8xl xl:text-9xl font-black text-compost-600 mb-2 md:mb-4 typewriter-text" id="typewriter-title">
                         COMPOST
                     </h1>
-                    <h2 class="text-4xl md:text-6xl lg:text-7xl font-black text-compost-800 mb-8" id="typewriter-subtitle">
+                    <h2 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-compost-800 mb-6 md:mb-8" id="typewriter-subtitle">
                         CEFA
                     </h2>
                 </div>
 
                 <!-- Subtitle with Definition -->
-                <div class="max-w-4xl mx-auto mb-12">
-                    <p class="text-2xl md:text-3xl text-white font-medium leading-relaxed drop-shadow-md" id="typewriter-description">
+                <div class="max-w-4xl mx-auto mb-8 md:mb-12 px-4">
+                    <p class="text-lg sm:text-xl md:text-2xl lg:text-3xl text-white font-medium leading-relaxed drop-shadow-md" id="typewriter-description">
                         Sistema de Registro de Creación de Pilas de Compostaje y Manipulación de Maquinaria
                     </p>
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="flex flex-col sm:flex-row gap-6 justify-center items-center">
+                <div class="flex flex-col sm:flex-row gap-4 md:gap-6 justify-center items-center px-4">
                     @if (Route::has('login'))
                         @auth
-                            <a href="{{ url('/dashboard') }}" class="group bg-gradient-to-r from-compost-600 to-compost-700 text-white px-8 py-4 rounded-xl font-bold text-lg hover:from-compost-700 hover:to-compost-800 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl">
+                            <a href="{{ url('/dashboard') }}" class="w-full sm:w-auto group bg-gradient-to-r from-compost-600 to-compost-700 text-white px-6 md:px-8 py-3 md:py-4 rounded-xl font-bold text-base md:text-lg hover:from-compost-700 hover:to-compost-800 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl text-center">
                                 <i class="fas fa-tachometer-alt mr-3 group-hover:rotate-12 transition-transform duration-300"></i>
                                 Acceder al Sistema
                             </a>
                         @else
-                            <a href="{{ route('login') }}" class="group bg-gradient-to-r from-compost-600 to-compost-700 text-white px-8 py-4 rounded-xl font-bold text-lg hover:from-compost-700 hover:to-compost-800 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl">
+                            <a href="{{ route('login') }}" class="w-full sm:w-auto group bg-gradient-to-r from-compost-600 to-compost-700 text-white px-6 md:px-8 py-3 md:py-4 rounded-xl font-bold text-base md:text-lg hover:from-compost-700 hover:to-compost-800 transform hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl text-center">
                                 <i class="fas fa-sign-in-alt mr-3 group-hover:rotate-12 transition-transform duration-300"></i>
                                 Iniciar Sesión
                             </a>
                             @if (Route::has('register'))
-                                <a href="{{ route('register') }}" class="group border-2 border-compost-600 text-compost-600 px-8 py-4 rounded-xl font-bold text-lg hover:bg-compost-600 hover:text-white transform hover:scale-105 transition-all duration-300">
+                                <a href="{{ route('register') }}" class="w-full sm:w-auto group border-2 border-compost-600 text-compost-600 px-6 md:px-8 py-3 md:py-4 rounded-xl font-bold text-base md:text-lg hover:bg-compost-600 hover:text-white transform hover:scale-105 transition-all duration-300 text-center">
                                     <i class="fas fa-user-plus mr-3 group-hover:rotate-12 transition-transform duration-300"></i>
                                     Registrarse
                                 </a>
@@ -298,9 +339,12 @@
                 <!-- Imagen a la izquierda -->
                 <div class="order-2 lg:order-1">
                     <div class="relative overflow-hidden rounded-2xl shadow-2xl group">
-                        <img src="{{ asset('img/carousel/carousel-1.jpg') }}" 
-                             alt="Sistema COMPOST CEFA" 
-                             class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                        <picture>
+                            <source srcset="{{ asset('img/carousel/carousel-1.webp') }}" type="image/webp">
+                            <img src="{{ asset('img/carousel/carousel-1.jpg') }}" 
+                                 alt="Sistema COMPOST CEFA" 
+                                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" decoding="async">
+                        </picture>
                         <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                     </div>
                 </div>
@@ -521,9 +565,12 @@
                 <!-- Imagen a la derecha -->
                 <div class="order-2">
                     <div class="relative overflow-hidden rounded-2xl shadow-2xl group">
-                        <img src="{{ asset('img/carousel/carousel-2.jpg') }}" 
-                             alt="Características del sistema" 
-                             class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                        <picture>
+                            <source srcset="{{ asset('img/carousel/carousel-2.webp') }}" type="image/webp">
+                            <img src="{{ asset('img/carousel/carousel-2.jpg') }}" 
+                                 alt="Características del sistema" 
+                                 class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" decoding="async">
+                        </picture>
                         <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                     </div>
                 </div>
@@ -559,6 +606,7 @@
                         <li><a href="#about" class="text-compost-200 hover:text-white transition-colors duration-300">Acerca de</a></li>
                         <li><a href="#modules" class="text-compost-200 hover:text-white transition-colors duration-300">Módulos</a></li>
                         <li><a href="#features" class="text-compost-200 hover:text-white transition-colors duration-300">Características</a></li>
+                        <li><a href="{{ route('soporte') }}" class="text-compost-200 hover:text-white transition-colors duration-300">Soporte</a></li>
                         <li><a href="{{ route('developers') }}" class="text-compost-200 hover:text-white transition-colors duration-300">Desarrolladores</a></li>
                         @if (Route::has('login'))
                             <li><a href="{{ route('login') }}" class="text-compost-200 hover:text-white transition-colors duration-300">Iniciar Sesión</a></li>

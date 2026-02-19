@@ -71,7 +71,7 @@
                         <label class="waste-form-label">Fecha de Fin</label>
                         <input type="date" name="end_date" id="end_date" 
                                class="waste-form-input @error('end_date') border-red-500 @enderror" 
-                               value="{{ old('end_date', $composting->end_date ? $composting->end_date->format('Y-m-d') : '') }}">
+                               value="{{ old('end_date', $composting->end_date ? $composting->end_date->format('Y-m-d') : ($composting->status === 'Completada' && $composting->start_date ? $composting->start_date->copy()->addDays(44)->format('Y-m-d') : '')) }}">
                         @error('end_date')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror

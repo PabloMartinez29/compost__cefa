@@ -105,7 +105,9 @@ class OrganicController extends Controller
             'delivered_by' => 'required|string|max:100',
             'received_by' => 'required|string|max:100',
             'notes' => 'nullable|string',
-            'img' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+            'img' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ], [
+            'img.required' => 'La imagen es obligatoria.',
         ]);
 
         $data = $request->all();
@@ -114,8 +116,8 @@ class OrganicController extends Controller
         if ($request->hasFile('img')) {
             $image = $request->file('img');
             $imageName = time() . '_' . $image->getClientOriginalName();
-            $image->move(public_path('organics'), $imageName);
-            $data['img'] = 'organics/' . $imageName;
+            $path = $image->storeAs('organics', $imageName, 'public');
+            $data['img'] = $path; // Guarda como 'organics/imagen.jpg'
         }
 
         // Agregar el ID del usuario que crea el registro
@@ -123,8 +125,9 @@ class OrganicController extends Controller
 
         $organic = Organic::create($data);
 
-        // Crear movimiento automático en bodega de clasificación
+        // Crear movimiento automático en bodega de clasificación (vinculado al residuo para poder actualizar al editar)
         WarehouseClassification::create([
+            'organic_id' => $organic->id,
             'date' => $data['date'],
             'type' => $data['type'],
             'movement_type' => 'entry', // Entrada automática
@@ -149,8 +152,8 @@ class OrganicController extends Controller
             
             // Verificar si la imagen existe antes de generar la URL
             $imgUrl = null;
-            if ($organic->img && file_exists(public_path($organic->img))) {
-                $imgUrl = asset($organic->img);
+            if ($organic->img && Storage::disk('public')->exists($organic->img)) {
+                $imgUrl = Storage::url($organic->img);
             }
             
             return response()->json([
@@ -200,22 +203,53 @@ class OrganicController extends Controller
         ]);
 
         $data = $request->all();
+
+        // Guardar valores anteriores para localizar la entrada en bodega (registros sin organic_id)
+        $oldWeight = $organic->weight;
+        $oldDate = $organic->date?->format('Y-m-d');
+        $oldType = $organic->type;
         
         // Handle image upload
         if ($request->hasFile('img')) {
             // Delete old image
-            if ($organic->img && file_exists(public_path($organic->img))) {
-                unlink(public_path($organic->img));
+            if ($organic->img && Storage::disk('public')->exists($organic->img)) {
+                Storage::disk('public')->delete($organic->img);
             }
             $image = $request->file('img');
             $imageName = time() . '_' . $image->getClientOriginalName();
-            $image->move(public_path('organics'), $imageName);
-            $data['img'] = 'organics/' . $imageName;
+            $path = $image->storeAs('organics', $imageName, 'public');
+            $data['img'] = $path; // Guarda como 'organics/imagen.jpg'
         }
 
         $organic->update($data);
 
-        return redirect()->route('aprendiz.organic.index')->with('success', 'Residuo orgánico actualizado exitosamente!');
+        // Sincronizar bodega: actualizar la entrada asociada a este residuo para que el inventario refleje el nuevo peso
+        $warehouseEntry = WarehouseClassification::where('organic_id', $organic->id)
+            ->where('movement_type', 'entry')
+            ->first();
+
+        if (!$warehouseEntry && $oldDate !== null) {
+            // Registros antiguos sin organic_id: buscar por fecha, tipo y peso anterior
+            $warehouseEntry = WarehouseClassification::where('movement_type', 'entry')
+                ->where('type', $oldType)
+                ->where('date', $oldDate)
+                ->where('weight', $oldWeight)
+                ->where('notes', 'like', 'Entrada automática desde registro%')
+                ->first();
+            if ($warehouseEntry) {
+                $warehouseEntry->update(['organic_id' => $organic->id]);
+            }
+        }
+
+        if ($warehouseEntry) {
+            $warehouseEntry->update([
+                'weight' => $organic->weight,
+                'date' => $organic->date,
+                'type' => $organic->type,
+            ]);
+        }
+
+        return redirect()->route('aprendiz.organic.index')->with('success', 'Residuo orgánico actualizado exitosamente! El inventario de bodega se ha actualizado.');
     }
 
     /**
@@ -262,8 +296,8 @@ class OrganicController extends Controller
         ]);
 
         // Delete image if exists
-        if ($organic->img && file_exists(public_path($organic->img))) {
-            unlink(public_path($organic->img));
+        if ($organic->img && Storage::disk('public')->exists($organic->img)) {
+            Storage::disk('public')->delete($organic->img);
         }
 
         // Marcar la notificación como procesada
@@ -357,12 +391,21 @@ class OrganicController extends Controller
     }
 
     /**
-     * Generate PDF for all organics
+     * Generate PDF for all organics (o solo los filtrados si se pasan ids en la petición)
      */
-    public function downloadAllOrganicsPDF()
+    public function downloadAllOrganicsPDF(Request $request)
     {
-        $organics = Organic::with('creator')->orderBy('date', 'desc')->get();
-        
+        $query = Organic::with('creator')->orderBy('date', 'desc');
+
+        if ($request->filled('ids')) {
+            $ids = array_filter(array_map('intval', explode(',', $request->ids)));
+            if (!empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+        }
+
+        $organics = $query->get();
+
         $pdf = PDF::loadView('admin.organic.pdf.all-organics', compact('organics'))
             ->setPaper('a4', 'landscape')
             ->setOptions([
@@ -384,8 +427,8 @@ class OrganicController extends Controller
         
         // Convertir imagen a base64 si existe
         $imageBase64 = null;
-        if ($organic->img && file_exists(public_path($organic->img))) {
-            $imagePath = public_path($organic->img);
+        if ($organic->img && Storage::disk('public')->exists($organic->img)) {
+            $imagePath = Storage::disk('public')->path($organic->img);
             $imageData = file_get_contents($imagePath);
             $imageInfo = getimagesize($imagePath);
             $mimeType = $imageInfo['mime'];

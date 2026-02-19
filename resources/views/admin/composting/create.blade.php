@@ -202,8 +202,10 @@ let ingredientIndex = 0;
 
 // Datos de residuos orgánicos disponibles
 const availableOrganics = @json($availableOrganics);
+// Repoblar ingredientes si la validación falló
+const oldIngredients = @json(old('ingredients', []));
 
-function addIngredient() {
+function addIngredient(values = null) {
     const container = document.getElementById('ingredients-container');
     const ingredientDiv = document.createElement('div');
     ingredientDiv.className = 'ingredient-item bg-gray-50 p-4 rounded-lg border border-gray-200';
@@ -222,7 +224,7 @@ function addIngredient() {
                         class="waste-form-select @error('ingredients.*.organic_id') border-red-500 @enderror" required>
                     <option value="">Seleccionar residuo</option>
                     ${availableOrganics.map(organic => `
-                        <option value="${organic.id}">${organic.type_in_spanish} - ${organic.formatted_weight} (Disponible: ${organic.available_quantity} Kg)</option>
+                        <option value="${organic.id}">${organic.type_in_spanish} (Disponible: ${organic.available_quantity_formatted || organic.available_quantity} Kg)</option>
                     `).join('')}
                 </select>
             </div>
@@ -244,10 +246,17 @@ function addIngredient() {
     `;
     
     container.appendChild(ingredientDiv);
+    if (values) {
+        const sel = ingredientDiv.querySelector('select[name*="[organic_id]"]');
+        const amountInput = ingredientDiv.querySelector('input[name*="[amount]"]');
+        const notesInput = ingredientDiv.querySelector('input[name*="[notes]"]');
+        if (sel && values.organic_id) sel.value = String(values.organic_id);
+        if (amountInput && values.amount != null) amountInput.value = values.amount;
+        if (notesInput && values.notes != null) notesInput.value = values.notes || '';
+    }
     ingredientIndex++;
     updateIngredientCount();
     
-    // Agregar event listener para actualizar el resumen cuando cambie la cantidad
     const amountInput = ingredientDiv.querySelector('input[name*="[amount]"]');
     if (amountInput) {
         amountInput.addEventListener('input', updateSummary);
@@ -285,9 +294,22 @@ function updateSummary() {
     document.getElementById('averagePerIngredient').textContent = average.toFixed(2) + ' Kg';
 }
 
-// Agregar primer ingrediente al cargar la página
+// Al cargar: repoblar ingredientes si hubo error de validación, si no agregar uno vacío
 document.addEventListener('DOMContentLoaded', function() {
-    addIngredient();
+    const container = document.getElementById('ingredients-container');
+    container.innerHTML = '';
+    ingredientIndex = 0;
+    if (oldIngredients && oldIngredients.length > 0) {
+        oldIngredients.forEach(function(item) {
+            addIngredient({
+                organic_id: item.organic_id,
+                amount: item.amount,
+                notes: item.notes || ''
+            });
+        });
+    } else {
+        addIngredient();
+    }
 });
 
 // Validación del formulario

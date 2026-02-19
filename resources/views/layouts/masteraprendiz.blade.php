@@ -7,9 +7,9 @@
     <title>Sistema de Compostaje - Aprendiz</title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{{ asset('img/logo-compost-cefa.png') }}">
-    <link rel="shortcut icon" type="image/png" href="{{ asset('img/logo-compost-cefa.png') }}">
-    <link rel="apple-touch-icon" href="{{ asset('img/logo-compost-cefa.png') }}">
+    <link rel="icon" type="image/webp" href="{{ asset('img/logo-compost-cefa.webp') }}">
+    <link rel="shortcut icon" type="image/webp" href="{{ asset('img/logo-compost-cefa.webp') }}">
+    <link rel="apple-touch-icon" href="{{ asset('img/logo-compost-cefa.webp') }}">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -103,7 +103,11 @@
         <div class="w-64 bg-white shadow-lg sidebar-transition flex flex-col h-screen overflow-hidden">
             <!-- Logo/Brand -->
             <div class="h-32 flex items-center justify-center border-b border-soft-gray-200 px-4 flex-shrink-0">
-                <img src="{{ asset('img/logo-compost-cefa.png') }}" alt="COMPOST CEFA" class="h-28 w-auto max-w-full object-contain">
+                <img src="{{ asset('img/logo-compost-cefa.webp') }}" alt="COMPOST CEFA" class="h-28 w-auto max-w-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="h-28 hidden items-center justify-center gap-2 text-soft-green-700 font-bold text-lg" style="display: none;">
+                    <i class="fas fa-seedling text-2xl"></i>
+                    <span>COMPOST CEFA</span>
+                </div>
             </div>
             
             <!-- Navigation -->
@@ -344,17 +348,29 @@
                 <div class="flex items-center space-x-4">
                     <!-- Notifications Bell -->
                     <div class="relative" x-data="{ notificationsOpen: false }">
+                        @php
+                            \App\Models\Machinery::ensureFrequencyBasedRemindersForUser(auth()->user());
+                            $showMaintenanceReminderAlert = \App\Models\Notification::where('user_id', auth()->id())
+                                ->where('type', 'maintenance_reminder')
+                                ->whereNull('read_at')
+                                ->where('created_at', '<=', now()->subMinute())
+                                ->exists();
+                            $pendingResponses = \App\Models\Notification::where('from_user_id', auth()->id())
+                                ->where('type', 'delete_request')
+                                ->whereIn('status', ['approved', 'rejected'])
+                                ->whereNull('read_at')
+                                ->count();
+                            $pendingReminders = \App\Models\Notification::where('user_id', auth()->id())
+                                ->where('type', 'maintenance_reminder')
+                                ->where('status', 'pending')
+                                ->whereNull('read_at')
+                                ->count();
+                            $pendingNotifications = $pendingResponses + $pendingReminders;
+                        @endphp
                         <button @click="notificationsOpen = !notificationsOpen" 
                             class="relative p-2 text-soft-gray-600 hover:text-soft-green-600 hover:bg-soft-gray-100 rounded-lg transition-all duration-200">
                             <i class="fas fa-bell text-lg"></i>
                             <!-- Notification Badge -->
-                            @php
-                                $pendingNotifications = \App\Models\Notification::where('from_user_id', auth()->id())
-                                    ->where('type', 'delete_request')
-                                    ->whereIn('status', ['approved', 'rejected'])
-                                    ->whereNull('read_at')
-                                    ->count();
-                            @endphp
                             @if($pendingNotifications > 0)
                                 <span class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
                                     {{ $pendingNotifications > 9 ? '9+' : $pendingNotifications }}
@@ -373,7 +389,7 @@
                              x-transition:leave-end="opacity-0 scale-95"
                              class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-soft-gray-200 py-2 z-50 max-h-96 overflow-y-auto">
                             <div class="px-4 py-2 border-b border-soft-gray-100 flex items-center justify-between">
-                                <h3 class="text-sm font-semibold text-soft-gray-800">Respuestas a Solicitudes</h3>
+                                <h3 class="text-sm font-semibold text-soft-gray-800">Notificaciones</h3>
                                 <a href="{{ route('aprendiz.notifications.history') }}" 
                                    class="text-xs text-soft-green-600 hover:text-soft-green-700 font-medium">
                                     Ver historial
@@ -381,16 +397,43 @@
                             </div>
                             
                             @php
-                                $notifications = \App\Models\Notification::where('from_user_id', auth()->id())
-                                    ->where('type', 'delete_request')
-                                    ->whereIn('status', ['approved', 'rejected'])
+                                $notifications = \App\Models\Notification::where(function ($q) {
+                                    $q->where(function ($q2) {
+                                        $q2->where('user_id', auth()->id())
+                                            ->where('type', 'maintenance_reminder')
+                                            ->where('status', 'pending');
+                                    })->orWhere(function ($q2) {
+                                        $q2->where('from_user_id', auth()->id())
+                                            ->where('type', 'delete_request')
+                                            ->whereIn('status', ['approved', 'rejected']);
+                                    });
+                                })
                                     ->whereNull('read_at')
-                                    ->with(['organic', 'composting', 'machinery', 'maintenance', 'supplier', 'usageControl'])
+                                    ->with(['fromUser', 'organic', 'composting', 'machinery', 'maintenance', 'supplier', 'usageControl'])
                                     ->orderBy('created_at', 'desc')
                                     ->get();
                             @endphp
                             
                             @forelse($notifications as $notification)
+                                @if($notification->type === 'maintenance_reminder')
+                                    <!-- Recordatorio de Mantenimiento -->
+                                    <div class="px-4 py-3 hover:bg-soft-gray-50 border-b border-soft-gray-100 last:border-b-0">
+                                        <div class="flex items-start space-x-3">
+                                            <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                                <i class="fas fa-tools text-orange-600 text-sm"></i>
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-medium text-soft-gray-800">Recordatorio de Mantenimiento</p>
+                                                <p class="text-xs text-soft-gray-600 mt-1">{{ $notification->machinery->name ?? 'Maquinaria no encontrada' }}</p>
+                                                <p class="text-xs text-soft-gray-500 mt-1">{{ $notification->message }}</p>
+                                                <p class="text-xs text-soft-gray-500 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
+                                                <div class="flex space-x-2 mt-2">
+                                                    <button onclick="markAsRead({{ $notification->id }})" class="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600 transition-colors">Marcar como leída</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @else
                                 <div class="px-4 py-3 hover:bg-soft-gray-50 border-b border-soft-gray-100 last:border-b-0">
                                     <div class="flex items-start space-x-3">
                                         <div class="w-8 h-8 {{ $notification->status === 'approved' ? 'bg-green-100' : 'bg-red-100' }} rounded-full flex items-center justify-center flex-shrink-0">
@@ -462,6 +505,7 @@
                                         </div>
                                     </div>
                                 </div>
+                                @endif
                             @empty
                                 <div class="px-4 py-6 text-center">
                                     <i class="fas fa-bell-slash text-soft-gray-400 text-2xl mb-2"></i>
@@ -547,11 +591,12 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                    'Accept': 'application/json'
                 }
             })
-            .then(response => response.json())
-            .then(data => {
+            .then(response => response.json().then(data => ({ response, data })))
+            .then(({ response, data }) => {
                 if (data.success) {
                     Swal.fire({
                         title: 'Marcado como leído',
@@ -563,6 +608,13 @@
                     }).then(() => {
                         location.reload();
                     });
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: data.message || 'No se pudo marcar como leída',
+                        icon: 'error',
+                        confirmButtonColor: '#ef4444'
+                    });
                 }
             })
             .catch(error => {
@@ -570,10 +622,25 @@
                 Swal.fire({
                     title: 'Error',
                     text: 'Ocurrió un error al marcar la notificación',
-                    icon: 'error'
+                    icon: 'error',
+                    confirmButtonColor: '#ef4444'
                 });
             });
         }
+
+        @if(!empty($showMaintenanceReminderAlert))
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                title: 'Recordatorio de Mantenimiento',
+                text: 'Tiene recordatorios de mantenimiento sin leer. La información se encuentra en Notificaciones.',
+                icon: 'warning',
+                timer: 15000,
+                timerProgressBar: true,
+                showConfirmButton: true,
+                confirmButtonText: 'Entendido'
+            });
+        });
+        @endif
     </script>
 </body>
 </html>

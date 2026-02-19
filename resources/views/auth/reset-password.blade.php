@@ -96,6 +96,21 @@
                                 </div>
                             @endif
 
+                            <!-- Error: enlace usado, expirado o inválido -->
+                            @error('email')
+                                <div class="p-4 rounded-lg border bg-amber-50 border-amber-200 text-amber-800 mb-4">
+                                    <div class="flex items-start">
+                                        <div class="flex-shrink-0 mt-0.5">
+                                            <i class="fas fa-exclamation-triangle text-lg"></i>
+                                        </div>
+                                        <div class="ml-3">
+                                            <p class="text-sm font-medium">Este enlace ya ha sido utilizado o ha expirado.</p>
+                                            <p class="text-xs mt-1">Si necesitas restablecer tu contraseña nuevamente, solicita un nuevo enlace desde la pantalla de inicio de sesión.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @enderror
+
                             <div class="text-center mb-4">
                                 <p class="text-soft-gray-600 text-sm">Ingresa tu nueva contraseña y confírmala para completar el restablecimiento.</p>
                             </div>

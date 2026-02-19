@@ -114,7 +114,7 @@ class SupplierController extends Controller
                 'created_at' => $supplier->created_at->format('d/m/Y H:i:s'),
                 'created_at_formatted' => $supplier->created_at->format('d/m/Y H:i:s'),
                 'machinery_image_url' => $supplier->machinery && $supplier->machinery->image 
-                    ? \Illuminate\Support\Facades\Storage::url($supplier->machinery->image) 
+                    ? asset($supplier->machinery->image) 
                     : null,
             ]);
         }
@@ -225,12 +225,21 @@ class SupplierController extends Controller
     }
 
     /**
-     * Generate PDF for all suppliers
+     * Generate PDF for all suppliers (o solo los filtrados si se pasan ids)
      */
-    public function downloadAllSuppliersPDF()
+    public function downloadAllSuppliersPDF(Request $request)
     {
-        $suppliers = Supplier::with('machinery')->latest()->get();
-        
+        $query = Supplier::with('machinery')->latest();
+
+        if ($request->filled('ids')) {
+            $ids = array_filter(array_map('intval', explode(',', $request->ids)));
+            if (!empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+        }
+
+        $suppliers = $query->get();
+
         $pdf = PDF::loadView('admin.machinery.suppliers.pdf.all-suppliers', compact('suppliers'))
             ->setPaper('a4', 'landscape')
             ->setOptions([
@@ -252,8 +261,8 @@ class SupplierController extends Controller
         
         // Convertir imagen a base64 si existe
         $imageBase64 = null;
-        if ($supplier->machinery && $supplier->machinery->image && Storage::disk('public')->exists($supplier->machinery->image)) {
-            $imagePath = Storage::disk('public')->path($supplier->machinery->image);
+        if ($supplier->machinery && $supplier->machinery->image && file_exists(public_path($supplier->machinery->image))) {
+            $imagePath = public_path($supplier->machinery->image);
             $imageData = file_get_contents($imagePath);
             $imageInfo = getimagesize($imagePath);
             $mimeType = $imageInfo['mime'];

@@ -151,10 +151,10 @@
                         <div class="space-y-2">
                             <label class="flex items-center text-sm font-semibold text-soft-gray-700">
                                 <i class="fas fa-image text-soft-green-500 mr-2"></i>
-                                Imagen (Opcional)
+                                Imagen (Obligatoria)
                             </label>
                             <div class="relative">
-                                <input type="file" name="img" id="imageInput" 
+                                <input type="file" name="img" id="imageInput" required
                                        class="w-full px-4 py-4 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 @error('img') border-red-500 @enderror" 
                                        accept="image/*" onchange="previewImage(this)">
                                 <div id="imagePreview" class="mt-4 hidden">

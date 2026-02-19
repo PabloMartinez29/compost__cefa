@@ -35,17 +35,6 @@
             </div>
         </div>
 
-        @if($errors->any())
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded m-6">
-                <h3 class="text-sm font-medium mb-2">Por favor corrige los siguientes errores:</h3>
-                <ul class="list-disc list-inside text-sm">
-                    @foreach($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-            </div>
-        @endif
-
         @if(session('error'))
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded m-6">
                 {{ session('error') }}
@@ -199,6 +188,14 @@
                                     {{ $message }}
                                 </p>
                             @enderror
+                            <div id="countdownCreateBlock" class="mt-4 p-4 bg-gray-50 border border-gray-200 rounded-xl hidden">
+                                <p class="text-sm font-semibold text-gray-700 mb-2">
+                                    <i class="fas fa-clock text-soft-green-500 mr-2"></i>
+                                    Próximo mantenimiento (cronómetro)
+                                </p>
+                                <div id="countdownCreateDisplay" class="text-2xl font-mono font-bold text-gray-800">0d 0h 0m 0s</div>
+                                <p class="text-sm text-gray-600 mt-2">Al guardar se iniciará el cronómetro.</p>
+                            </div>
                         </div>
                     </div>
 
@@ -208,10 +205,10 @@
                         <div class="space-y-2">
                             <label class="flex items-center text-sm font-semibold text-soft-gray-700">
                                 <i class="fas fa-image text-soft-green-500 mr-2"></i>
-                                Imagen (Opcional)
+                                Imagen (Obligatoria)
                             </label>
                             <div class="relative">
-                                <input type="file" name="image" id="imageInput" 
+                                <input type="file" name="image" id="imageInput" required
                                        class="w-full px-4 py-4 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 @error('image') border-red-500 @enderror" 
                                        accept="image/*" onchange="previewImage(this)">
                                 <div id="imagePreview" class="mt-4 hidden">
@@ -283,7 +280,7 @@
         preview.classList.add('hidden');
     }
     
-    // Validación en tiempo real del número de serie
+    // Validación en tiempo real del número de serie y mostrar cronómetro al elegir frecuencia
     document.addEventListener('DOMContentLoaded', function() {
         const serialInput = document.getElementById('serial');
         
@@ -291,6 +288,22 @@
             serialInput.addEventListener('input', function() {
                 this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
             });
+        }
+
+        const maintFreqSelect = document.getElementById('maint_freq');
+        const countdownBlock = document.getElementById('countdownCreateBlock');
+        const countdownDisplay = document.getElementById('countdownCreateDisplay');
+        if (maintFreqSelect && countdownBlock && countdownDisplay) {
+            function toggleCountdown() {
+                if (maintFreqSelect.value && maintFreqSelect.value.trim() !== '') {
+                    countdownBlock.classList.remove('hidden');
+                    countdownDisplay.textContent = '0d 0h 0m 0s';
+                } else {
+                    countdownBlock.classList.add('hidden');
+                }
+            }
+            maintFreqSelect.addEventListener('change', toggleCountdown);
+            toggleCountdown();
         }
         
         // Confirmación antes de enviar el formulario

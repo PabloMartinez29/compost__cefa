@@ -10,28 +10,28 @@
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<div class="container mx-auto px-6 py-8">
+<div class="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
     <!-- Header -->
     <div class="waste-header animate-fade-in-up">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="waste-title">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+            <div class="flex-1 min-w-0">
+                <h1 class="waste-title text-xl sm:text-2xl">
                     <i class="fas fa-clipboard-check waste-icon"></i>
                     Control de Uso del Equipo
                 </h1>
-                <p class="waste-subtitle">
+                <p class="waste-subtitle text-sm sm:text-base">
                     <i class="fas fa-user-shield text-green-400 mr-2"></i>
-                    {{ Auth::user()->name }} - Admin Panel
+                    <span class="break-words">{{ Auth::user()->name }} - Admin Panel</span>
                 </p>
             </div>
-            <div class="text-right">
-                <div class="text-green-400 font-bold text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
+            <div class="text-left sm:text-right flex-shrink-0">
+                <div class="text-green-400 font-bold text-base sm:text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
             </div>
         </div>
     </div>
 
     <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <!-- Total Registros -->
         <div class="waste-card waste-card-primary animate-fade-in-up animate-delay-1">
             <div class="flex items-center justify-between">
@@ -88,38 +88,65 @@
     <!-- Main Content -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
         <!-- Table Header -->
-        <div class="p-6 border-b border-gray-200 bg-gray-50">
+        <div class="p-3 sm:p-4 md:p-6 border-b border-gray-200 bg-gray-50">
             <!-- Primera fila: Título y botones -->
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4">
+                <h2 class="text-base sm:text-lg font-semibold text-gray-800 flex items-center">
                     <i class="fas fa-clipboard-check text-green-600 mr-2"></i>
                     Registros de Uso del Equipo
                 </h2>
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
                     @if($usageControls->count() > 0)
-                        <a href="{{ route('admin.machinery.usage-control.download.all-pdf') }}" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                        <button type="button" id="btn-download-all-pdf" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm text-sm sm:text-base" title="Descargar PDF de los registros visibles (filtrados)">
                             <i class="fas fa-file-pdf"></i>
-                        </a>
+                            <span class="hidden sm:inline ml-2">PDF</span>
+                        </button>
                     @endif
-                    <a href="{{ route('admin.machinery.usage-control.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                    <a href="{{ route('admin.machinery.usage-control.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm text-sm sm:text-base flex-1 sm:flex-initial justify-center">
                         <i class="fas fa-plus mr-2"></i>
-                        Nuevo Registro
+                        <span class="hidden sm:inline">Nuevo Registro</span>
+                        <span class="sm:hidden">Nuevo</span>
                     </a>
                 </div>
             </div>
         </div>
 
         @if($usageControls->count() > 0)
-            <!-- Tabla de controles de uso -->
-            <div class="overflow-x-auto">
-                <!-- DataTables agregará los controles y la tabla aquí -->
-                <div id="usageControlsTable_wrapper" class="p-6">
-                    <!-- Contenedor para controles superiores -->
+            <!-- Vista móvil: tarjetas -->
+            <div class="block md:hidden p-3 sm:p-4 space-y-4">
+                @foreach($usageControls as $usageControl)
+                    <div class="waste-mobile-card bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm" data-id="{{ $usageControl->id }}">
+                        <div class="flex gap-3">
+                            @if($usageControl->machinery && $usageControl->machinery->image)
+                                <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 cursor-pointer" onclick="openImageModal('{{ Storage::url($usageControl->machinery->image) }}')">
+                                    <img src="{{ Storage::url($usageControl->machinery->image) }}" alt="" class="w-full h-full object-cover">
+                                </div>
+                            @else
+                                <div class="w-14 h-14 rounded-xl bg-gray-200 flex items-center justify-center flex-shrink-0"><i class="fas fa-cogs text-gray-400 text-xl"></i></div>
+                            @endif
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-gray-900 truncate">{{ $usageControl->machinery->name ?? 'N/A' }}</h3>
+                                <p class="text-sm text-gray-600">{{ $usageControl->start_date ? $usageControl->start_date->setTimezone('America/Bogota')->format('d/m/Y h:i A') : 'N/A' }}</p>
+                                <p class="text-xs text-gray-500">{{ $usageControl->hours ?? 0 }} hrs · {{ $usageControl->responsible }}</p>
+                            </div>
+                        </div>
+                        <div class="waste-mobile-card-actions mt-4 pt-3 border-t border-gray-200">
+                            <button type="button" onclick="openViewModal({{ $usageControl->id }})" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg flex-shrink-0" title="Ver"><i class="fas fa-eye"></i></button>
+                            <button type="button" onclick="confirmEdit(event, {{ $usageControl->id }})" class="p-2 text-green-600 hover:bg-green-50 rounded-lg flex-shrink-0" title="Editar"><i class="fas fa-edit"></i></button>
+                            <form action="{{ route('admin.machinery.usage-control.destroy', $usageControl) }}" method="POST" class="inline flex-shrink-0" onsubmit="return confirmDelete(event, this)">@csrf @method('DELETE')<button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Eliminar"><i class="fas fa-trash"></i></button></form>
+                            <a href="{{ route('admin.machinery.usage-control.download.pdf', $usageControl) }}" class="p-2 text-red-700 hover:bg-red-50 rounded-lg flex-shrink-0" title="PDF"><i class="fas fa-file-pdf"></i></a>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+            <!-- Tabla (escritorio) -->
+            <div class="hidden md:block overflow-x-auto -mx-3 sm:mx-0">
+                <div id="usageControlsTable_wrapper" class="p-3 sm:p-4 md:p-6">
                     <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
                         <div id="dt-length-container" style="float: left;"></div>
                         <div id="dt-filter-container" style="float: right;"></div>
                     </div>
-                    <table id="usageControlsTable" class="waste-table">
+                    <table id="usageControlsTable" class="waste-table min-w-[800px]">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -134,7 +161,7 @@
                         </thead>
                         <tbody>
                             @foreach($usageControls as $usageControl)
-                            <tr>
+                            <tr data-id="{{ $usageControl->id }}">
                                 <td class="font-mono">#{{ str_pad($usageControl->id, 3, '0', STR_PAD_LEFT) }}</td>
                                 <td>
                                     @if($usageControl->machinery && $usageControl->machinery->image)
@@ -170,11 +197,6 @@
                                            class="inline-flex items-center text-green-500 hover:text-green-700" title="Editar">
                                             <i class="fas fa-edit"></i>
                                         </button>
-                                        <a href="{{ route('admin.machinery.usage-control.download.pdf', $usageControl) }}" 
-                                           class="inline-flex items-center text-red-800 hover:text-red-900" 
-                                           title="Descargar PDF">
-                                            <i class="fas fa-file-pdf"></i>
-                                        </a>
                                         <form action="{{ route('admin.machinery.usage-control.destroy', $usageControl) }}" 
                                               method="POST" class="inline" 
                                               onsubmit="return confirmDelete(event, this)">
@@ -184,6 +206,11 @@
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>
+                                        <a href="{{ route('admin.machinery.usage-control.download.pdf', $usageControl) }}" 
+                                           class="inline-flex items-center text-red-800 hover:text-red-900" 
+                                           title="Descargar PDF">
+                                            <i class="fas fa-file-pdf"></i>
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
@@ -852,7 +879,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return;
     }
     
-    let table = new DataTable('#usageControlsTable', {
+    window.usageControlsDataTable = new DataTable('#usageControlsTable', {
         language: {
             search: 'Buscar:',
             lengthMenu: 'Mostrar _MENU_ registros',
@@ -911,16 +938,32 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (lengthSelect) {
                 lengthSelect.addEventListener('change', function() {
-                    table.page.len(parseInt(this.value)).draw();
+                    window.usageControlsDataTable.page.len(parseInt(this.value)).draw();
                 });
             }
             
             if (searchInput) {
                 searchInput.addEventListener('keyup', function() {
-                    table.search(this.value).draw();
+                    window.usageControlsDataTable.search(this.value).draw();
                 });
             }
         }
+    });
+
+    document.getElementById('btn-download-all-pdf')?.addEventListener('click', function() {
+        let url = '{{ route("admin.machinery.usage-control.download.all-pdf") }}';
+        if (window.usageControlsDataTable) {
+            const ids = [];
+            window.usageControlsDataTable.rows({ search: 'applied' }).every(function() {
+                const row = this.node();
+                const id = row.getAttribute('data-id');
+                if (id) ids.push(id);
+            });
+            if (ids.length > 0) {
+                url += '?ids=' + ids.join(',');
+            }
+        }
+        window.location.href = url;
     });
 });
 </script>

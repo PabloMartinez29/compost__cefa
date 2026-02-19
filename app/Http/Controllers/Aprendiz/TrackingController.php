@@ -35,14 +35,21 @@ class TrackingController extends Controller
         $activePiles = $compostings->whereNull('end_date')->count();
         $totalTrackings = Tracking::count();
 
-        // IDs de seguimientos con aprobación vigente para eliminar
+        // IDs de seguimientos con aprobación vigente para eliminar (notificación enviada al aprendiz o solicitud del aprendiz aprobada por admin)
         $userId = auth()->check() ? auth()->id() : null;
-        $approvedTrackingIds = \App\Models\Notification::where('user_id', $userId)
+        $approvedAsRecipient = \App\Models\Notification::where('user_id', $userId)
             ->where('type', 'delete_request')
             ->where('status', 'approved')
             ->whereNotNull('tracking_id')
             ->pluck('tracking_id')
             ->toArray();
+        $approvedAsSender = \App\Models\Notification::where('from_user_id', $userId)
+            ->where('type', 'delete_request')
+            ->where('status', 'approved')
+            ->whereNotNull('tracking_id')
+            ->pluck('tracking_id')
+            ->toArray();
+        $approvedTrackingIds = array_values(array_unique(array_merge($approvedAsRecipient, $approvedAsSender)));
 
         // IDs de seguimientos con solicitud pendiente
         $pendingTrackingIds = \App\Models\Notification::where('from_user_id', $userId)
@@ -434,40 +441,31 @@ class TrackingController extends Controller
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
         
-        // Cargar la relación con composting y su creador
         $tracking->load(['composting.creator']);
-        
-        // Verificar que el registro pertenece al usuario
         $isOwner = $tracking->created_by === $currentUserId;
-        
-        // Verificar si la pila fue creada por un admin
-        $isPileCreatedByAdmin = $tracking->composting && $tracking->composting->creator && $tracking->composting->creator->role === 'admin';
-        
-        // Si el seguimiento pertenece al aprendiz pero la pila fue creada por admin, necesita permiso
-        // Si el seguimiento no pertenece al aprendiz, no puede eliminarlo
+
         if (!$isOwner) {
             return redirect()->route('aprendiz.tracking.index')
                 ->with('permission_required', 'No tiene permisos para eliminar este registro.');
         }
-        
-        // Si la pila fue creada por admin, siempre necesita permiso aprobado
-        if ($isPileCreatedByAdmin) {
-            // Verificar que hay una solicitud aprobada
-            $approvedNotification = \App\Models\Notification::where('user_id', $currentUserId)
-                ->where('tracking_id', $tracking->id)
-                ->where('type', 'delete_request')
-                ->where('status', 'approved')
-                ->orderBy('created_at', 'desc')
-                ->first();
-            
-            if (!$approvedNotification) {
-                return redirect()->route('aprendiz.tracking.index')
-                    ->with('permission_required', 'No tiene permiso para eliminar este seguimiento. Debe solicitar permiso primero y esperar la aprobación del administrador.');
-            }
-            
-            // Marcar la notificación como procesada
-            $approvedNotification->update(['read_at' => now()]);
+
+        // Buscar notificación aprobada: la enviada al aprendiz (user_id) o la original del aprendiz aprobada por admin (from_user_id)
+        $approvedNotification = \App\Models\Notification::where('tracking_id', $tracking->id)
+            ->where('type', 'delete_request')
+            ->where('status', 'approved')
+            ->where(function ($q) use ($currentUserId) {
+                $q->where('user_id', $currentUserId)
+                  ->orWhere('from_user_id', $currentUserId);
+            })
+            ->orderBy('created_at', 'desc')
+            ->first();
+
+        if (!$approvedNotification) {
+            return redirect()->route('aprendiz.tracking.index')
+                ->with('permission_required', 'No tiene permiso para eliminar este seguimiento. Debe solicitar permiso primero y esperar la aprobación del administrador.');
         }
+
+        $approvedNotification->update(['read_at' => now()]);
 
         DB::beginTransaction();
         try {
@@ -492,28 +490,13 @@ class TrackingController extends Controller
     public function requestDeletePermission(Tracking $tracking)
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
-        
-        // Cargar la relación con composting y su creador
+
         $tracking->load(['composting.creator']);
-        
-        // Verificar que el registro pertenece al usuario
         $isOwner = $tracking->created_by === $currentUserId;
-        
-        // Verificar si la pila fue creada por un admin
-        $isPileCreatedByAdmin = $tracking->composting && $tracking->composting->creator && $tracking->composting->creator->role === 'admin';
-        
-        // Solo puede solicitar permiso si es el dueño del seguimiento
-        // Y si la pila fue creada por admin, siempre necesita permiso
+
         if (!$isOwner) {
             return redirect()->route('aprendiz.tracking.index')
                 ->with('permission_required', 'No puede solicitar permisos para registros que no le pertenecen.');
-        }
-        
-        // Si la pila no fue creada por admin y el seguimiento es del aprendiz, puede eliminarlo directamente
-        // Pero si la pila fue creada por admin, siempre necesita permiso
-        if (!$isPileCreatedByAdmin) {
-            return redirect()->route('aprendiz.tracking.index')
-                ->with('info', 'Puede eliminar este seguimiento directamente ya que la pila no fue creada por un administrador.');
         }
 
         // Evitar solicitudes duplicadas si ya hay una pendiente o aprobada
@@ -624,14 +607,22 @@ class TrackingController extends Controller
     }
 
     /**
-     * Generate PDF for all trackings
+     * Generate PDF for all trackings (o solo los filtrados si se pasan ids)
      */
-    public function downloadAllTrackingsPDF()
+    public function downloadAllTrackingsPDF(Request $request)
     {
-        $trackings = Tracking::with('composting')
-            ->orderBy('date', 'desc')
-            ->get();
-        
+        $query = Tracking::with('composting')
+            ->orderBy('date', 'desc');
+
+        if ($request->filled('ids')) {
+            $ids = array_filter(array_map('intval', explode(',', $request->ids)));
+            if (!empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+        }
+
+        $trackings = $query->get();
+
         $pdf = PDF::loadView('aprendiz.tracking.pdf.all-trackings', compact('trackings'))
             ->setPaper('a4', 'landscape')
             ->setOptions([
@@ -673,8 +664,8 @@ class TrackingController extends Controller
         
         // Convertir imagen de la pila a base64 si existe
         $imageBase64 = null;
-        if ($tracking->composting && $tracking->composting->image && Storage::disk('public')->exists($tracking->composting->image)) {
-            $imagePath = Storage::disk('public')->path($tracking->composting->image);
+        if ($tracking->composting && $tracking->composting->image && file_exists(public_path($tracking->composting->image))) {
+            $imagePath = public_path($tracking->composting->image);
             $imageData = file_get_contents($imagePath);
             $imageInfo = getimagesize($imagePath);
             $mimeType = $imageInfo['mime'];

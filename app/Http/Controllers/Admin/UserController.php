@@ -68,8 +68,10 @@ class UserController extends Controller
                 'name' => $user->name,
                 'email' => $user->email,
                 'identification' => $user->identification,
+                'document_type' => $user->document_type,
                 'role' => $user->role,
                 'email_verified_at' => $user->email_verified_at,
+                'is_active' => $user->is_active,
                 'created_at' => $user->created_at,
                 'updated_at' => $user->updated_at,
             ]);
@@ -88,8 +90,10 @@ class UserController extends Controller
             'name' => $user->name,
             'email' => $user->email,
             'identification' => $user->identification,
+            'document_type' => $user->document_type,
             'role' => $user->role,
             'email_verified_at' => $user->email_verified_at,
+            'is_active' => $user->is_active,
             'created_at' => $user->created_at,
             'updated_at' => $user->updated_at,
         ]);
@@ -123,6 +127,7 @@ class UserController extends Controller
                 'max:255',
                 Rule::unique('users')->ignore($user->id),
             ],
+            'document_type' => 'required|string|in:CC,TI,CE,PEP,PASAPORTE',
             'password' => 'nullable|string|min:8|confirmed',
             'role' => 'required|in:admin,aprendiz',
         ]);
@@ -131,6 +136,7 @@ class UserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'identification' => $request->identification,
+            'document_type' => $request->document_type,
             'role' => $request->role,
         ];
 
@@ -178,12 +184,21 @@ class UserController extends Controller
     }
 
     /**
-     * Generate PDF for all users
+     * Generate PDF for all users (o solo los filtrados si se pasan ids)
      */
-    public function downloadAllUsersPDF()
+    public function downloadAllUsersPDF(Request $request)
     {
-        $users = User::orderBy('created_at', 'desc')->get();
-        
+        $query = User::orderBy('created_at', 'desc');
+
+        if ($request->filled('ids')) {
+            $ids = array_filter(array_map('intval', explode(',', $request->ids)));
+            if (!empty($ids)) {
+                $query->whereIn('id', $ids);
+            }
+        }
+
+        $users = $query->get();
+
         $pdf = PDF::loadView('admin.users.pdf.all-users', compact('users'))
             ->setPaper('a4', 'landscape')
             ->setOptions([
