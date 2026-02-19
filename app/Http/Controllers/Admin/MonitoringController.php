@@ -101,7 +101,11 @@ class MonitoringController extends Controller
             ->orderBy('date', 'desc')
             ->get();
         
-        $machineryRecords = Machinery::with('maintenances')->orderBy('created_at', 'desc')->get();
+        // Obtener registros de maquinaria con relaciones necesarias para calcular el estado
+        // El atributo 'status' se incluye automáticamente gracias a $appends en el modelo
+        $machineryRecords = Machinery::with('maintenances', 'usageControls')
+            ->orderBy('created_at', 'desc')
+            ->get();
         
         return view('admin.monitoring.index', compact(
             'stats',
@@ -521,7 +525,7 @@ class MonitoringController extends Controller
                     $itemDate = $this->parseDate($item->$dateField);
                     return $itemDate && $itemDate >= $current && $itemDate <= $weekEnd;
                 });
-                $grouped[$key] = $filtered->sum('weight');
+                $grouped[$key] = $filtered->sum($sumColumn);
                 $current->addWeek();
             }
         } elseif ($period === 'monthly') {
@@ -533,7 +537,7 @@ class MonitoringController extends Controller
                     $itemDate = $this->parseDate($item->$dateField);
                     return $itemDate && $itemDate >= $current && $itemDate <= $monthEnd;
                 });
-                $grouped[$key] = $filtered->sum('weight');
+                $grouped[$key] = $filtered->sum($sumColumn);
                 $current->addMonth();
             }
         } elseif ($period === 'yearly') {
@@ -545,7 +549,7 @@ class MonitoringController extends Controller
                     $itemDate = $this->parseDate($item->$dateField);
                     return $itemDate && $itemDate >= $current && $itemDate <= $yearEnd;
                 });
-                $grouped[$key] = $filtered->sum('weight');
+                $grouped[$key] = $filtered->sum($sumColumn);
                 $current->addYear();
             }
         }

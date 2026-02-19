@@ -1,5 +1,9 @@
 @extends('layouts.masteraprendiz')
 
+@php
+use Illuminate\Support\Facades\Storage;
+@endphp
+
 @section('content')
 <div class="min-h-screen bg-soft-gray-50 py-8">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">

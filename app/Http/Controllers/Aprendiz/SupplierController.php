@@ -160,7 +160,7 @@ class SupplierController extends Controller
                 'created_at' => $supplier->created_at->format('d/m/Y H:i:s'),
                 'created_at_formatted' => $supplier->created_at->format('d/m/Y H:i:s'),
                 'machinery_image_url' => $supplier->machinery && $supplier->machinery->image 
-                    ? \Illuminate\Support\Facades\Storage::url($supplier->machinery->image) 
+                    ? asset($supplier->machinery->image) 
                     : null,
             ]);
         }
@@ -417,8 +417,8 @@ class SupplierController extends Controller
         
         // Convertir imagen a base64 si existe
         $imageBase64 = null;
-        if ($supplier->machinery && $supplier->machinery->image && Storage::disk('public')->exists($supplier->machinery->image)) {
-            $imagePath = Storage::disk('public')->path($supplier->machinery->image);
+        if ($supplier->machinery && $supplier->machinery->image && file_exists(public_path($supplier->machinery->image))) {
+            $imagePath = public_path($supplier->machinery->image);
             $imageData = file_get_contents($imagePath);
             $imageInfo = getimagesize($imagePath);
             $mimeType = $imageInfo['mime'];

@@ -426,8 +426,8 @@ class MaintenanceController extends Controller
         
         // Convertir imagen a base64 si existe
         $imageBase64 = null;
-        if ($maintenance->machinery && $maintenance->machinery->image && Storage::disk('public')->exists($maintenance->machinery->image)) {
-            $imagePath = Storage::disk('public')->path($maintenance->machinery->image);
+        if ($maintenance->machinery && $maintenance->machinery->image && file_exists(public_path($maintenance->machinery->image))) {
+            $imagePath = public_path($maintenance->machinery->image);
             $imageData = file_get_contents($imagePath);
             $imageInfo = getimagesize($imagePath);
             $mimeType = $imageInfo['mime'];

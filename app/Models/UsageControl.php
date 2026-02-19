@@ -20,6 +20,7 @@ class UsageControl extends Model
         'hours',
         'responsible',
         'description',
+        'status',
     ];
 
     protected $casts = [

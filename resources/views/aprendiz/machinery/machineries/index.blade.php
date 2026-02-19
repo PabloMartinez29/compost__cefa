@@ -12,28 +12,28 @@
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<div class="container mx-auto px-6 py-8">
+<div class="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
     <!-- Header -->
     <div class="waste-header animate-fade-in-up">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="waste-title">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+            <div class="flex-1 min-w-0">
+                <h1 class="waste-title text-xl sm:text-2xl">
                     <i class="fas fa-cogs waste-icon"></i>
                     Gestión de Maquinaria
                 </h1>
-                <p class="waste-subtitle">
+                <p class="waste-subtitle text-sm sm:text-base">
                     <i class="fas fa-user-shield text-green-400 mr-2"></i>
-                    {{ Auth::user()->name }} - Panel de Aprendiz
+                    <span class="break-words">{{ Auth::user()->name }} - Panel de Aprendiz</span>
                 </p>
             </div>
-            <div class="text-right">
-                <div class="text-green-400 font-bold text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
+            <div class="text-left sm:text-right flex-shrink-0">
+                <div class="text-green-400 font-bold text-base sm:text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
             </div>
         </div>
     </div>
 
     <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
         <!-- Total Maquinarias -->
         <div class="waste-card waste-card-primary animate-fade-in-up animate-delay-1">
             <div class="flex items-center justify-between">
@@ -81,37 +81,80 @@
     <!-- Main Content -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200">
         <!-- Table Header -->
-        <div class="p-6 border-b border-gray-200 bg-gray-50">
-            <!-- Primera fila: Título y botones -->
-            <div class="flex items-center justify-between mb-4">
-                <h2 class="text-lg font-semibold text-gray-800 flex items-center">
+        <div class="p-3 sm:p-4 md:p-6 border-b border-gray-200 bg-gray-50">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-4">
+                <h2 class="text-base sm:text-lg font-semibold text-gray-800 flex items-center">
                     <i class="fas fa-cogs text-green-600 mr-2"></i>
                     Registros de Maquinaria
                 </h2>
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 sm:space-x-4 w-full sm:w-auto">
                     @if($machineries->count() > 0)
-                        <button type="button" id="btn-download-all-pdf" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm" title="Descargar PDF de los registros visibles (filtrados)">
+                        <button type="button" id="btn-download-all-pdf" class="bg-red-500 text-white border border-red-600 hover:bg-red-600 px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm text-sm sm:text-base" title="Descargar PDF">
                             <i class="fas fa-file-pdf"></i>
+                            <span class="hidden sm:inline ml-2">PDF</span>
                         </button>
                     @endif
-                    <a href="{{ route('aprendiz.machinery.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm">
+                    <a href="{{ route('aprendiz.machinery.create') }}" class="bg-green-400 text-green-800 border border-green-500 hover:bg-green-500 px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 flex items-center shadow-sm text-sm sm:text-base flex-1 sm:flex-initial justify-center">
                         <i class="fas fa-plus mr-2"></i>
-                        Nuevo Registro
+                        <span class="hidden sm:inline">Nuevo Registro</span>
+                        <span class="sm:hidden">Nuevo</span>
                     </a>
                 </div>
             </div>
         </div>
 
         @if($machineries->count() > 0)
-            <!-- Tabla de maquinaria (mismo estilo que Control de actividades) -->
-            <div class="overflow-x-auto">
-                <div id="machineriesTable_wrapper" class="p-6 pr-12">
-                    <!-- Contenedor para controles superiores -->
+            <!-- Vista móvil: tarjetas -->
+            <div class="block md:hidden p-3 sm:p-4 space-y-4">
+                @foreach($machineries as $machinery)
+                    @php
+                        $status = $machinery->status;
+                        $statusClass = match($status) {
+                            'Operación' => 'waste-badge waste-badge-success',
+                            'En mantenimiento' => 'waste-badge waste-badge-danger',
+                            'Mantenimiento requerido' => 'waste-badge waste-badge-danger',
+                            'Sin actividad' => 'bg-gray-100 text-gray-800',
+                            default => 'bg-gray-100 text-gray-800'
+                        };
+                    @endphp
+                    <div class="waste-mobile-card bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm" data-id="{{ $machinery->id }}">
+                        <div class="flex gap-3">
+                            <div class="flex-shrink-0">
+                                @if($machinery->image)
+                                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 cursor-pointer" onclick="openImageModal('{{ Storage::url($machinery->image) }}')">
+                                        <img src="{{ Storage::url($machinery->image) }}" alt="{{ $machinery->name }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="w-full h-full bg-gray-200 flex items-center justify-center" style="display: none;"><i class="fas fa-cogs text-gray-400"></i></div>
+                                    </div>
+                                @else
+                                    <div class="w-14 h-14 rounded-xl bg-green-100 flex items-center justify-center"><i class="fas fa-cogs text-green-600 text-xl"></i></div>
+                                @endif
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="font-semibold text-gray-900 truncate">{{ $machinery->name }}</h3>
+                                <p class="text-sm text-gray-600 truncate">{{ $machinery->location }}</p>
+                                <p class="text-xs text-gray-500">{{ $machinery->brand }} {{ $machinery->model }} · {{ $machinery->serial }}</p>
+                                <span class="inline-flex items-center mt-2 px-2 py-0.5 rounded-full text-xs font-medium {{ $statusClass }}">{{ $status === 'En mantenimiento' ? 'Mantenimiento' : $status }}</span>
+                            </div>
+                        </div>
+                        <div class="waste-mobile-card-actions mt-4 pt-3 border-t border-gray-200">
+                            <a href="{{ route('aprendiz.machinery.show', $machinery) }}" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg flex-shrink-0" title="Ver"><i class="fas fa-eye"></i></a>
+                            <button type="button" onclick="confirmEdit({{ $machinery->id }})" class="p-2 text-green-600 hover:bg-green-50 rounded-lg flex-shrink-0" title="Editar"
+                                data-id="{{ $machinery->id }}" data-name="{{ $machinery->name }}" data-location="{{ $machinery->location }}" data-brand="{{ $machinery->brand }}" data-model="{{ $machinery->model }}" data-serial="{{ $machinery->serial }}" data-start_func="{{ $machinery->start_func->format('Y-m-d') }}" data-maint_freq="{{ $machinery->maint_freq }}" data-image="{{ $machinery->image ? Storage::url($machinery->image) : '' }}"><i class="fas fa-edit"></i></button>
+                            <form action="{{ route('aprendiz.machinery.destroy', $machinery) }}" method="POST" class="inline flex-shrink-0" onsubmit="return confirmDelete(event, this)">@csrf @method('DELETE')<button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Eliminar"><i class="fas fa-trash"></i></button></form>
+                            <a href="{{ route('aprendiz.machinery.download.pdf', $machinery) }}" class="p-2 text-red-700 hover:bg-red-50 rounded-lg flex-shrink-0" title="PDF"><i class="fas fa-file-pdf"></i></a>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            <!-- Tabla (escritorio) -->
+            <div class="hidden md:block overflow-x-auto -mx-3 sm:mx-0">
+                <div id="machineriesTable_wrapper" class="p-3 sm:p-4 md:p-6 pr-6 sm:pr-12">
                     <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
                         <div id="dt-length-container" style="float: left;"></div>
                         <div id="dt-filter-container" style="float: right;"></div>
                     </div>
-                    <table id="machineriesTable" class="waste-table machineries-registros-table">
+                    <table id="machineriesTable" class="waste-table machineries-registros-table min-w-[900px]">
                         <thead>
                             <tr>
                                 <th style="width: 56px;">Imagen</th>
@@ -130,10 +173,15 @@
                             <tr data-id="{{ $machinery->id }}">
                                 <td class="text-center align-middle py-2">
                                     @if($machinery->image)
-                                        <div class="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 mx-auto">
+                                        <div class="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 mx-auto cursor-pointer hover:opacity-80 transition-opacity">
                                             <img src="{{ Storage::url($machinery->image) }}" 
                                                  alt="{{ $machinery->name }}" 
-                                                 class="w-full h-full object-cover">
+                                                 class="w-full h-full object-cover"
+                                                 onclick="openImageModal('{{ Storage::url($machinery->image) }}')"
+                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center" style="display: none;">
+                                                <i class="fas fa-image text-gray-400"></i>
+                                            </div>
                                         </div>
                                     @else
                                         <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0 mx-auto">
@@ -205,11 +253,6 @@
                                                     data-image="{{ $machinery->image ? Storage::url($machinery->image) : '' }}">
                                                 <i class="fas fa-edit text-sm"></i>
                                             </button>
-                                            <a href="{{ route('aprendiz.machinery.download.pdf', $machinery) }}" 
-                                               class="inline-flex items-center justify-center text-red-800 hover:text-red-900 w-7 h-7 rounded hover:bg-red-50 transition-colors shrink-0"
-                                               title="Descargar PDF">
-                                                <i class="fas fa-file-pdf text-sm"></i>
-                                            </a>
                                         @php
                                             $isApproved = isset($approvedMachineryIds) && in_array($machinery->id, $approvedMachineryIds);
                                             $isPending = isset($pendingMachineryIds) && in_array($machinery->id, $pendingMachineryIds);
@@ -240,6 +283,11 @@
                                                 <i class="fas fa-trash text-sm"></i>
                                             </button>
                                         @endif
+                                        <a href="{{ route('aprendiz.machinery.download.pdf', $machinery) }}" 
+                                           class="inline-flex items-center justify-center text-red-800 hover:text-red-900 w-7 h-7 rounded hover:bg-red-50 transition-colors shrink-0"
+                                           title="Descargar PDF">
+                                            <i class="fas fa-file-pdf text-sm"></i>
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
@@ -399,7 +447,9 @@
 
     // Función para abrir modal de edición
     function openEditModal(machineryId) {
-        const btn = document.querySelector(`[data-id="${machineryId}"]`);
+        // Selecciona explícitamente el botón de editar para evitar
+        // tomar el <tr data-id="...">, lo que provocaba valores "undefined"
+        const btn = document.querySelector(`button[data-id="${machineryId}"]`);
         if (!btn) return;
         
         const id = btn.dataset.id;
@@ -907,6 +957,51 @@
     vertical-align: middle;
 }
 </style>
+
+<!-- Modal para visualizar imagen -->
+<div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 modal-backdrop-blur hidden z-50 flex items-center justify-center p-4">
+    <div class="relative max-w-6xl max-h-[90vh] w-full flex items-center justify-center">
+        <!-- Botón de cerrar -->
+        <button onclick="closeImageModal()" class="absolute top-4 right-4 z-10 bg-black bg-opacity-50 text-white rounded-full w-10 h-10 flex items-center justify-center hover:bg-opacity-75 transition-all">
+            <i class="fas fa-times text-xl"></i>
+        </button>
+        
+        <!-- Imagen -->
+        <img id="modalImage" src="" alt="Imagen de maquinaria" 
+             class="max-w-4xl max-h-[80vh] w-auto h-auto object-contain rounded-lg shadow-2xl mx-auto">
+    </div>
+</div>
+
+<script>
+// Funciones para el modal de imagen
+function openImageModal(imageSrc) {
+    document.getElementById('modalImage').src = imageSrc;
+    document.getElementById('imageModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeImageModal() {
+    document.getElementById('imageModal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+}
+
+// Cerrar modal de imagen al hacer clic fuera
+document.getElementById('imageModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeImageModal();
+    }
+});
+
+// Cerrar modal de imagen con tecla ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const imageModal = document.getElementById('imageModal');
+        if (imageModal && !imageModal.classList.contains('hidden')) {
+            closeImageModal();
+        }
+    }
+});
+</script>
 
 @endsection
 

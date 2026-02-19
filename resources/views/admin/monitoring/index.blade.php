@@ -3,30 +3,97 @@
 @section('content')
 @vite(['resources/css/dashboard-admin.css'])
 
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- Chart.js - Cargar con fallback a versión local -->
+<script>
+    // Función para cargar Chart.js con múltiples fallbacks
+    function loadChartJS() {
+        return new Promise((resolve, reject) => {
+            // Verificar si ya está cargado
+            if (typeof Chart !== 'undefined') {
+                resolve();
+                return;
+            }
+            
+            // Intentar cargar desde CDN principal (Chart.js 4.4.0)
+            const script1 = document.createElement('script');
+            script1.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js';
+            script1.onload = () => {
+                if (typeof Chart !== 'undefined') {
+                    resolve();
+                } else {
+                    tryCDN2();
+                }
+            };
+            script1.onerror = () => {
+                tryCDN2();
+            };
+            
+            function tryCDN2() {
+                // Intentar CDN alternativo
+                const script2 = document.createElement('script');
+                script2.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js';
+                script2.onload = () => {
+                    if (typeof Chart !== 'undefined') {
+                        resolve();
+                    } else {
+                        tryLocal();
+                    }
+                };
+                script2.onerror = () => {
+                    tryLocal();
+                };
+                document.head.appendChild(script2);
+            }
+            
+            function tryLocal() {
+                // Usar versión local como último recurso
+                const script3 = document.createElement('script');
+                script3.src = '{{ asset("AdminLTE-3.2.0/plugins/chart.js/Chart.min.js") }}';
+                script3.onload = () => {
+                    if (typeof Chart !== 'undefined') {
+                        console.warn('Chart.js cargado desde versión local (2.9.4). Algunas características pueden no estar disponibles.');
+                        resolve();
+                    } else {
+                        reject(new Error('Chart.js no se pudo cargar desde ninguna fuente'));
+                    }
+                };
+                script3.onerror = () => {
+                    reject(new Error('Chart.js no se pudo cargar desde ninguna fuente'));
+                };
+                document.head.appendChild(script3);
+            }
+            
+            document.head.appendChild(script1);
+        });
+    }
+    
+    // Cargar Chart.js inmediatamente
+    loadChartJS().catch(err => {
+        console.error('Error al cargar Chart.js:', err);
+    });
+</script>
 
 <!-- DataTables -->
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
 <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 
-<div class="container mx-auto px-6 py-8">
+<div class="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
     <!-- Header -->
-    <div class="bg-green-50 rounded-xl shadow-sm p-6 border border-green-200 animate-fade-in-up">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="welcome-title">
-                    <i class="fas fa-chart-line text-green-600 mr-3"></i>
+    <div class="bg-green-50 rounded-xl shadow-sm p-4 sm:p-6 border border-green-200 animate-fade-in-up">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+            <div class="flex-1 min-w-0">
+                <h1 class="welcome-title text-xl sm:text-2xl">
+                    <i class="fas fa-chart-line text-green-600 mr-2 sm:mr-3"></i>
                     Módulo de Monitoreo
                 </h1>
-                <p class="welcome-subtitle">
+                <p class="welcome-subtitle text-sm sm:text-base">
                     <i class="fas fa-user-shield text-green-500 mr-2"></i>
-                    {{ Auth::user()?->name ?? 'Usuario' }} - Supervisión de Todos los Módulos
+                    <span class="break-words">{{ Auth::user()?->name ?? 'Usuario' }} - Supervisión de Todos los Módulos</span>
                 </p>
             </div>
-            <div class="text-right">
-                <div class="text-green-600 font-bold text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
+            <div class="text-left sm:text-right flex-shrink-0">
+                <div class="text-green-600 font-bold text-base sm:text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
             </div>
         </div>
     </div>
@@ -159,6 +226,11 @@
 // Variable global para módulo actual
 let currentModule = '';
 
+// Variables globales para datos generales (sin filtrar)
+const organicDataGeneral = @json($organicDataGeneral ?? []);
+const compostingDataGeneral = @json($compostingDataGeneral ?? []);
+const fertilizerDataGeneral = @json($fertilizerDataGeneral ?? []);
+
 // Colores suaves consistentes
 const colors = {
     primary: 'rgba(59, 130, 246, 0.6)',
@@ -238,13 +310,13 @@ function showModule(module) {
         'maquinaria': {
             title: '<i class="fas fa-cogs text-purple-600 mr-2"></i>Estado de Maquinaria',
             pdf: 'maquinaria',
-            {{-- Para la gráfica solo mostraremos:
-                 - Maquinaria operativa
-                 - Maquinaria registrada (total de equipos)
+            {{-- Para la gráfica circular mostraremos:
+                 - Maquinaria en operación (Operativa + Sin mantenimiento registrado)
+                 - Maquinaria en mantenimiento
             --}}
             data: @json([
-                'Operativa' => $machineryData['by_status']['Operativa'] ?? 0,
-                'Maquinaria registrada' => $machineryData['total'] ?? 0,
+                'En operación' => ($machineryData['by_status']['Operativa'] ?? 0) + ($machineryData['by_status']['Sin mantenimiento registrado'] ?? 0),
+                'En mantenimiento' => $machineryData['by_status']['Mantenimiento requerido'] ?? 0,
             ]),
             records: @json($machineryRecords)
         }
@@ -259,19 +331,100 @@ function showModule(module) {
     excelLink.href = '#';
     excelLink.setAttribute('data-module', module);
     
-    // Limpiar canvas anterior si existe
-    const oldCanvas = document.getElementById('module-chart');
+    // Limpiar gráficas anteriores (Chart.js)
     if (oldChartInstance) {
-        oldChartInstance.destroy();
+        try {
+            oldChartInstance.destroy();
+        } catch (e) {
+            console.warn('Error al destruir gráfica Chart.js anterior:', e);
+        }
+        oldChartInstance = null;
     }
     
+    // Mostrar el módulo expandido primero
     expanded.classList.remove('hidden');
     
-    // Crear gráfica después de un pequeño delay
-    setTimeout(() => {
-        createExpandedChart('module-chart', moduleData.data, module);
-        showModuleHistory(module, moduleData.records);
-    }, 100);
+    // Verificar que los datos estén disponibles
+    console.log('Datos del módulo:', module, moduleData.data);
+    
+    // Crear gráfica después de asegurar que Chart.js esté cargado y el DOM esté listo
+    function createChartWhenReady() {
+        const chartContainer = document.getElementById('module-chart-container');
+        const canvas = document.getElementById('module-chart');
+        
+        if (!chartContainer) {
+            console.error('No se encontró el contenedor de la gráfica');
+            return;
+        }
+        
+        if (!canvas) {
+            console.error('No se encontró el elemento canvas');
+            // Recrear el canvas si no existe
+            const containerDiv = chartContainer.querySelector('div[style*="height: 400px"]');
+            if (containerDiv) {
+                containerDiv.innerHTML = '<canvas id="module-chart"></canvas>';
+            } else {
+                chartContainer.innerHTML = '<div style="height: 400px;"><canvas id="module-chart"></canvas></div>';
+            }
+        }
+        
+        // Función para esperar a que Chart.js esté disponible
+        function waitForChartJS(attempts = 0) {
+            if (typeof Chart !== 'undefined') {
+                // Verificar que los datos existan antes de crear la gráfica
+                if (!moduleData.data || (typeof moduleData.data === 'object' && Object.keys(moduleData.data).length === 0)) {
+                    console.warn('No hay datos filtrados disponibles para el módulo:', module, 'Intentando usar datos generales...');
+                    // Intentar usar datos generales si los datos filtrados están vacíos
+                    if (module === 'residuos' && typeof organicDataGeneral !== 'undefined' && organicDataGeneral.by_type) {
+                        console.log('Usando datos generales de residuos:', organicDataGeneral.by_type);
+                        moduleData.data = organicDataGeneral.by_type;
+                    } else if (module === 'pilas' && typeof compostingDataGeneral !== 'undefined' && compostingDataGeneral.by_status) {
+                        console.log('Usando datos generales de pilas:', compostingDataGeneral.by_status);
+                        moduleData.data = compostingDataGeneral.by_status;
+                    } else if (module === 'abono' && typeof fertilizerDataGeneral !== 'undefined' && fertilizerDataGeneral.by_date) {
+                        console.log('Usando datos generales de abono:', fertilizerDataGeneral.by_date);
+                        moduleData.data = fertilizerDataGeneral.by_date;
+                    } else {
+                        console.warn('No se encontraron datos generales para el módulo:', module);
+                    }
+                }
+                
+                // Verificar nuevamente después de intentar usar datos generales
+                if (!moduleData.data || (typeof moduleData.data === 'object' && Object.keys(moduleData.data).length === 0)) {
+                    console.error('No hay datos disponibles (ni filtrados ni generales) para el módulo:', module);
+                    const container = document.getElementById('module-chart-container');
+                    if (container) {
+                        container.innerHTML = '<p class="text-gray-500 text-center py-8">No hay datos disponibles para mostrar. Por favor, verifica que existan registros en el sistema.</p>';
+                    }
+                    showModuleHistory(module, moduleData.records);
+                    return;
+                }
+                
+                createExpandedChart('module-chart', moduleData.data, module);
+                showModuleHistory(module, moduleData.records);
+            } else if (attempts < 10) {
+                // Esperar hasta 5 segundos (10 intentos x 500ms)
+                setTimeout(() => waitForChartJS(attempts + 1), 500);
+            } else {
+                // Intentar cargar Chart.js si no está disponible después de esperar
+                if (typeof loadChartJS === 'function') {
+                    loadChartJS().then(() => {
+                        createExpandedChart('module-chart', moduleData.data, module);
+                        showModuleHistory(module, moduleData.records);
+                    }).catch(() => {
+                        chartContainer.innerHTML = '<p class="text-red-500 text-center py-8">Error: No se pudo cargar Chart.js. Por favor, verifica tu conexión a internet y recarga la página.</p>';
+                    });
+                } else {
+                    chartContainer.innerHTML = '<p class="text-red-500 text-center py-8">Error: Chart.js no está disponible. Por favor, recarga la página.</p>';
+                }
+            }
+        }
+        
+        waitForChartJS();
+    }
+    
+    // Esperar un poco más para asegurar que el DOM esté completamente listo después de remover 'hidden'
+    setTimeout(createChartWhenReady, 100);
 }
 
 let oldChartInstance = null;
@@ -288,7 +441,11 @@ function closeModule() {
         card.classList.remove('ring-4', 'ring-green-500');
     });
     if (oldChartInstance) {
-        oldChartInstance.destroy();
+        try {
+            oldChartInstance.destroy();
+        } catch (e) {
+            console.warn('Error al destruir gráfica Chart.js:', e);
+        }
         oldChartInstance = null;
     }
     if (dataTableInstance) {
@@ -324,7 +481,7 @@ function showModuleHistory(module, records) {
     html += '</div>';
     html += '</div>';
 
-    html += '<div class="overflow-x-auto"><table id="history-table" class="min-w-full divide-y divide-gray-200">';
+    html += '<div class="overflow-x-auto"><table id="history-table" class="min-w-full divide-y divide-gray-200" style="min-width: 800px;">';
     
     if (module === 'residuos') {
         html += '<thead class="bg-gray-50"><tr><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Peso (Kg)</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Creado por</th></tr></thead>';
@@ -450,18 +607,53 @@ function downloadExcel(event) {
 
 // Crear gráfica expandida
 function createExpandedChart(canvasId, data, module) {
+    // Verificar que Chart.js esté disponible
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js no está disponible. Verifica que el script esté cargado.');
+        const container = document.getElementById('module-chart-container');
+        if (container) {
+            container.innerHTML = '<p class="text-red-500 text-center py-8">Error: Chart.js no está cargado. Por favor, recarga la página.</p>';
+        }
+        return;
+    }
+    
     const ctx = document.getElementById(canvasId);
-    if (!ctx) return;
+    if (!ctx) {
+        console.error('No se encontró el elemento canvas con id:', canvasId);
+        const container = document.getElementById('module-chart-container');
+        if (container) {
+            container.innerHTML = '<p class="text-red-500 text-center py-8">Error: No se encontró el elemento canvas. Por favor, recarga la página.</p>';
+        }
+        return;
+    }
     
     // Destruir gráfica anterior si existe
     if (oldChartInstance) {
-        oldChartInstance.destroy();
+        try {
+            oldChartInstance.destroy();
+        } catch (e) {
+            console.warn('Error al destruir gráfica anterior:', e);
+        }
+        oldChartInstance = null;
     }
     
     let labels = [];
     let values = [];
+    let weights = []; // Para módulo de residuos
     let chartType = 'line';
     let datasets = [];
+    
+    // Validar que haya datos
+    if (!data || (typeof data === 'object' && Object.keys(data).length === 0)) {
+        console.warn('No hay datos para el módulo:', module, 'Datos recibidos:', data);
+        const container = document.getElementById('module-chart-container');
+        if (container) {
+            container.innerHTML = '<p class="text-gray-500 text-center py-8">No hay datos disponibles para el período seleccionado. Intenta cambiar el filtro de fecha.</p>';
+        }
+        return;
+    }
+    
+    console.log('Creando gráfica para módulo:', module, 'con datos:', data);
     
     if (module === 'residuos') {
         // Para residuos, mostrar por tipo con sus nombres en español - solo peso
@@ -484,16 +676,27 @@ function createExpandedChart(canvasId, data, module) {
         
         // Crear arrays ordenados con todos los tipos
         labels = [];
-        const weights = [];
+        weights = []; // Usar la variable del scope superior
         
         allTypes.forEach(type => {
             labels.push(typeMap[type]);
-            if (dataMap[type] && dataMap[type].weight !== undefined) {
-                weights.push(dataMap[type].weight);
+            if (dataMap[type]) {
+                // Manejar diferentes formatos de datos
+                if (typeof dataMap[type] === 'object' && dataMap[type].weight !== undefined) {
+                    weights.push(parseFloat(dataMap[type].weight) || 0);
+                } else if (typeof dataMap[type] === 'object' && dataMap[type].amount !== undefined) {
+                    weights.push(parseFloat(dataMap[type].amount) || 0);
+                } else if (typeof dataMap[type] === 'number') {
+                    weights.push(parseFloat(dataMap[type]) || 0);
+                } else {
+                    weights.push(0);
+                }
             } else {
                 weights.push(0);
             }
         });
+        
+        console.log('Datos procesados para residuos - labels:', labels, 'weights:', weights);
         
         chartType = 'bar';
         
@@ -506,127 +709,383 @@ function createExpandedChart(canvasId, data, module) {
             borderWidth: 2
         }];
     } else if (module === 'pilas') {
-        // Para pilas mostramos barras de estado (en proceso vs completadas)
+        // Para pilas mostramos gráfica circular simple
+        // Manejar diferentes formatos de datos
+        let active = 0;
+        let completed = 0;
+        
+        if (data && typeof data === 'object') {
+            if (data.active !== undefined) {
+                active = parseInt(data.active) || 0;
+            }
+            if (data.completed !== undefined) {
+                completed = parseInt(data.completed) || 0;
+            }
+            // Si los datos vienen como un array o objeto diferente, intentar extraerlos
+            if (active === 0 && completed === 0 && Object.keys(data).length > 0) {
+                // Intentar encontrar valores en diferentes formatos
+                const dataValues = Object.values(data);
+                if (dataValues.length >= 2) {
+                    active = parseInt(dataValues[0]) || 0;
+                    completed = parseInt(dataValues[1]) || 0;
+                }
+            }
+        }
+        
+        // Gráfica circular simple - dos colores
         labels = ['Pilas en proceso', 'Pilas completadas'];
-        values = [data?.active || 0, data?.completed || 0];
-        chartType = 'bar';
+        values = [active, completed];
+        chartType = 'pie';
         
         datasets = [{
-            label: 'Registros',
+            label: 'Estado de Pilas',
             data: values,
-            borderColor: [colors.infoBorder, colors.successBorder],
-            backgroundColor: [colors.info, colors.success],
-            borderWidth: 2,
-            fill: false,
-            tension: 0,
-            pointRadius: 0,
-            // Barras más delgadas para que se vean más estilizadas
-            barPercentage: 0.4,
-            categoryPercentage: 0.5,
-            maxBarThickness: 40
+            backgroundColor: [
+                '#06b6d4',  // Cyan para pilas en proceso
+                '#22c55e'   // Verde para pilas completadas
+            ],
+            borderColor: [
+                '#ffffff',
+                '#ffffff'
+            ],
+            borderWidth: 3
         }];
-    } else {
-        // Abono y Maquinaria
+    } else if (module === 'abono') {
+        // Abono: gráfica LINEAL por fecha
         labels = Object.keys(data || {});
-        values = Object.values(data || {});
-
-        if (module === 'abono') {
-            // Si abono tiene un solo punto, duplicamos para que se vea claramente la línea
-            if (labels.length === 1) {
-                labels = [labels[0], labels[0]];
-                values = [values[0], values[0]];
+        // Manejar diferentes formatos de valores
+        values = Object.values(data || {}).map(v => {
+            if (typeof v === 'number') {
+                return parseFloat(v) || 0;
+            } else if (typeof v === 'object' && v !== null) {
+                // Si el valor es un objeto, intentar extraer amount o weight
+                return parseFloat(v.amount || v.weight || 0) || 0;
+            } else {
+                return parseFloat(v) || 0;
             }
-
-            chartType = 'line';
-            
-            // Estilo tipo trading: línea fina sin relleno, puntos pequeños
-            datasets = [{
-                label: 'Registros',
-                data: values,
-                borderColor: colors.warningBorder,
-                backgroundColor: 'rgba(0,0,0,0)',
-                borderWidth: 2,
-                fill: false,
-                tension: 0.25,
-                pointRadius: 3,
-                pointHoverRadius: 5,
-                pointBackgroundColor: colors.warningBorder,
-                pointBorderColor: '#ffffff'
-            }];
-        } else {
-            // Maquinaria: barras por estado
-            chartType = 'bar';
-
-            const statusBgColors = {
-                'Operativa': colors.success,
-                'Mantenimiento requerido': colors.danger,
-                'Sin mantenimiento registrado': colors.warning
-            };
-            const statusBorderColors = {
-                'Operativa': colors.successBorder,
-                'Mantenimiento requerido': colors.dangerBorder,
-                'Sin mantenimiento registrado': colors.warningBorder
-            };
-
-            const bgColors = labels.map(label => statusBgColors[label] || colors.purple);
-            const borderColors = labels.map(label => statusBorderColors[label] || colors.purpleBorder);
-
-            datasets = [{
-                label: 'Cantidad de equipos',
-                data: values,
-                backgroundColor: bgColors,
-                borderColor: borderColors,
-                borderWidth: 2,
-                barPercentage: 0.5,
-                categoryPercentage: 0.6,
-                maxBarThickness: 50
-            }];
+        });
+        
+        // Si no hay datos, mostrar mensaje
+        if (labels.length === 0 || (values.length > 0 && values.every(v => v === 0))) {
+            const container = document.getElementById('module-chart-container');
+            if (container) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">No hay datos de abono disponibles para el período seleccionado.</p>';
+            }
+            return;
         }
+        
+        // Ordenar por fecha si las etiquetas son fechas
+        const sortedPairs = labels.map((label, index) => [label, values[index]])
+            .sort((a, b) => {
+                // Intentar ordenar por fecha si es posible
+                const dateA = new Date(a[0]);
+                const dateB = new Date(b[0]);
+                if (!isNaN(dateA.getTime()) && !isNaN(dateB.getTime())) {
+                    return dateA - dateB;
+                }
+                return a[0].localeCompare(b[0]);
+            });
+        
+        labels = sortedPairs.map(pair => pair[0]);
+        values = sortedPairs.map(pair => pair[1]);
+        
+        chartType = 'line';
+        
+        // Estilo línea: línea fina sin relleno, puntos visibles
+        // Compatible con Chart.js 2.x y 4.x
+        const lineConfig = {
+            label: 'Cantidad de Abono (Kg/L)',
+            data: values,
+            borderColor: colors.warningBorder,
+            backgroundColor: 'rgba(0,0,0,0)',
+            borderWidth: 3,
+            fill: false,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointBackgroundColor: colors.warningBorder,
+            pointBorderColor: '#ffffff',
+            pointBorderWidth: 2
+        };
+        
+        // Solo agregar tension si Chart.js 4.x está disponible
+        if (typeof Chart !== 'undefined' && Chart.version && parseFloat(Chart.version) >= 3) {
+            lineConfig.tension = 0.4;
+        } else {
+            // Para Chart.js 2.x, usar lineTension
+            lineConfig.lineTension = 0.4;
+        }
+        
+        datasets = [lineConfig];
+    } else if (module === 'maquinaria') {
+        // Maquinaria: gráfica circular con dos sectores
+        labels = Object.keys(data || {});
+        values = Object.values(data || {}).map(v => parseInt(v) || 0);
+        
+        // Si no hay datos, mostrar mensaje
+        const total = values.reduce((a, b) => a + b, 0);
+        if (total === 0) {
+            const container = document.getElementById('module-chart-container');
+            if (container) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">No hay datos de maquinaria disponibles.</p>';
+            }
+            return;
+        }
+        
+        chartType = 'pie';
+
+        // Colores para los dos sectores
+        const colorOperacion = '#22c55e';        // Verde para en operación
+        const colorMantenimiento = '#ef4444';    // Rojo para en mantenimiento
+
+        // Mapear colores según las etiquetas
+        const bgColors = labels.map(label => {
+            if (label === 'En operación' || label === 'Operativa') {
+                return colorOperacion;
+            } else if (label === 'En mantenimiento' || label === 'Mantenimiento requerido') {
+                return colorMantenimiento;
+            }
+            return colors.purple; // Color por defecto
+        });
+
+        datasets = [{
+            label: 'Estado de Maquinaria',
+            data: values,
+            backgroundColor: bgColors,
+            borderColor: [
+                '#ffffff',
+                '#ffffff'
+            ],
+            borderWidth: 3
+        }];
     }
     
-    const chartConfig = {
-        type: chartType,
-        data: {
-            labels: labels,
-            datasets: datasets
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: module === 'residuos' ? 'Peso (Kg)' : 'Cantidad'
-                    }
-                },
-                x: {
-                    title: {
-                        display: true,
-                        text: module === 'residuos'
-                            ? 'Tipo de Residuo'
-                            : (module === 'pilas'
-                                ? 'Estado de las pilas'
-                                : (module === 'maquinaria' ? 'Estado de la maquinaria' : 'Período'))
-                    }
-                }
-            },
-            plugins: {
-                legend: {
-                    display: true,
-                    position: 'top'
-                }
-            }
-        }
-    };
+    // Validar que tengamos datos para mostrar
+    // Para residuos, verificamos weights; para otros módulos, verificamos values
+    const hasData = module === 'residuos' 
+        ? (labels.length > 0 && weights && weights.length > 0 && weights.some(w => w > 0))
+        : (labels.length > 0 && values.length > 0 && values.some(v => v > 0));
     
-    oldChartInstance = new Chart(ctx, chartConfig);
+    if (!hasData) {
+        console.warn('Validación fallida - labels:', labels.length, 'weights:', weights?.length, 'values:', values.length);
+        const container = document.getElementById('module-chart-container');
+        if (container) {
+            container.innerHTML = '<p class="text-gray-500 text-center py-8">No hay datos disponibles para mostrar en la gráfica.</p>';
+        }
+        return;
+    }
+    
+    try {
+        // Detectar versión de Chart.js y crear configuración compatible
+        const isChartJS4 = typeof Chart !== 'undefined' && Chart.version && parseFloat(Chart.version) >= 3;
+        
+        let chartConfig;
+        
+        if (isChartJS4) {
+            // Configuración para Chart.js 4.x
+            const isPieChart = chartType === 'pie' || chartType === 'doughnut';
+            
+            chartConfig = {
+                type: chartType,
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    // Para gráficas circulares, no usar escalas
+                    ...(isPieChart ? {} : {
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: module === 'residuos' ? 'Peso (Kg)' : (module === 'abono' ? 'Cantidad (Kg/L)' : 'Cantidad')
+                                },
+                                ticks: {
+                                    precision: 0
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: module === 'residuos'
+                                        ? 'Tipo de Residuo'
+                                        : (module === 'maquinaria' ? 'Estado de la maquinaria' : 'Fecha')
+                                }
+                            }
+                        }
+                    }),
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: isPieChart ? 'right' : 'top',
+                            labels: {
+                                padding: 15,
+                                usePointStyle: isPieChart,
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            enabled: true,
+                            mode: isPieChart ? 'point' : 'index',
+                            intersect: false,
+                            callbacks: isPieChart ? {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.parsed || 0;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            } : {}
+                        }
+                    },
+                    // Efectos 3D para gráficas circulares
+                    ...(isPieChart ? {
+                        animation: {
+                            animateRotate: true,
+                            animateScale: true,
+                            duration: 1500,
+                            easing: 'easeOutQuart'
+                        },
+                        elements: {
+                            arc: {
+                                borderWidth: 3,
+                                borderColor: '#ffffff'
+                            }
+                        },
+                        cutout: chartType === 'doughnut' ? '60%' : '0%'
+                    } : {})
+                }
+            };
+        } else {
+            // Configuración para Chart.js 2.x
+            const isPieChart = chartType === 'pie' || chartType === 'doughnut';
+            
+            chartConfig = {
+                type: chartType,
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    // Para gráficas circulares, no usar escalas
+                    ...(isPieChart ? {} : {
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero: true,
+                                    precision: 0
+                                },
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: module === 'residuos' ? 'Peso (Kg)' : (module === 'abono' ? 'Cantidad (Kg/L)' : 'Cantidad')
+                                }
+                            }],
+                            xAxes: [{
+                                scaleLabel: {
+                                    display: true,
+                                    labelString: module === 'residuos'
+                                        ? 'Tipo de Residuo'
+                                        : (module === 'maquinaria' ? 'Estado de la maquinaria' : 'Fecha')
+                                }
+                            }]
+                        }
+                    }),
+                    legend: {
+                        display: true,
+                        position: isPieChart ? 'right' : 'top',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: isPieChart,
+                            fontSize: 14,
+                            fontStyle: 'bold'
+                        }
+                    },
+                    tooltips: {
+                        enabled: true,
+                        mode: isPieChart ? 'point' : 'index',
+                        intersect: false,
+                        callbacks: isPieChart ? {
+                            label: function(tooltipItem, data) {
+                                const label = data.labels[tooltipItem.index] || '';
+                                const value = data.datasets[0].data[tooltipItem.index] || 0;
+                                const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
+                        } : {}
+                    },
+                    // Efectos 3D para gráficas circulares
+                    ...(isPieChart ? {
+                        animation: {
+                            animateRotate: true,
+                            animateScale: true,
+                            duration: 1500,
+                            easing: 'easeOutQuart'
+                        },
+                        elements: {
+                            arc: {
+                                borderWidth: 3,
+                                borderColor: '#ffffff'
+                            }
+                        },
+                        cutoutPercentage: chartType === 'doughnut' ? 60 : 0
+                    } : {})
+                }
+            };
+        }
+        
+        oldChartInstance = new Chart(ctx, chartConfig);
+    } catch (error) {
+        console.error('Error al crear la gráfica:', error);
+        const container = document.getElementById('module-chart-container');
+        if (container) {
+            container.innerHTML = '<p class="text-red-500 text-center py-8">Error al crear la gráfica: ' + error.message + '. Por favor, recarga la página.</p>';
+        }
+    }
 }
 
 // Mostrar residuos por defecto al cargar la página
 document.addEventListener('DOMContentLoaded', function() {
-    showModule('residuos');
+    // Esperar a que Chart.js esté disponible antes de mostrar el módulo
+    function initMonitoring(attempts = 0) {
+        if (typeof Chart !== 'undefined') {
+            showModule('residuos');
+        } else if (attempts < 15) {
+            // Esperar hasta 7.5 segundos (15 intentos x 500ms)
+            setTimeout(() => initMonitoring(attempts + 1), 500);
+        } else {
+            // Intentar cargar Chart.js si no está disponible después de esperar
+            if (typeof loadChartJS === 'function') {
+                loadChartJS().then(() => {
+                    showModule('residuos');
+                }).catch(() => {
+                    const expanded = document.getElementById('module-expanded');
+                    if (expanded) {
+                        expanded.classList.remove('hidden');
+                        expanded.innerHTML = '<div class="bg-red-50 border border-red-200 rounded-lg p-6"><p class="text-red-600 text-center">Error: No se pudo cargar Chart.js. Por favor, verifica tu conexión a internet y recarga la página.</p></div>';
+                    }
+                });
+            } else {
+                console.error('Chart.js no está disponible después de esperar');
+                const expanded = document.getElementById('module-expanded');
+                if (expanded) {
+                    expanded.classList.remove('hidden');
+                    expanded.innerHTML = '<div class="bg-red-50 border border-red-200 rounded-lg p-6"><p class="text-red-600 text-center">Error: Chart.js no está disponible. Por favor, recarga la página.</p></div>';
+                }
+            }
+        }
+    }
+    
+    // Iniciar después de un pequeño delay
+    setTimeout(() => initMonitoring(), 500);
 });
 </script>
 
@@ -769,6 +1228,36 @@ function toggleDateInputs(select) {
 .dataTables_wrapper .dataTables_paginate .paginate_button.disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+/* Estilos para gráfica circular 3D mejorada */
+#module-chart-container canvas {
+    filter: drop-shadow(0px 10px 20px rgba(0, 0, 0, 0.2));
+    transition: transform 0.3s ease;
+}
+
+#module-chart-container canvas:hover {
+    transform: scale(1.02);
+}
+
+/* Mejorar la apariencia de la leyenda para gráficas circulares */
+#module-expanded .chartjs-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#module-expanded .chartjs-legend li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+}
+
+#module-expanded .chartjs-legend li:hover {
+    background-color: rgba(0, 0, 0, 0.05);
 }
 </style>
 

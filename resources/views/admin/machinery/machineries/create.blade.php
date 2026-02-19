@@ -8,17 +8,17 @@
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<div class="container mx-auto px-6 py-8">
+<div class="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
     <!-- Header con colores suaves como la vista de lista -->
     <div class="waste-header animate-fade-in-up">
         <div>
-            <h1 class="text-3xl font-bold text-gray-800">
-                <i class="fas fa-plus text-green-500 mr-3"></i>
+            <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">
+                <i class="fas fa-plus text-green-500 mr-2 sm:mr-3"></i>
                 Registrar Maquinaria
             </h1>
-            <p class="waste-subtitle">
+            <p class="waste-subtitle text-sm sm:text-base">
                 <i class="fas fa-user-shield text-green-400 mr-2"></i>
-                {{ Auth::user()->name }} - Crear nuevo registro
+                <span class="break-words">{{ Auth::user()->name }} - Crear nuevo registro</span>
             </p>
         </div>
     </div>
@@ -27,27 +27,27 @@
     <div class="waste-card animate-fade-in-up animate-delay-1">
         <!-- Header del formulario -->
         <div class="waste-card-header">
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-2 sm:space-x-3">
                 <div class="waste-card-icon text-green-600">
                     <i class="fas fa-cogs"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-gray-800">Información de la Maquinaria</h2>
+                <h2 class="text-lg sm:text-xl md:text-2xl font-bold text-gray-800">Información de la Maquinaria</h2>
             </div>
         </div>
 
         @if(session('error'))
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded m-6">
+            <div class="bg-red-100 border border-red-400 text-red-700 px-3 sm:px-4 py-2 sm:py-3 rounded m-3 sm:m-6 text-sm sm:text-base">
                 {{ session('error') }}
             </div>
         @endif
 
             <!-- Cuerpo del formulario -->
-            <div class="p-8">
-                <form action="{{ route('admin.machinery.store') }}" method="POST" enctype="multipart/form-data" class="space-y-8">
+            <div class="p-4 sm:p-6 md:p-8">
+                <form action="{{ route('admin.machinery.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6 sm:space-y-8">
                     @csrf
                     
                     <!-- Primera fila -->
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
                         <!-- Nombre -->
                         <div class="space-y-2">
                             <label class="flex items-center text-sm font-semibold text-soft-gray-700">

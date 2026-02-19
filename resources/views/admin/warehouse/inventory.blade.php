@@ -2,27 +2,27 @@
 @vite(['resources/css/waste.css'])
 
 @section('content')
-<div class="container mx-auto px-4 py-2">
+<div class="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
     <!-- Header -->
     <div class="waste-header animate-fade-in-up mb-4">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-3">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+            <div class="flex items-center space-x-3 flex-wrap">
                 <a href="{{ route('admin.warehouse.index') }}" 
                    class="text-gray-600 hover:text-gray-800 transition-colors duration-200">
                     <i class="fas fa-arrow-left text-xl"></i>
                 </a>
-                <div>
-                    <h1 class="waste-title text-2xl">
+                <div class="min-w-0">
+                    <h1 class="waste-title text-xl sm:text-2xl">
                         <i class="fas fa-warehouse waste-icon"></i>
                         {{ $typeInSpanish[$type] }}
                     </h1>
-                    <p class="waste-subtitle">
+                    <p class="waste-subtitle text-sm sm:text-base">
                         <i class="fas fa-boxes text-green-400 mr-2"></i>
                         Inventario y movimientos detallados
                     </p>
                 </div>
             </div>
-            <div class="text-right">
+            <div class="text-left sm:text-right flex-shrink-0">
                 <div class="text-2xl font-bold {{ $inventory < 0 ? 'text-red-600' : 'text-green-600' }}">
                     {{ number_format(max(0, $inventory), 1) }} kg
                 </div>

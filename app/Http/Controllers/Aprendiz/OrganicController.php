@@ -116,8 +116,8 @@ class OrganicController extends Controller
         if ($request->hasFile('img')) {
             $image = $request->file('img');
             $imageName = time() . '_' . $image->getClientOriginalName();
-            $image->move(public_path('organics'), $imageName);
-            $data['img'] = 'organics/' . $imageName;
+            $path = $image->storeAs('organics', $imageName, 'public');
+            $data['img'] = $path; // Guarda como 'organics/imagen.jpg'
         }
 
         // Agregar el ID del usuario que crea el registro
@@ -152,8 +152,8 @@ class OrganicController extends Controller
             
             // Verificar si la imagen existe antes de generar la URL
             $imgUrl = null;
-            if ($organic->img && file_exists(public_path($organic->img))) {
-                $imgUrl = asset($organic->img);
+            if ($organic->img && Storage::disk('public')->exists($organic->img)) {
+                $imgUrl = Storage::url($organic->img);
             }
             
             return response()->json([
@@ -212,13 +212,13 @@ class OrganicController extends Controller
         // Handle image upload
         if ($request->hasFile('img')) {
             // Delete old image
-            if ($organic->img && file_exists(public_path($organic->img))) {
-                unlink(public_path($organic->img));
+            if ($organic->img && Storage::disk('public')->exists($organic->img)) {
+                Storage::disk('public')->delete($organic->img);
             }
             $image = $request->file('img');
             $imageName = time() . '_' . $image->getClientOriginalName();
-            $image->move(public_path('organics'), $imageName);
-            $data['img'] = 'organics/' . $imageName;
+            $path = $image->storeAs('organics', $imageName, 'public');
+            $data['img'] = $path; // Guarda como 'organics/imagen.jpg'
         }
 
         $organic->update($data);
@@ -296,8 +296,8 @@ class OrganicController extends Controller
         ]);
 
         // Delete image if exists
-        if ($organic->img && file_exists(public_path($organic->img))) {
-            unlink(public_path($organic->img));
+        if ($organic->img && Storage::disk('public')->exists($organic->img)) {
+            Storage::disk('public')->delete($organic->img);
         }
 
         // Marcar la notificación como procesada
@@ -427,8 +427,8 @@ class OrganicController extends Controller
         
         // Convertir imagen a base64 si existe
         $imageBase64 = null;
-        if ($organic->img && file_exists(public_path($organic->img))) {
-            $imagePath = public_path($organic->img);
+        if ($organic->img && Storage::disk('public')->exists($organic->img)) {
+            $imagePath = Storage::disk('public')->path($organic->img);
             $imageData = file_get_contents($imagePath);
             $imageInfo = getimagesize($imagePath);
             $mimeType = $imageInfo['mime'];

@@ -6,9 +6,9 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
     <!-- Favicon -->
-    <link rel="icon" type="image/png" href="{{ asset('img/logo-compost-cefa.png') }}">
-    <link rel="shortcut icon" type="image/png" href="{{ asset('img/logo-compost-cefa.png') }}">
-    <link rel="apple-touch-icon" href="{{ asset('img/logo-compost-cefa.png') }}">
+    <link rel="icon" type="image/webp" href="{{ asset('img/logo-compost-cefa.webp') }}">
+    <link rel="shortcut icon" type="image/webp" href="{{ asset('img/logo-compost-cefa.webp') }}">
+    <link rel="apple-touch-icon" href="{{ asset('img/logo-compost-cefa.webp') }}">
     
     <title>Iniciar Sesión - Sistema de Compostaje</title>
     
