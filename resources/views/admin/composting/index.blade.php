@@ -118,7 +118,7 @@
 
         @if($compostings->count() > 0)
             <!-- Vista móvil: tarjetas -->
-            <div class="block lg:hidden p-3 sm:p-4 space-y-4">
+            <div class="block md:hidden p-3 sm:p-4 space-y-4">
                 @foreach($compostings as $composting)
                     <div class="waste-mobile-card bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm" data-id="{{ $composting->id }}">
                         <div class="flex gap-3">
@@ -149,7 +149,7 @@
                 @endforeach
             </div>
 
-            <div class="hidden lg:block overflow-x-auto -mx-3 sm:mx-0">
+            <div class="hidden md:block overflow-x-auto -mx-3 sm:mx-0">
             <!--Tabla de pilas -->
             <div id="compostingsTable_wrapper" class="p-3 sm:p-4 md:p-6">
                 <!-- Contenedor para controles superiores -->

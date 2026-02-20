@@ -134,7 +134,7 @@ Swal.fire({
         
         @if($users->count() > 0)
             <!-- Vista móvil: tarjetas -->
-            <div class="block lg:hidden p-3 sm:p-4 space-y-4">
+            <div class="block md:hidden p-3 sm:p-4 space-y-4">
                 @foreach($users as $user)
                     <div class="waste-mobile-card bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm" data-id="{{ $user->id }}">
                         <div class="flex gap-3">
@@ -159,7 +159,7 @@ Swal.fire({
                 @endforeach
             </div>
 
-            <div class="hidden lg:block overflow-x-auto -mx-3 sm:mx-0">
+            <div class="hidden md:block overflow-x-auto -mx-3 sm:mx-0">
             <!-- DataTables agregará los controles y la tabla aquí -->
             <div id="usersTable_wrapper" class="p-3 sm:p-4 md:p-6">
                 <!-- Contenedor para controles superiores -->

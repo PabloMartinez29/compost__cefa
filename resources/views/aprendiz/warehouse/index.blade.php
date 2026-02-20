@@ -96,7 +96,7 @@
             <div class="p-6">
                 @if($recentMovements->count() > 0)
                     <!-- Vista móvil: tarjetas -->
-                    <div class="block lg:hidden space-y-4">
+                    <div class="block md:hidden space-y-4">
                         @foreach($recentMovements as $movement)
                             <div class="bg-soft-gray-50 border border-soft-gray-200 rounded-xl p-4">
                                 <div class="flex justify-between items-start gap-2">
@@ -112,7 +112,7 @@
                             </div>
                         @endforeach
                     </div>
-                    <div class="hidden lg:block overflow-x-auto">
+                    <div class="hidden md:block overflow-x-auto">
                         <table class="w-full min-w-[700px]">
                             <thead>
                                 <tr class="text-left border-b border-soft-gray-200">
