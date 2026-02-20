@@ -102,7 +102,7 @@
 
         @if($machineries->count() > 0)
             <!-- Vista móvil: tarjetas (solo en pantallas pequeñas; en laptop/PC se muestra la tabla) -->
-            <div class="block lg:hidden p-3 sm:p-4 space-y-4">
+            <div class="block md:hidden p-3 sm:p-4 space-y-4">
                 @foreach($machineries as $machinery)
                     @php
                         $status = $machinery->status;
@@ -144,8 +144,8 @@
                 @endforeach
             </div>
 
-            <!-- Tabla de maquinaria (escritorio: lg 1024px en adelante) -->
-            <div class="hidden lg:block overflow-x-auto -mx-3 sm:mx-0">
+            <!-- Tabla de maquinaria (escritorio: md 768px en adelante) -->
+            <div class="hidden md:block overflow-x-auto -mx-3 sm:mx-0">
                 <div id="machineriesTable_wrapper" class="p-3 sm:p-4 md:p-6 pr-6 sm:pr-12">
                     <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
                         <div id="dt-length-container" style="float: left;"></div>

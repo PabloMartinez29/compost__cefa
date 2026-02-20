@@ -109,7 +109,7 @@
 
         @if($maintenances->count() > 0)
             <!-- Vista móvil: tarjetas -->
-            <div class="block lg:hidden p-3 sm:p-4 space-y-4">
+            <div class="block md:hidden p-3 sm:p-4 space-y-4">
                 @foreach($maintenances as $maintenance)
                     <div class="waste-mobile-card bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm" data-id="{{ $maintenance->id }}">
                         <div class="flex gap-3">
@@ -137,7 +137,7 @@
                 @endforeach
             </div>
             <!-- Tabla (escritorio) -->
-            <div class="hidden lg:block overflow-x-auto -mx-3 sm:mx-0">
+            <div class="hidden md:block overflow-x-auto -mx-3 sm:mx-0">
                 <div id="maintenancesTable_wrapper" class="p-3 sm:p-4 md:p-6">
                     <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
                         <div id="dt-length-container" style="float: left;"></div>
