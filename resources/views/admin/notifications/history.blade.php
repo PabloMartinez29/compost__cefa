@@ -1,75 +1,75 @@
 @extends('layouts.master')
 
 @section('content')
-<div class="container mx-auto px-6 py-8">
-    <!-- Header -->
-    <div class="bg-white rounded-lg shadow-sm border border-soft-gray-200 p-6 mb-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-2xl font-bold text-soft-gray-800 flex items-center">
-                    <i class="fas fa-history text-soft-green-600 mr-3"></i>
-                    Historial de Notificaciones
+<div class="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
+    <!-- Header card (responsive: se apila en móvil, texto adaptable) -->
+    <div class="bg-white rounded-lg shadow-sm border border-soft-gray-200 p-4 sm:p-6 mb-4 sm:mb-6">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="min-w-0">
+                <h1 class="text-xl sm:text-2xl font-bold text-soft-gray-800 flex flex-wrap items-center gap-2">
+                    <i class="fas fa-history text-soft-green-600 flex-shrink-0"></i>
+                    <span class="break-words">Historial de Notificaciones</span>
                 </h1>
-                <p class="text-soft-gray-600 mt-1">
+                <p class="text-soft-gray-600 mt-1 text-sm sm:text-base">
                     Todas las notificaciones del sistema
                 </p>
             </div>
-            <div class="text-right">
-                <div class="text-soft-green-600 font-bold text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>    
+            <div class="text-left sm:text-right flex-shrink-0">
+                <div class="text-soft-green-600 font-bold text-base sm:text-lg">{{ \Carbon\Carbon::now()->setTimezone('America/Bogota')->format('d/m/Y') }}</div>
             </div>
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+    <!-- Statistics Cards (responsive: 2 columnas en móvil, 4 en escritorio) -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
         <!-- Total Notifications -->
-        <div class="bg-white rounded-lg shadow-sm border border-soft-gray-200 p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-soft-gray-600">Total</p>
-                    <p class="text-2xl font-bold text-soft-gray-800">{{ $notifications->total() }}</p>
+        <div class="bg-white rounded-lg shadow-sm border border-soft-gray-200 p-4 sm:p-6 min-w-0">
+            <div class="flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                    <p class="text-xs sm:text-sm font-medium text-soft-gray-600">Total</p>
+                    <p class="text-xl sm:text-2xl font-bold text-soft-gray-800">{{ $totalCount }}</p>
                 </div>
-                <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-bell text-blue-600 text-xl"></i>
+                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-bell text-blue-600 text-lg sm:text-xl"></i>
                 </div>
             </div>
         </div>
 
         <!-- Pending -->
-        <div class="bg-white rounded-lg shadow-sm border border-soft-gray-200 p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-soft-gray-600">Pendientes</p>
-                    <p class="text-2xl font-bold text-yellow-600">{{ $notifications->where('status', 'pending')->count() }}</p>
+        <div class="bg-white rounded-lg shadow-sm border border-soft-gray-200 p-4 sm:p-6 min-w-0">
+            <div class="flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                    <p class="text-xs sm:text-sm font-medium text-soft-gray-600">Pendientes</p>
+                    <p class="text-xl sm:text-2xl font-bold text-yellow-600">{{ $pendingCount ?? 0 }}</p>
                 </div>
-                <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-hourglass-half text-yellow-600 text-xl"></i>
+                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-yellow-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-hourglass-half text-yellow-600 text-lg sm:text-xl"></i>
                 </div>
             </div>
         </div>
 
         <!-- Approved -->
-        <div class="bg-white rounded-lg shadow-sm border border-soft-gray-200 p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-soft-gray-600">Aprobadas</p>
-                    <p class="text-2xl font-bold text-green-600">{{ $notifications->where('status', 'approved')->count() }}</p>
+        <div class="bg-white rounded-lg shadow-sm border border-soft-gray-200 p-4 sm:p-6 min-w-0">
+            <div class="flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                    <p class="text-xs sm:text-sm font-medium text-soft-gray-600">Aprobadas</p>
+                    <p class="text-xl sm:text-2xl font-bold text-green-600">{{ $approvedCount ?? 0 }}</p>
                 </div>
-                <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-check text-green-600 text-xl"></i>
+                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-check text-green-600 text-lg sm:text-xl"></i>
                 </div>
             </div>
         </div>
 
         <!-- Rejected -->
-        <div class="bg-white rounded-lg shadow-sm border border-soft-gray-200 p-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <p class="text-sm font-medium text-soft-gray-600">Rechazadas</p>
-                    <p class="text-2xl font-bold text-red-600">{{ $notifications->where('status', 'rejected')->count() }}</p>
+        <div class="bg-white rounded-lg shadow-sm border border-soft-gray-200 p-4 sm:p-6 min-w-0">
+            <div class="flex items-center justify-between gap-2">
+                <div class="min-w-0">
+                    <p class="text-xs sm:text-sm font-medium text-soft-gray-600">Rechazadas</p>
+                    <p class="text-xl sm:text-2xl font-bold text-red-600">{{ $rejectedCount ?? 0 }}</p>
                 </div>
-                <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-times text-red-600 text-xl"></i>
+                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-times text-red-600 text-lg sm:text-xl"></i>
                 </div>
             </div>
         </div>
@@ -77,15 +77,15 @@
 
     <!-- Notifications Table -->
     <div class="bg-white rounded-lg shadow-sm border border-soft-gray-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-soft-gray-200">
-            <h3 class="text-lg font-semibold text-soft-gray-800">Historial Completo</h3>
+        <div class="px-3 sm:px-6 py-3 sm:py-4 border-b border-soft-gray-200">
+            <h3 class="text-base sm:text-lg font-semibold text-soft-gray-800">Historial Completo</h3>
         </div>
         
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto -mx-1">
             <table class="min-w-full divide-y divide-soft-gray-200">
                 <thead class="bg-soft-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-soft-gray-500 uppercase tracking-wider">Fecha</th>
+                        <th class="px-3 sm:px-6 py-2 sm:py-3 text-left text-xs font-medium text-soft-gray-500 uppercase tracking-wider">Fecha</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-soft-gray-500 uppercase tracking-wider">Tipo</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-soft-gray-500 uppercase tracking-wider">Información</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-soft-gray-500 uppercase tracking-wider">Estado</th>
@@ -262,31 +262,42 @@
     }
 
     function approveDeleteRequest(notificationId) {
+        const csrf = document.querySelector('meta[name="csrf-token"]');
+        const token = csrf ? csrf.getAttribute('content') : '';
         fetch(`/admin/notifications/${notificationId}/approve`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            }
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRF-TOKEN': token,
+                'Accept': 'application/json'
+            },
+            body: new URLSearchParams({ _token: token })
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(d => Promise.reject(d));
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 Swal.fire({
                     title: '¡Aprobado!',
-                    text: 'Solicitud de eliminación aprobada exitosamente',
+                    text: 'Solicitud de eliminación aprobada. Recarga la página para ver el conteo actualizado.',
                     icon: 'success',
                     confirmButtonColor: '#22c55e'
                 }).then(() => {
                     location.reload();
                 });
+            } else {
+                Swal.fire({ title: 'Error', text: data.message || 'No se pudo aprobar', icon: 'error' });
             }
         })
         .catch(error => {
             console.error('Error:', error);
             Swal.fire({
                 title: 'Error',
-                text: 'Ocurrió un error al procesar la solicitud',
+                text: error.message || 'Ocurrió un error al procesar la solicitud. Comprueba la consola.',
                 icon: 'error'
             });
         });

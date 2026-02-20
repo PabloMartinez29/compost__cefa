@@ -268,6 +268,12 @@ class MaintenanceController extends Controller
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
 
+        // Un aprendiz no puede solicitar eliminar registros de otro aprendiz
+        if ($maintenance->created_by !== $currentUserId) {
+            return redirect()->route('aprendiz.machinery.maintenance.index')
+                ->with('permission_required', 'No puede solicitar permisos para registros que no le pertenecen.');
+        }
+
         // Evitar solicitudes duplicadas
         $existing = \App\Models\Notification::where('from_user_id', $currentUserId)
             ->where('maintenance_id', $maintenance->id)
@@ -313,7 +319,7 @@ class MaintenanceController extends Controller
         }
 
         return redirect()->route('aprendiz.machinery.maintenance.index')
-            ->with('success', 'Solicitud de eliminación enviada al administrador. Recibirá una notificación cuando sea aprobada.');
+            ->with('success', 'Solicitud de eliminación enviada al administrador.');
     }
 
     /**
@@ -362,6 +368,12 @@ class MaintenanceController extends Controller
     public function destroy(Maintenance $maintenance)
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
+
+        // Un aprendiz no puede eliminar registros de otro aprendiz
+        if ($maintenance->created_by !== $currentUserId) {
+            return redirect()->back()
+                ->with('error', 'No tiene permisos para eliminar este registro. Solo puede eliminar sus propios registros.');
+        }
 
         // Verificar si hay una notificación de aprobación
         $approvedNotification = \App\Models\Notification::where('user_id', $currentUserId)

@@ -113,7 +113,8 @@ class MachineryController extends Controller
 
         try {
             $data = $request->all();
-            
+            $data['created_by'] = auth()->id();
+
             if ($request->hasFile('image')) {
                 $archivo = $request->file('image');
                 $nombre = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $archivo->getClientOriginalName());
@@ -233,6 +234,12 @@ class MachineryController extends Controller
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
 
+        // Un aprendiz no puede solicitar eliminar registros de otro aprendiz
+        if ($machinery->created_by !== null && $machinery->created_by !== $currentUserId) {
+            return redirect()->route('aprendiz.machinery.index')
+                ->with('error', 'No puede solicitar permisos para eliminar registros que no le pertenecen.');
+        }
+
         // Evitar solicitudes duplicadas si ya hay una pendiente o aprobada
         $existing = \App\Models\Notification::where('from_user_id', $currentUserId)
             ->where('machinery_id', $machinery->id)
@@ -280,7 +287,7 @@ class MachineryController extends Controller
         }
 
         return redirect()->route('aprendiz.machinery.index')
-            ->with('success', 'Solicitud de eliminación enviada al administrador. Recibirá una notificación cuando sea aprobada.');
+            ->with('success', 'Solicitud de eliminación enviada al administrador.');
     }
 
     /**
@@ -334,6 +341,12 @@ class MachineryController extends Controller
     public function destroy(Machinery $machinery)
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
+
+        // Un aprendiz no puede eliminar registros de otro aprendiz
+        if ($machinery->created_by !== null && $machinery->created_by !== $currentUserId) {
+            return redirect()->back()
+                ->with('error', 'No tiene permisos para eliminar este registro. Solo puede eliminar sus propios registros.');
+        }
 
         // Verificar si hay una notificación de aprobación para este registro
         $approvedNotification = \App\Models\Notification::where('user_id', $currentUserId)

@@ -94,10 +94,10 @@
                             <div>
                                 <label class="block text-sm font-medium text-soft-gray-600 mb-2">Imagen</label>
                                 <div class="relative">
-                                    <img src="{{ asset('storage/'.$warehouse->img) }}" 
+                                    <img src="{{ asset('storage-file/'.$warehouse->img) }}" 
                                          alt="Imagen del movimiento" 
                                          class="w-full max-w-sm rounded-lg shadow-sm border border-soft-gray-200 cursor-pointer hover:shadow-md transition-shadow duration-200"
-                                         onclick="openImageModal('{{ asset('storage/'.$warehouse->img) }}')">
+                                         onclick="openImageModal('{{ asset('storage-file/'.$warehouse->img) }}')">
                                 </div>
                             </div>
                             @else

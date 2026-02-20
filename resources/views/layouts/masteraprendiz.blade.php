@@ -116,10 +116,10 @@
         <div class="sidebar-aprendiz fixed inset-y-0 left-0 z-30 w-64 sm:w-72 bg-white shadow-lg flex flex-col h-screen overflow-hidden transition-transform duration-300 ease-in-out -translate-x-full lg:translate-x-0 lg:static lg:inset-0"
              :class="{ 'translate-x-0 sidebar-aprendiz-open': sidebarOpen, '-translate-x-full': !sidebarOpen }"
              @click="if ($event.target.closest('a')) sidebarOpen = false">
-            <!-- Logo/Brand -->
+            <!-- Logo/Brand (si no existe img, se muestra fallback COMPOST CEFA) -->
             <div class="h-32 flex items-center justify-center border-b border-soft-gray-200 px-4 flex-shrink-0">
-                <img src="{{ asset('img/logo-compost-cefa.webp') }}" alt="COMPOST CEFA" class="h-28 w-auto max-w-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                <div class="h-28 hidden items-center justify-center gap-2 text-soft-green-700 font-bold text-lg" style="display: none;">
+                <img src="{{ asset('img/logo-compost-cefa.webp') }}" alt="COMPOST CEFA" class="h-28 w-auto max-w-full object-contain logo-img" onerror="this.classList.add('!hidden'); var fb = this.nextElementSibling; if(fb) { fb.classList.remove('hidden'); fb.style.display = 'flex'; }">
+                <div class="h-28 hidden items-center justify-center gap-2 text-soft-green-700 font-bold text-lg logo-fallback" style="display: none;">
                     <i class="fas fa-seedling text-2xl"></i>
                     <span>COMPOST CEFA</span>
                 </div>
@@ -397,7 +397,7 @@
                             @endif
                         </button>
                         
-                        <!-- Notifications Dropdown -->
+                        <!-- Notifications Dropdown: en móvil fixed para verse completo en pantalla, en escritorio absolute bajo la campana -->
                         <div x-show="notificationsOpen" 
                              @click.away="notificationsOpen = false"
                              x-transition:enter="transition ease-out duration-200"
@@ -406,11 +406,11 @@
                              x-transition:leave="transition ease-in duration-150"
                              x-transition:leave-start="opacity-100 scale-100"
                              x-transition:leave-end="opacity-0 scale-95"
-                             class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-soft-gray-200 py-2 z-50 max-h-96 overflow-y-auto">
-                            <div class="px-4 py-2 border-b border-soft-gray-100 flex items-center justify-between">
+                             class="fixed left-2 right-2 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80 bg-white rounded-lg shadow-lg border border-soft-gray-200 py-2 z-50 max-h-[70vh] sm:max-h-96 overflow-y-auto min-w-0">
+                            <div class="px-3 sm:px-4 py-2 border-b border-soft-gray-100 flex flex-wrap items-center justify-between gap-2">
                                 <h3 class="text-sm font-semibold text-soft-gray-800">Notificaciones</h3>
                                 <a href="{{ route('aprendiz.notifications.history') }}" 
-                                   class="text-xs text-soft-green-600 hover:text-soft-green-700 font-medium">
+                                   class="text-xs text-soft-green-600 hover:text-soft-green-700 font-medium whitespace-nowrap">
                                     Ver historial
                                 </a>
                             </div>
@@ -436,33 +436,33 @@
                             @forelse($notifications as $notification)
                                 @if($notification->type === 'maintenance_reminder')
                                     <!-- Recordatorio de Mantenimiento -->
-                                    <div class="px-4 py-3 hover:bg-soft-gray-50 border-b border-soft-gray-100 last:border-b-0">
-                                        <div class="flex items-start space-x-3">
+                                    <div class="px-3 sm:px-4 py-3 hover:bg-soft-gray-50 border-b border-soft-gray-100 last:border-b-0">
+                                        <div class="flex items-start gap-2 sm:space-x-3 min-w-0">
                                             <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
                                                 <i class="fas fa-tools text-orange-600 text-sm"></i>
                                             </div>
                                             <div class="flex-1 min-w-0">
-                                                <p class="text-sm font-medium text-soft-gray-800">Recordatorio de Mantenimiento</p>
-                                                <p class="text-xs text-soft-gray-600 mt-1">{{ $notification->machinery->name ?? 'Maquinaria no encontrada' }}</p>
-                                                <p class="text-xs text-soft-gray-500 mt-1">{{ $notification->message }}</p>
+                                                <p class="text-sm font-medium text-soft-gray-800 break-words">Recordatorio de Mantenimiento</p>
+                                                <p class="text-xs text-soft-gray-600 mt-1 break-words">{{ $notification->machinery->name ?? 'Maquinaria no encontrada' }}</p>
+                                                <p class="text-xs text-soft-gray-500 mt-1 break-words">{{ $notification->message }}</p>
                                                 <p class="text-xs text-soft-gray-500 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
-                                                <div class="flex space-x-2 mt-2">
+                                                <div class="flex flex-wrap gap-2 mt-2">
                                                     <button onclick="markAsRead({{ $notification->id }})" class="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600 transition-colors">Marcar como leída</button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 @else
-                                <div class="px-4 py-3 hover:bg-soft-gray-50 border-b border-soft-gray-100 last:border-b-0">
-                                    <div class="flex items-start space-x-3">
+                                <div class="px-3 sm:px-4 py-3 hover:bg-soft-gray-50 border-b border-soft-gray-100 last:border-b-0">
+                                    <div class="flex items-start gap-2 sm:space-x-3 min-w-0">
                                         <div class="w-8 h-8 {{ $notification->status === 'approved' ? 'bg-green-100' : 'bg-red-100' }} rounded-full flex items-center justify-center flex-shrink-0">
                                             <i class="fas {{ $notification->status === 'approved' ? 'fa-check text-green-600' : 'fa-times text-red-600' }} text-sm"></i>
                                         </div>
                                         <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-medium text-soft-gray-800">
+                                            <p class="text-sm font-medium text-soft-gray-800 break-words">
                                                 Solicitud {{ $notification->status === 'approved' ? 'Aprobada' : 'Rechazada' }}
                                             </p>
-                                            <p class="text-xs text-soft-gray-600 mt-1">
+                                            <p class="text-xs text-soft-gray-600 mt-1 break-words">
                                                 @if($notification->composting_id)
                                                     Pila de compostaje #{{ $notification->composting->formatted_pile_num ?? 'N/A' }}
                                                 @elseif($notification->machinery_id)
@@ -482,7 +482,7 @@
                                             <p class="text-xs text-soft-gray-500 mt-1">
                                                 {{ $notification->updated_at->diffForHumans() }}
                                             </p>
-                                            <div class="flex space-x-2 mt-2">
+                                            <div class="flex flex-wrap gap-2 mt-2">
                                                 <button onclick="markAsRead({{ $notification->id }})" 
                                                     class="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors">
                                                     Marcar como leída
@@ -526,7 +526,7 @@
                                 </div>
                                 @endif
                             @empty
-                                <div class="px-4 py-6 text-center">
+                                <div class="px-3 sm:px-4 py-6 text-center">
                                     <i class="fas fa-bell-slash text-soft-gray-400 text-2xl mb-2"></i>
                                     <p class="text-sm text-soft-gray-500">No hay notificaciones nuevas</p>
                                 </div>

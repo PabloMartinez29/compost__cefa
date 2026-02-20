@@ -19,7 +19,7 @@ class SupplierController extends Controller
     {
         // Cargar la relación con maquinaria para mostrar la imagen
         $suppliers = Supplier::with('machinery')->latest()->get();
-        
+
         // Statistics
         $totalSuppliers = Supplier::count();
         $todaySuppliers = Supplier::whereDate('created_at', today())->count();
@@ -28,7 +28,9 @@ class SupplierController extends Controller
                                       ->count();
         $totalMachineries = \App\Models\Machinery::count();
         
-        return view('admin.machinery.suppliers.index', compact('suppliers', 'totalSuppliers', 'todaySuppliers', 'thisMonthSuppliers', 'totalMachineries'));
+        $response = response()->view('admin.machinery.suppliers.index', compact('suppliers', 'totalSuppliers', 'todaySuppliers', 'thisMonthSuppliers', 'totalMachineries'));
+        $response->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+        return $response;
     }
 
     /**
@@ -114,7 +116,7 @@ class SupplierController extends Controller
                 'created_at' => $supplier->created_at->format('d/m/Y H:i:s'),
                 'created_at_formatted' => $supplier->created_at->format('d/m/Y H:i:s'),
                 'machinery_image_url' => $supplier->machinery && $supplier->machinery->image 
-                    ? asset($supplier->machinery->image) 
+                    ? asset('storage-file/' . $supplier->machinery->image) 
                     : null,
             ]);
         }

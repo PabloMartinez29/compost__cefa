@@ -21,6 +21,7 @@ class UsageControl extends Model
         'responsible',
         'description',
         'status',
+        'created_by',
     ];
 
     protected $casts = [

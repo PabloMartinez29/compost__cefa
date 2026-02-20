@@ -35,7 +35,7 @@
         <!-- Imagen de la Pila -->
         @if($composting->image)
             <div class="mb-8 text-center">
-                <img src="{{ asset('storage/'.$composting->image) }}" 
+                <img src="{{ asset('storage-file/'.$composting->image) }}" 
                      alt="Pila {{ $composting->formatted_pile_num }}" 
                      class="max-w-full h-64 object-cover rounded-lg shadow-md mx-auto">
             </div>

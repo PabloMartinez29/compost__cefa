@@ -148,36 +148,37 @@ Swal.fire({
                                 </div>
                             </div>
                         </div>
-                        <div class="waste-mobile-card-actions mt-4 pt-3 border-t border-gray-200">
+                        <div class="waste-mobile-card-actions mt-4 pt-3 border-t border-gray-200 flex flex-wrap items-center gap-1">
                             <button type="button" onclick="openViewModal({{ $user->id }})" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg flex-shrink-0" title="Ver"><i class="fas fa-eye"></i></button>
                             <button type="button" onclick="openEditModal({{ $user->id }})" class="p-2 text-green-600 hover:bg-green-50 rounded-lg flex-shrink-0" title="Editar"><i class="fas fa-edit"></i></button>
                             @if($user->id !== auth()->id())
                                 @if($user->is_active)<button type="button" onclick="deactivateUser({{ $user->id }}, '{{ addslashes($user->name) }}')" class="p-2 text-yellow-500 hover:bg-yellow-50 rounded-lg flex-shrink-0" title="Desactivar"><i class="fas fa-user-slash"></i></button>@else<button type="button" onclick="activateUser({{ $user->id }}, '{{ addslashes($user->name) }}')" class="p-2 text-green-500 hover:bg-green-50 rounded-lg flex-shrink-0" title="Activar"><i class="fas fa-user-check"></i></button>@endif
                             @endif
+                            <a href="{{ route('admin.users.download.pdf', $user) }}" class="p-2 text-red-700 hover:bg-red-50 rounded-lg flex-shrink-0" title="Descargar PDF"><i class="fas fa-file-pdf"></i></a>
                         </div>
                     </div>
                 @endforeach
             </div>
 
-            <div class="hidden md:block overflow-x-auto -mx-3 sm:mx-0">
+            <div class="hidden md:block overflow-x-auto -mx-3 sm:mx-0" style="scrollbar-width: thin;">
             <!-- DataTables agregará los controles y la tabla aquí -->
             <div id="usersTable_wrapper" class="p-3 sm:p-4 md:p-6">
-                <!-- Contenedor para controles superiores -->
-                <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
-                    <div id="dt-length-container" style="float: left;"></div>
-                    <div id="dt-filter-container" style="float: right;"></div>
+                <!-- Contenedor para controles superiores: responsive en una o dos filas -->
+                <div class="w-full overflow-hidden mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div id="dt-length-container" class="order-2 sm:order-1"></div>
+                    <div id="dt-filter-container" class="order-1 sm:order-2 w-full sm:w-auto"></div>
                 </div>
-                <table id="usersTable" class="waste-table">
+                <table id="usersTable" class="waste-table users-table-responsive">
                     <thead>
                         <tr>
-                            <th style="width: 4rem;">Tipo</th>
-                            <th>Identificación</th>
-                            <th>Usuario</th>
-                            <th>Email</th>
-                            <th>Rol</th>
-                            <th>Fecha Registro</th>
-                            <th>Estado</th>
-                            <th>Acciones</th>
+                            <th class="users-th-type">Tipo</th>
+                            <th class="users-th-id">Identificación</th>
+                            <th class="users-th-user">Usuario</th>
+                            <th class="users-th-email">Email</th>
+                            <th class="users-th-role">Rol</th>
+                            <th class="users-th-date">Fecha Registro</th>
+                            <th class="users-th-status">Estado</th>
+                            <th class="users-th-actions">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -186,19 +187,19 @@ Swal.fire({
                         <td class="font-mono text-center text-sm font-semibold text-gray-700">{{ $user->document_type ?? '—' }}</td>
                         <td class="font-mono">{{ $user->identification ?? 'ID' . str_pad($user->id, 6, '0', STR_PAD_LEFT) }}</td>
                         <td>
-                            <div class="flex items-center">
-                                <div class="w-10 h-10 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3">
+                            <div class="flex items-center min-w-0">
+                                <div class="w-9 h-9 sm:w-10 sm:h-10 flex-shrink-0 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm mr-2 sm:mr-3">
                                     {{ strtoupper(substr($user->name, 0, 2)) }}
                                 </div>
-                                <div>
-                                    <div class="font-medium text-gray-900">{{ $user->name }}</div>
+                                <div class="min-w-0">
+                                    <div class="font-medium text-gray-900 truncate max-w-[140px] sm:max-w-[200px] xl:max-w-none xl:whitespace-normal" title="{{ $user->name }}">{{ $user->name }}</div>
                                     @if($user->id === auth()->id())
                                         <span class="text-xs text-green-600 font-medium">(Tú)</span>
                                     @endif
                                 </div>
                             </div>
                         </td>
-                        <td>{{ $user->email }}</td>
+                        <td class="max-w-[140px] md:max-w-none"><span class="truncate block" title="{{ $user->email }}">{{ $user->email }}</span></td>
                         <td>
                             @if($user->role === 'admin')
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -867,6 +868,33 @@ document.getElementById('editModal').addEventListener('click', function(e) {
     box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
 }
 
+/* Tabla de usuarios: responsive */
+#usersTable {
+    min-width: 720px;
+    width: 100% !important;
+    table-layout: auto;
+}
+#usersTable th,
+#usersTable td {
+    padding: 0.5rem 0.5rem !important;
+    vertical-align: middle !important;
+    word-wrap: break-word;
+}
+.users-th-type { width: 4rem; min-width: 4rem; }
+.users-th-id { min-width: 6rem; }
+.users-th-user { min-width: 10rem; }
+.users-th-email { min-width: 10rem; }
+.users-th-role { min-width: 7rem; }
+.users-th-date { min-width: 6rem; }
+.users-th-status { min-width: 6rem; }
+.users-th-actions { min-width: 8rem; white-space: nowrap; }
+@media (min-width: 1024px) {
+    #usersTable { min-width: 900px; }
+}
+@media (min-width: 1280px) {
+    #usersTable { min-width: 100%; }
+}
+
 /* Estilos mejorados para la tabla de usuarios */
 .waste-table {
     border: 1px solid #e5e7eb !important;
@@ -956,16 +984,19 @@ document.getElementById('editModal').addEventListener('click', function(e) {
     min-width: 60px;
 }
 
-.dataTables_wrapper .dataTables_filter input {
-    margin-left: 0.5rem;
-    padding: 0.5rem;
+.dataTables_wrapper .dataTables_filter input,
+.users-table-search {
+    margin-left: 0;
+    padding: 0.5rem 0.75rem;
     border: 1px solid #d1d5db !important;
     border-radius: 0.5rem;
     font-size: 0.875rem;
-    width: 250px;
     outline: none !important;
     transition: none;
     background-color: white;
+}
+@media (min-width: 640px) {
+    .dataTables_wrapper .dataTables_filter input { margin-left: 0.5rem; }
 }
 
 .dataTables_wrapper .dataTables_filter input:focus {
@@ -986,15 +1017,27 @@ document.getElementById('editModal').addEventListener('click', function(e) {
     outline: none !important;
 }
 
-/* Información y paginación inferior */
+/* Información y paginación inferior: responsive */
 .dataTables_wrapper .dataTables_info {
     float: left;
     padding: 0.75rem 0;
     margin-top: 1.5rem;
     color: #6b7280;
-    font-size: 0.875rem;
+    font-size: 0.8rem;
+    max-width: 100%;
 }
-
+@media (max-width: 1023px) {
+    .dataTables_wrapper .dataTables_info {
+        float: none;
+        text-align: center;
+        margin-bottom: 0.5rem;
+    }
+    .dataTables_wrapper .dataTables_paginate {
+        float: none;
+        text-align: center;
+        padding-top: 0.25rem;
+    }
+}
 .dataTables_wrapper .dataTables_paginate {
     float: right;
     text-align: right;
@@ -1115,9 +1158,9 @@ document.addEventListener('DOMContentLoaded', function() {
             const filterContainer = document.createElement('div');
             filterContainer.className = 'dataTables_filter';
             filterContainer.innerHTML = `
-                <label>
-                    Buscar:
-                    <input type="search" class="px-3 py-2 border border-gray-300 rounded-lg ml-2" placeholder="Buscar..." aria-controls="usersTable" style="width: 250px; outline: none; transition: none;">
+                <label class="flex flex-col sm:flex-row sm:items-center gap-1 w-full sm:w-auto">
+                    <span class="text-sm font-medium text-gray-700">Buscar:</span>
+                    <input type="search" class="users-table-search px-3 py-2 border border-gray-300 rounded-lg w-full sm:w-48 md:w-56 outline-none" placeholder="Nombre, email, ID..." aria-controls="usersTable">
                 </label>
             `;
             

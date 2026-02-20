@@ -117,8 +117,8 @@
                         <div class="flex gap-3">
                             <div class="flex-shrink-0">
                                 @if($machinery->image)
-                                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 cursor-pointer" onclick="openImageModal('{{ asset('storage/'.$machinery->image) }}')">
-                                        <img src="{{ asset('storage/'.$machinery->image) }}" alt="{{ $machinery->name }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 cursor-pointer" onclick="openImageModal('{{ asset('storage-file/'.$machinery->image) }}')">
+                                        <img src="{{ asset('storage-file/'.$machinery->image) }}" alt="{{ $machinery->name }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                         <div class="w-full h-full bg-gray-200 flex items-center justify-center" style="display: none;"><i class="fas fa-cogs text-gray-400"></i></div>
                                     </div>
                                 @else
@@ -135,8 +135,25 @@
                         <div class="waste-mobile-card-actions mt-4 pt-3 border-t border-gray-200">
                             <a href="{{ route('aprendiz.machinery.show', $machinery) }}" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg flex-shrink-0" title="Ver"><i class="fas fa-eye"></i></a>
                             <button type="button" onclick="confirmEdit({{ $machinery->id }})" class="p-2 text-green-600 hover:bg-green-50 rounded-lg flex-shrink-0" title="Editar"
-                                data-id="{{ $machinery->id }}" data-name="{{ $machinery->name }}" data-location="{{ $machinery->location }}" data-brand="{{ $machinery->brand }}" data-model="{{ $machinery->model }}" data-serial="{{ $machinery->serial }}" data-start_func="{{ $machinery->start_func->format('Y-m-d') }}" data-maint_freq="{{ $machinery->maint_freq }}" data-image="{{ $machinery->image ? asset('storage/'.$machinery->image) : '' }}"><i class="fas fa-edit"></i></button>
-                            <form action="{{ route('aprendiz.machinery.destroy', $machinery) }}" method="POST" class="inline flex-shrink-0" onsubmit="return confirmDelete(event, this)">@csrf @method('DELETE')<button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Eliminar"><i class="fas fa-trash"></i></button></form>
+                                data-id="{{ $machinery->id }}" data-name="{{ $machinery->name }}" data-location="{{ $machinery->location }}" data-brand="{{ $machinery->brand }}" data-model="{{ $machinery->model }}" data-serial="{{ $machinery->serial }}" data-start_func="{{ $machinery->start_func->format('Y-m-d') }}" data-maint_freq="{{ $machinery->maint_freq }}" data-image="{{ $machinery->image ? asset('storage-file/'.$machinery->image) : '' }}"><i class="fas fa-edit"></i></button>
+                            @if($machinery->created_by == auth()->id())
+                                @php
+                                    $isApprovedM = isset($approvedMachineryIds) && in_array($machinery->id, $approvedMachineryIds);
+                                    $isPendingM = isset($pendingMachineryIds) && in_array($machinery->id, $pendingMachineryIds);
+                                    $isRejectedM = isset($rejectedMachineryIds) && in_array($machinery->id, $rejectedMachineryIds);
+                                @endphp
+                                @if($isRejectedM)
+                                    <button type="button" onclick="showRejectedAlert({{ $machinery->id }})" class="p-2 text-red-600 rounded-lg flex-shrink-0" title="Solicitud rechazada"><i class="fas fa-ban"></i></button>
+                                @elseif($isApprovedM)
+                                    <form id="delete-form-card-m-{{ $machinery->id }}" action="{{ route('aprendiz.machinery.destroy', $machinery) }}" method="POST" class="inline flex-shrink-0">@csrf @method('DELETE')<button type="button" onclick="confirmDelete('delete-form-card-m-{{ $machinery->id }}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Eliminar"><i class="fas fa-trash"></i></button></form>
+                                @elseif($isPendingM)
+                                    <button type="button" class="p-2 text-yellow-500 cursor-default rounded-lg flex-shrink-0" title="Permiso pendiente"><i class="fas fa-hourglass-half"></i></button>
+                                @else
+                                    <button type="button" onclick="requestDeletePermission({{ $machinery->id }})" class="p-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="Solicitar permiso para eliminar"><i class="fas fa-trash"></i></button>
+                                @endif
+                            @else
+                                <button type="button" class="p-2 text-gray-400 rounded-lg flex-shrink-0 cursor-not-allowed" title="Solo puede eliminar sus propios registros"><i class="fas fa-lock"></i></button>
+                            @endif
                             <a href="{{ route('aprendiz.machinery.download.pdf', $machinery) }}" class="p-2 text-red-700 hover:bg-red-50 rounded-lg flex-shrink-0" title="PDF"><i class="fas fa-file-pdf"></i></a>
                         </div>
                     </div>
@@ -170,10 +187,10 @@
                                 <td class="text-center align-middle py-2">
                                     @if($machinery->image)
                                         <div class="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 mx-auto cursor-pointer hover:opacity-80 transition-opacity">
-                                            <img src="{{ asset('storage/'.$machinery->image) }}" 
+                                            <img src="{{ asset('storage-file/'.$machinery->image) }}" 
                                                  alt="{{ $machinery->name }}" 
                                                  class="w-full h-full object-cover"
-                                                 onclick="openImageModal('{{ asset('storage/'.$machinery->image) }}')"
+                                                 onclick="openImageModal('{{ asset('storage-file/'.$machinery->image) }}')"
                                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                             <div class="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center" style="display: none;">
                                                 <i class="fas fa-image text-gray-400"></i>
@@ -246,15 +263,15 @@
                                                     data-serial="{{ $machinery->serial }}"
                                                     data-start_func="{{ $machinery->start_func->format('Y-m-d') }}"
                                                     data-maint_freq="{{ $machinery->maint_freq }}"
-                                                    data-image="{{ $machinery->image ? asset('storage/'.$machinery->image) : '' }}">
+                                                    data-image="{{ $machinery->image ? asset('storage-file/'.$machinery->image) : '' }}">
                                                 <i class="fas fa-edit text-sm"></i>
                                             </button>
+                                        @if($machinery->created_by == auth()->id())
                                         @php
                                             $isApproved = isset($approvedMachineryIds) && in_array($machinery->id, $approvedMachineryIds);
                                             $isPending = isset($pendingMachineryIds) && in_array($machinery->id, $pendingMachineryIds);
                                             $isRejected = isset($rejectedMachineryIds) && in_array($machinery->id, $rejectedMachineryIds);
                                         @endphp
-
                                         @if($isRejected)
                                             <button type="button" class="inline-flex items-center justify-center text-red-600 hover:text-red-800 w-7 h-7 rounded hover:bg-red-50 transition-colors shrink-0" title="Solicitud rechazada"
                                                 onclick="showRejectedAlert({{ $machinery->id }})">
@@ -275,8 +292,13 @@
                                             </button>
                                         @else
                                             <button id="deleteBtn{{ $machinery->id }}" onclick="requestDeletePermission({{ $machinery->id }})" 
-                                               class="inline-flex items-center justify-center text-red-500 hover:text-red-700 w-7 h-7 rounded hover:bg-red-50 transition-colors shrink-0" title="Solicitar Eliminación">
+                                               class="inline-flex items-center justify-center text-red-500 hover:text-red-700 w-7 h-7 rounded hover:bg-red-50 transition-colors shrink-0" title="Solicitar permiso para eliminar">
                                                 <i class="fas fa-trash text-sm"></i>
+                                            </button>
+                                        @endif
+                                        @else
+                                            <button type="button" class="inline-flex items-center justify-center text-gray-400 cursor-not-allowed w-7 h-7 rounded shrink-0" title="Solo puede eliminar sus propios registros">
+                                                <i class="fas fa-lock text-sm"></i>
                                             </button>
                                         @endif
                                         <a href="{{ route('aprendiz.machinery.download.pdf', $machinery) }}" 

@@ -50,18 +50,18 @@
 </script>
 @endif
 
-<div class="waste-container">
+<div class="waste-container px-3 sm:px-4 md:px-6">
     <!-- Header -->
     <div class="waste-header">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-3xl font-bold text-soft-gray-800 flex items-center">
-                    <i class="fas fa-edit text-soft-green-600 mr-3"></i>
-                    Editar Seguimiento
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="min-w-0">
+                <h1 class="text-xl sm:text-2xl md:text-3xl font-bold text-soft-gray-800 flex items-center flex-wrap gap-2">
+                    <i class="fas fa-edit text-soft-green-600 flex-shrink-0"></i>
+                    <span class="break-words">Editar Seguimiento</span>
                 </h1>
-                <p class="text-soft-gray-600 mt-2">Modifica los datos del seguimiento de la pila {{ $tracking->composting->formatted_pile_num }}</p>
+                <p class="text-soft-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">Modifica los datos del seguimiento de la pila {{ $tracking->composting->formatted_pile_num }}</p>
             </div>
-            <a href="{{ route('aprendiz.tracking.index') }}" class="bg-soft-gray-600 hover:bg-soft-gray-700 text-white p-3 rounded-lg transition-colors duration-200" title="Volver">
+            <a href="{{ route('aprendiz.tracking.index') }}" class="bg-soft-gray-600 hover:bg-soft-gray-700 text-white p-2.5 sm:p-3 rounded-lg transition-colors duration-200 self-start sm:self-center flex items-center justify-center" title="Volver">
                 <i class="fas fa-arrow-left"></i>
             </a>
         </div>
@@ -69,25 +69,25 @@
 
     <!-- Form -->
     <div class="bg-white rounded-xl shadow-xl border border-soft-gray-100 overflow-hidden">
-        <form action="{{ route('aprendiz.tracking.update', $tracking) }}" method="POST" class="p-8">
+        <form action="{{ route('aprendiz.tracking.update', $tracking) }}" method="POST" class="p-4 sm:p-6 md:p-8">
             @csrf
             @method('PUT')
             
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
                 <!-- Información Básica -->
-                <div class="space-y-6">
-                    <div class="bg-gradient-to-r from-soft-green-50 to-soft-green-100 rounded-lg p-4 border border-soft-green-200">
-                        <h3 class="text-xl font-bold text-soft-gray-800 flex items-center">
-                            <div class="bg-soft-green-100 p-2 rounded-lg mr-3">
-                                <i class="fas fa-info-circle text-soft-green-600 text-lg"></i>
+                <div class="space-y-4 sm:space-y-6">
+                    <div class="bg-gradient-to-r from-soft-green-50 to-soft-green-100 rounded-lg p-3 sm:p-4 border border-soft-green-200">
+                        <h3 class="text-base sm:text-xl font-bold text-soft-gray-800 flex items-center flex-wrap gap-2">
+                            <div class="bg-soft-green-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                                <i class="fas fa-info-circle text-soft-green-600 text-sm sm:text-lg"></i>
                             </div>
-                            Información Básica
+                            <span class="break-words">Información Básica</span>
                         </h3>
-                        <p class="text-sm text-soft-gray-600 mt-1">Datos principales del seguimiento</p>
+                        <p class="text-xs sm:text-sm text-soft-gray-600 mt-1">Datos principales del seguimiento</p>
                     </div>
                     
-                    <div class="bg-soft-gray-50 rounded-lg p-4 border border-soft-gray-200">
-                        <label for="composting_id" class="block text-sm font-semibold text-soft-gray-700 mb-3 flex items-center">
+                    <div class="bg-soft-gray-50 rounded-lg p-3 sm:p-4 border border-soft-gray-200">
+                        <label for="composting_id" class="block text-xs sm:text-sm font-semibold text-soft-gray-700 mb-2 sm:mb-3 flex items-center">
                             <i class="fas fa-layer-group text-soft-green-600 mr-2"></i>
                             Pila de Compostaje <span class="text-red-500 ml-1">*</span>
                         </label>
@@ -109,9 +109,9 @@
                         @enderror
                     </div>
 
-                    <div class="grid grid-cols-2 gap-6">
-                        <div class="bg-soft-gray-50 rounded-lg p-4 border border-soft-gray-200">
-                            <label for="day" class="block text-sm font-semibold text-soft-gray-700 mb-3 flex items-center">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                        <div class="bg-soft-gray-50 rounded-lg p-3 sm:p-4 border border-soft-gray-200">
+                            <label for="day" class="block text-xs sm:text-sm font-semibold text-soft-gray-700 mb-2 sm:mb-3 flex items-center">
                                 <i class="fas fa-calendar-day text-soft-green-600 mr-2"></i>
                                 Día del Proceso <span class="text-red-500 ml-1">*</span>
                                 <span class="text-xs text-soft-gray-500 ml-2">(1-45 días)</span>
@@ -130,8 +130,8 @@
                             <div id="dayInfo" class="text-xs font-medium mt-2 p-2 rounded-lg"></div>
                         </div>
 
-                        <div class="bg-soft-gray-50 rounded-lg p-4 border border-soft-gray-200">
-                            <label for="date" class="block text-sm font-semibold text-soft-gray-700 mb-3 flex items-center">
+                        <div class="bg-soft-gray-50 rounded-lg p-3 sm:p-4 border border-soft-gray-200">
+                            <label for="date" class="block text-xs sm:text-sm font-semibold text-soft-gray-700 mb-2 sm:mb-3 flex items-center">
                                 <i class="fas fa-calendar-alt text-soft-green-600 mr-2"></i>
                                 Fecha <span class="text-red-500 ml-1">*</span>
                             </label>
@@ -147,8 +147,8 @@
                         </div>
                     </div>
 
-                    <div class="bg-soft-gray-50 rounded-lg p-4 border border-soft-gray-200">
-                        <label for="activity" class="block text-sm font-semibold text-soft-gray-700 mb-3 flex items-center">
+                    <div class="bg-soft-gray-50 rounded-lg p-3 sm:p-4 border border-soft-gray-200">
+                        <label for="activity" class="block text-xs sm:text-sm font-semibold text-soft-gray-700 mb-2 sm:mb-3 flex items-center">
                             <i class="fas fa-tasks text-soft-green-600 mr-2"></i>
                             Actividad Realizada <span class="text-red-500 ml-1">*</span>
                         </label>
@@ -163,8 +163,8 @@
                         @enderror
                     </div>
 
-                    <div class="bg-soft-gray-50 rounded-lg p-4 border border-soft-gray-200">
-                        <label for="work_hours" class="block text-sm font-semibold text-soft-gray-700 mb-3 flex items-center">
+                    <div class="bg-soft-gray-50 rounded-lg p-3 sm:p-4 border border-soft-gray-200">
+                        <label for="work_hours" class="block text-xs sm:text-sm font-semibold text-soft-gray-700 mb-2 sm:mb-3 flex items-center">
                             <i class="fas fa-clock text-soft-green-600 mr-2"></i>
                             Horas de Trabajo <span class="text-red-500 ml-1">*</span>
                         </label>
@@ -182,20 +182,20 @@
                 </div>
 
                 <!-- Mediciones -->
-                <div class="space-y-6">
-                    <div class="bg-gradient-to-r from-soft-green-50 to-soft-green-100 rounded-lg p-4 border border-soft-green-200">
-                        <h3 class="text-xl font-bold text-soft-gray-800 flex items-center">
-                            <div class="bg-soft-green-100 p-2 rounded-lg mr-3">
-                                <i class="fas fa-thermometer-half text-soft-green-600 text-lg"></i>
+                <div class="space-y-4 sm:space-y-6">
+                    <div class="bg-gradient-to-r from-soft-green-50 to-soft-green-100 rounded-lg p-3 sm:p-4 border border-soft-green-200">
+                        <h3 class="text-base sm:text-xl font-bold text-soft-gray-800 flex items-center flex-wrap gap-2">
+                            <div class="bg-soft-green-100 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                                <i class="fas fa-thermometer-half text-soft-green-600 text-sm sm:text-lg"></i>
                             </div>
-                            Mediciones
+                            <span class="break-words">Mediciones</span>
                         </h3>
-                        <p class="text-sm text-soft-gray-600 mt-1">Datos técnicos del proceso</p>
+                        <p class="text-xs sm:text-sm text-soft-gray-600 mt-1">Datos técnicos del proceso</p>
                     </div>
                     
-                    <div class="grid grid-cols-2 gap-6">
-                        <div class="bg-soft-gray-50 rounded-lg p-4 border border-soft-gray-200">
-                            <label for="temp_internal" class="block text-sm font-semibold text-soft-gray-700 mb-3 flex items-center">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                        <div class="bg-soft-gray-50 rounded-lg p-3 sm:p-4 border border-soft-gray-200">
+                            <label for="temp_internal" class="block text-xs sm:text-sm font-semibold text-soft-gray-700 mb-2 sm:mb-3 flex items-center">
                                 <i class="fas fa-thermometer-full text-soft-green-600 mr-2"></i>
                                 Temperatura Interna (°C)
                             </label>
@@ -211,8 +211,8 @@
                             @enderror
                         </div>
 
-                        <div class="bg-soft-gray-50 rounded-lg p-4 border border-soft-gray-200">
-                            <label for="temp_time" class="block text-sm font-semibold text-soft-gray-700 mb-3 flex items-center">
+                        <div class="bg-soft-gray-50 rounded-lg p-3 sm:p-4 border border-soft-gray-200">
+                            <label for="temp_time" class="block text-xs sm:text-sm font-semibold text-soft-gray-700 mb-2 sm:mb-3 flex items-center">
                                 <i class="fas fa-clock text-soft-green-600 mr-2"></i>
                                 Hora de Medición
                             </label>
@@ -228,9 +228,9 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-6">
-                        <div class="bg-soft-gray-50 rounded-lg p-4 border border-soft-gray-200">
-                            <label for="temp_env" class="block text-sm font-semibold text-soft-gray-700 mb-3 flex items-center">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                        <div class="bg-soft-gray-50 rounded-lg p-3 sm:p-4 border border-soft-gray-200">
+                            <label for="temp_env" class="block text-xs sm:text-sm font-semibold text-soft-gray-700 mb-2 sm:mb-3 flex items-center">
                                 <i class="fas fa-sun text-soft-green-600 mr-2"></i>
                                 Temperatura Ambiente (°C)
                             </label>
@@ -246,8 +246,8 @@
                             @enderror
                         </div>
 
-                        <div class="bg-soft-gray-50 rounded-lg p-4 border border-soft-gray-200">
-                            <label for="hum_pile" class="block text-sm font-semibold text-soft-gray-700 mb-3 flex items-center">
+                        <div class="bg-soft-gray-50 rounded-lg p-3 sm:p-4 border border-soft-gray-200">
+                            <label for="hum_pile" class="block text-xs sm:text-sm font-semibold text-soft-gray-700 mb-2 sm:mb-3 flex items-center">
                                 <i class="fas fa-tint text-soft-green-600 mr-2"></i>
                                 Humedad Pila (%)
                             </label>
@@ -264,9 +264,9 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-6">
-                        <div class="bg-soft-gray-50 rounded-lg p-4 border border-soft-gray-200">
-                            <label for="hum_env" class="block text-sm font-semibold text-soft-gray-700 mb-3 flex items-center">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                        <div class="bg-soft-gray-50 rounded-lg p-3 sm:p-4 border border-soft-gray-200">
+                            <label for="hum_env" class="block text-xs sm:text-sm font-semibold text-soft-gray-700 mb-2 sm:mb-3 flex items-center">
                                 <i class="fas fa-cloud text-soft-green-600 mr-2"></i>
                                 Humedad Ambiente (%)
                             </label>
@@ -282,8 +282,8 @@
                             @enderror
                         </div>
 
-                        <div class="bg-soft-gray-50 rounded-lg p-4 border border-soft-gray-200">
-                            <label for="ph" class="block text-sm font-semibold text-soft-gray-700 mb-3 flex items-center">
+                        <div class="bg-soft-gray-50 rounded-lg p-3 sm:p-4 border border-soft-gray-200">
+                            <label for="ph" class="block text-xs sm:text-sm font-semibold text-soft-gray-700 mb-2 sm:mb-3 flex items-center">
                                 <i class="fas fa-flask text-soft-green-600 mr-2"></i>
                                 pH
                             </label>
@@ -300,9 +300,9 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-6">
-                        <div class="bg-soft-gray-50 rounded-lg p-4 border border-soft-gray-200">
-                            <label for="water" class="block text-sm font-semibold text-soft-gray-700 mb-3 flex items-center">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                        <div class="bg-soft-gray-50 rounded-lg p-3 sm:p-4 border border-soft-gray-200">
+                            <label for="water" class="block text-xs sm:text-sm font-semibold text-soft-gray-700 mb-2 sm:mb-3 flex items-center">
                                 <i class="fas fa-tint text-soft-green-600 mr-2"></i>
                                 Agua Agregada (L)
                             </label>
@@ -318,8 +318,8 @@
                             @enderror
                         </div>
 
-                        <div class="bg-soft-gray-50 rounded-lg p-4 border border-soft-gray-200">
-                            <label for="lime" class="block text-sm font-semibold text-soft-gray-700 mb-3 flex items-center">
+                        <div class="bg-soft-gray-50 rounded-lg p-3 sm:p-4 border border-soft-gray-200">
+                            <label for="lime" class="block text-xs sm:text-sm font-semibold text-soft-gray-700 mb-2 sm:mb-3 flex items-center">
                                 <i class="fas fa-mountain text-soft-green-600 mr-2"></i>
                                 Cal Agregada (Kg)
                             </label>
@@ -336,8 +336,8 @@
                         </div>
                     </div>
 
-                    <div class="bg-soft-gray-50 rounded-lg p-4 border border-soft-gray-200">
-                        <label for="others" class="block text-sm font-semibold text-soft-gray-700 mb-3 flex items-center">
+                    <div class="bg-soft-gray-50 rounded-lg p-3 sm:p-4 border border-soft-gray-200">
+                        <label for="others" class="block text-xs sm:text-sm font-semibold text-soft-gray-700 mb-2 sm:mb-3 flex items-center">
                             <i class="fas fa-sticky-note text-soft-green-600 mr-2"></i>
                             Observaciones Adicionales
                         </label>
@@ -354,8 +354,8 @@
                 </div>
             </div>
 
-            <!-- Botones -->
-            <div class="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-300">
+            <!-- Botones (responsive) -->
+            <div class="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-4 sm:pt-6 border-t border-gray-300">
                 <a href="{{ route('aprendiz.tracking.index') }}" 
                    class="flex-1 sm:flex-none px-4 py-2 bg-soft-gray-100 text-soft-gray-700 rounded-lg hover:bg-soft-gray-200 transition-all duration-200 text-center font-medium flex items-center justify-center">
                     <i class="fas fa-times mr-2"></i>
@@ -411,13 +411,13 @@ function updateDayInfo() {
         }
         
         dayInfo.innerHTML = `
-            <div class="${bgColor} ${textColor} p-3 rounded-lg border-2 border-current">
-                <div class="flex items-center justify-between">
+            <div class="${bgColor} ${textColor} p-2 sm:p-3 rounded-lg border-2 border-current">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-2">
                     <div class="flex items-center">
-                        <span class="text-lg mr-2">${icon}</span>
-                        <span class="font-bold">${phase}</span>
+                        <span class="text-base sm:text-lg mr-2">${icon}</span>
+                        <span class="font-bold text-sm sm:text-base">${phase}</span>
                     </div>
-                    <span class="font-semibold">Día ${day} de 45</span>
+                    <span class="font-semibold text-sm">Día ${day} de 45</span>
                 </div>
             </div>
         `;

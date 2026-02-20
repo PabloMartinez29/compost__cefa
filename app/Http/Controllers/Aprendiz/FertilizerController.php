@@ -26,7 +26,7 @@ class FertilizerController extends Controller
 
         // Verificar notificaciones recientes
         $userId = auth()->check() ? auth()->id() : null;
-        $recentNotifications = Notification::where('user_id', $userId)
+        $recentNotifications = Notification::where('from_user_id', $userId)
             ->whereIn('status', ['approved', 'rejected'])
             ->whereNull('read_at')
             ->orderBy('created_at', 'desc')
@@ -38,7 +38,7 @@ class FertilizerController extends Controller
         }
 
         // IDs de abonos con aprobación vigente para eliminar
-        $approvedFertilizerIds = Notification::where('user_id', $userId)
+        $approvedFertilizerIds = Notification::where('from_user_id', $userId)
             ->where('type', 'delete_request')
             ->where('status', 'approved')
             ->whereNotNull('fertilizer_id')
@@ -54,22 +54,12 @@ class FertilizerController extends Controller
             ->toArray();
 
         // IDs de abonos con solicitud rechazada
-        $rejectedFertilizerIds = Notification::where('user_id', $userId)
+        $rejectedFertilizerIds = Notification::where('from_user_id', $userId)
             ->where('type', 'delete_request')
             ->where('status', 'rejected')
             ->whereNotNull('fertilizer_id')
             ->pluck('fertilizer_id')
             ->toArray();
-        
-        // También verificar notificaciones pendientes que fueron rechazadas
-        $rejectedFromPending = Notification::where('from_user_id', $userId)
-            ->where('type', 'delete_request')
-            ->where('status', 'rejected')
-            ->whereNotNull('fertilizer_id')
-            ->pluck('fertilizer_id')
-            ->toArray();
-        
-        $rejectedFertilizerIds = array_unique(array_merge($rejectedFertilizerIds, $rejectedFromPending));
         
         return view('aprendiz.fertilizer.index', compact(
             'fertilizers',
@@ -276,7 +266,7 @@ class FertilizerController extends Controller
         }
         
         // Verificar que hay una solicitud aprobada
-        $approvedNotification = Notification::where('user_id', $currentUserId)
+        $approvedNotification = Notification::where('from_user_id', $currentUserId)
             ->where('fertilizer_id', $fertilizer->id)
             ->where('type', 'delete_request')
             ->where('status', 'approved')
@@ -360,7 +350,7 @@ class FertilizerController extends Controller
         }
 
         return redirect()->route('aprendiz.fertilizer.index')
-            ->with('success', 'Solicitud de eliminación enviada al administrador. Recibirá una notificación cuando sea aprobada.');
+            ->with('success', 'Solicitud de eliminación enviada al administrador.');
     }
 
     /**

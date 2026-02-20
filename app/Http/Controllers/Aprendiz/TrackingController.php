@@ -544,7 +544,7 @@ class TrackingController extends Controller
         }
 
         return redirect()->route('aprendiz.tracking.index')
-            ->with('success', 'Solicitud de eliminación enviada al administrador. Recibirá una notificación cuando sea aprobada.');
+            ->with('success', 'Solicitud de eliminación enviada al administrador.');
     }
 
     /**
