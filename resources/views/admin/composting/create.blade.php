@@ -5,10 +5,6 @@
 @section('content')
 @vite(['resources/css/waste.css'])
 
-@php
-    use Illuminate\Support\Facades\Storage;
-@endphp
-
 <div class="container mx-auto px-6 py-8">
     <!-- Header -->
     <div class="waste-header animate-fade-in-up">

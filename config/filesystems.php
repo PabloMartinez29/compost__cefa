@@ -77,4 +77,18 @@ return [
         public_path('storage') => storage_path('app/public'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Ruta base para subidas (cuando el document root es public_html)
+    |--------------------------------------------------------------------------
+    |
+    | En hostings donde el dominio apunta a public_html y Laravel está en
+    | otra carpeta (ej. compost__cefa), define aquí la ruta absoluta a
+    | public_html para que las imágenes se guarden ahí y se sirvan sin copiar.
+    | Ejemplo: /home/usuario/public_html (sin barra final).
+    | Si está vacío, se usa la carpeta public de Laravel (comportamiento normal).
+    |
+    */
+    'upload_public_path' => env('UPLOAD_PUBLIC_PATH', null),
+
 ];

@@ -134,7 +134,7 @@ Swal.fire({
         
         @if($users->count() > 0)
             <!-- Vista móvil: tarjetas -->
-            <div class="block md:hidden p-3 sm:p-4 space-y-4">
+            <div class="block lg:hidden p-3 sm:p-4 space-y-4">
                 @foreach($users as $user)
                     <div class="waste-mobile-card bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm" data-id="{{ $user->id }}">
                         <div class="flex gap-3">
@@ -159,7 +159,7 @@ Swal.fire({
                 @endforeach
             </div>
 
-            <div class="hidden md:block overflow-x-auto -mx-3 sm:mx-0">
+            <div class="hidden lg:block overflow-x-auto -mx-3 sm:mx-0">
             <!-- DataTables agregará los controles y la tabla aquí -->
             <div id="usersTable_wrapper" class="p-3 sm:p-4 md:p-6">
                 <!-- Contenedor para controles superiores -->
@@ -453,23 +453,6 @@ Swal.fire({
                                 <option value="aprendiz">Aprendiz</option>
                             </select>
                         </div>
-
-                        <!-- Password Field -->
-                        <div class="waste-form-group">
-                            <label for="editPassword" class="waste-form-label">
-                                <i class="fas fa-lock mr-2"></i>
-                                Nueva Contraseña
-                            </label>
-                            <input type="password" 
-                                   id="editPassword" 
-                                   name="password" 
-                                   class="waste-form-input"
-                                   placeholder="Dejar vacío para mantener la actual">
-                            <p class="text-sm text-gray-500 mt-1">
-                                <i class="fas fa-info-circle mr-1"></i>
-                                Deje vacío si no desea cambiar la contraseña
-                            </p>
-                        </div>
                     </div>
 
                     <!-- Form Actions -->
@@ -627,8 +610,7 @@ function openEditModal(userId) {
             document.getElementById('editDocumentType').value = data.document_type || '';
             document.getElementById('editIdentification').value = data.identification || '';
             document.getElementById('editRole').value = data.role;
-            document.getElementById('editPassword').value = '';
-            
+
             // Configurar acción del formulario
             document.getElementById('editForm').action = `/admin/users/${userId}`;
             

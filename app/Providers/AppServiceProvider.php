@@ -11,7 +11,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Cargar helper de rutas de subida (funciona aunque en el servidor no se haya ejecutado composer dump-autoload)
+        $helperPath = base_path('app/Helpers/upload_path.php');
+        if (file_exists($helperPath)) {
+            require_once $helperPath;
+        }
     }
 
     /**

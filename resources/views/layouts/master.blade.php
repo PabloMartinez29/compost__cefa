@@ -602,20 +602,15 @@
                             <div class="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-soft-green-500 to-soft-green-600 rounded-full flex items-center justify-center flex-shrink-0">
                                 <i class="fas fa-user text-white text-xs sm:text-sm"></i>
                             </div>
-                            <div class="text-right hidden md:block">
+                            <div class="text-right">
                                 <p class="text-xs sm:text-sm font-medium text-soft-gray-800 truncate max-w-[100px] sm:max-w-none">{{ Auth::user()?->name ?? 'Usuario' }}</p>
                                 <p class="text-xs text-soft-gray-500">Administrador</p>
                             </div>
-                            <i id="userArrow" class="fas fa-chevron-down text-soft-gray-400 text-xs transition-transform duration-200 hidden md:block"></i>
+                            <i id="userArrow" class="fas fa-chevron-down text-soft-gray-400 text-xs transition-transform duration-200"></i>
                         </button>
                         
                         <!-- Dropdown Menu -->
                         <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-soft-gray-200 py-2 z-50">
-                            <!-- User Info (Visible only on mobile in dropdown) -->
-                            <div class="px-4 py-2 border-b border-soft-gray-100 sm:hidden">
-                                <p class="text-sm font-medium text-soft-gray-800">{{ Auth::user()?->name ?? 'Usuario' }}</p>
-                                <p class="text-xs text-soft-gray-500">Administrador</p>
-                            </div>
                             <!-- User Email -->
                             <div class="px-4 py-2 border-b border-soft-gray-100">
                                 <p class="text-xs text-soft-gray-500">{{ Auth::user()?->email ?? 'N/A' }}</p>

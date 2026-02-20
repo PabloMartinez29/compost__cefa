@@ -115,9 +115,14 @@ class MachineryController extends Controller
             $data = $request->all();
             
             if ($request->hasFile('image')) {
-                $file = $request->file('image');
-                $name = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
-                $data['image'] = $file->storeAs('machineries', $name, 'public');
+                $archivo = $request->file('image');
+                $nombre = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $archivo->getClientOriginalName());
+                $dir = upload_base_path('storage/machineries');
+                if (!is_dir($dir)) {
+                    mkdir($dir, 0755, true);
+                }
+                $archivo->move($dir, $nombre);
+                $data['image'] = 'machineries/' . $nombre;
             }
             
             $machinery = Machinery::create($data);
@@ -190,15 +195,22 @@ class MachineryController extends Controller
         }
 
         try {
-            $data = $request->all();
+            $data = $request->except(['image']);
             
             if ($request->hasFile('image')) {
-                if ($machinery->image && Storage::disk('public')->exists($machinery->image)) {
-                    Storage::disk('public')->delete($machinery->image);
+                if ($machinery->image && file_exists(upload_base_path('storage/' . $machinery->image))) {
+                    unlink(upload_base_path('storage/' . $machinery->image));
                 }
-                $file = $request->file('image');
-                $name = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
-                $data['image'] = $file->storeAs('machineries', $name, 'public');
+                $archivo = $request->file('image');
+                $nombre = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $archivo->getClientOriginalName());
+                $dir = upload_base_path('storage/machineries');
+                if (!is_dir($dir)) {
+                    mkdir($dir, 0755, true);
+                }
+                $archivo->move($dir, $nombre);
+                $data['image'] = 'machineries/' . $nombre;
+            } else {
+                $data['image'] = $machinery->image;
             }
             
             $machinery->update($data);
@@ -336,8 +348,8 @@ class MachineryController extends Controller
         }
 
         try {
-            if ($machinery->image && Storage::disk('public')->exists($machinery->image)) {
-                Storage::disk('public')->delete($machinery->image);
+            if ($machinery->image && file_exists(upload_base_path('storage/' . $machinery->image))) {
+                unlink(upload_base_path('storage/' . $machinery->image));
             }
             
             $machinery->delete();
@@ -389,8 +401,8 @@ class MachineryController extends Controller
     {
         // Convertir imagen a base64 si existe
         $imageBase64 = null;
-        if ($machinery->image && Storage::disk('public')->exists($machinery->image)) {
-            $imagePath = Storage::disk('public')->path($machinery->image);
+        if ($machinery->image && file_exists(upload_base_path('storage/' . $machinery->image))) {
+            $imagePath = upload_base_path('storage/' . $machinery->image);
             $imageData = file_get_contents($imagePath);
             $imageInfo = getimagesize($imagePath);
             $mimeType = $imageInfo['mime'];

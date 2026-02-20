@@ -3,10 +3,6 @@
 @section('content')
 @vite(['resources/css/waste.css'])
 
-@php
-    use Illuminate\Support\Facades\Storage;
-@endphp
-
 <div class="container mx-auto px-6 py-8">
     <!-- Header -->
     <div class="waste-header animate-fade-in-up">
@@ -39,7 +35,7 @@
         <!-- Imagen de la Pila -->
         @if($composting->image)
             <div class="mb-8 text-center">
-                <img src="{{ Storage::url($composting->image) }}" 
+                <img src="{{ asset('storage/'.$composting->image) }}" 
                      alt="Pila {{ $composting->formatted_pile_num }}" 
                      class="max-w-full h-64 object-cover rounded-lg shadow-md mx-auto">
             </div>

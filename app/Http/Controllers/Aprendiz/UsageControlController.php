@@ -489,8 +489,8 @@ class UsageControlController extends Controller
         
         // Convertir imagen a base64 si existe
         $imageBase64 = null;
-        if ($usageControl->machinery && $usageControl->machinery->image && file_exists(public_path($usageControl->machinery->image))) {
-            $imagePath = public_path($usageControl->machinery->image);
+        if ($usageControl->machinery && $usageControl->machinery->image && file_exists(upload_base_path('storage/' . $usageControl->machinery->image))) {
+            $imagePath = upload_base_path('storage/' . $usageControl->machinery->image);
             $imageData = file_get_contents($imagePath);
             $imageInfo = getimagesize($imagePath);
             $mimeType = $imageInfo['mime'];

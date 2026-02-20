@@ -121,7 +121,7 @@
 
         @if($fertilizers->count() > 0)
             <!-- Vista móvil: tarjetas -->
-            <div class="block md:hidden p-3 sm:p-4 space-y-4">
+            <div class="block lg:hidden p-3 sm:p-4 space-y-4">
                 @foreach($fertilizers as $fertilizer)
                     <div class="waste-mobile-card bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm" data-id="{{ $fertilizer->id }}">
                         <div class="flex-1 min-w-0">
@@ -142,7 +142,7 @@
             </div>
 
             <!-- Tabla de abonos (escritorio) -->
-            <div class="hidden md:block overflow-x-auto -mx-3 sm:mx-0">
+            <div class="hidden lg:block overflow-x-auto -mx-3 sm:mx-0">
                 <!-- DataTables agregará los controles y la tabla aquí -->
                 <div id="fertilizersTable_wrapper" class="p-3 sm:p-4 md:p-6">
                     <!-- Contenedor para controles superiores -->

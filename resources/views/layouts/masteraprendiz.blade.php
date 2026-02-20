@@ -92,15 +92,30 @@
         nav::-webkit-scrollbar-thumb:hover {
             background-color: #9ca3af;
         }
+
+        [x-cloak] { display: none !important; }
+
+        /* Sidebar en móvil: oculto por defecto (funciona aunque Alpine no haya cargado) */
+        @media (max-width: 1023px) {
+            .sidebar-aprendiz { transform: translateX(-100%); }
+            .sidebar-aprendiz.sidebar-aprendiz-open { transform: translateX(0); }
+        }
+        @media (min-width: 1024px) {
+            .sidebar-aprendiz { transform: none; }
+        }
     </style>
 </head>
 
 
-<body class="bg-soft-gray-50 font-sans">
+<body class="bg-soft-gray-50 font-sans" x-data="{ sidebarOpen: false }">
     <div class="flex h-screen overflow-hidden">
-        
-        <!-- Sidebar -->
-        <div class="w-64 bg-white shadow-lg sidebar-transition flex flex-col h-screen overflow-hidden">
+        <!-- Overlay móvil: tap para cerrar sidebar -->
+        <div x-show="sidebarOpen" @click="sidebarOpen = false" x-transition:enter="transition-opacity ease-linear duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity ease-linear duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-20 bg-black bg-opacity-50 lg:hidden" x-cloak aria-hidden="true"></div>
+
+        <!-- Sidebar: en móvil oculto por defecto (-translate-x-full), en lg siempre visible -->
+        <div class="sidebar-aprendiz fixed inset-y-0 left-0 z-30 w-64 sm:w-72 bg-white shadow-lg flex flex-col h-screen overflow-hidden transition-transform duration-300 ease-in-out -translate-x-full lg:translate-x-0 lg:static lg:inset-0"
+             :class="{ 'translate-x-0 sidebar-aprendiz-open': sidebarOpen, '-translate-x-full': !sidebarOpen }"
+             @click="if ($event.target.closest('a')) sidebarOpen = false">
             <!-- Logo/Brand -->
             <div class="h-32 flex items-center justify-center border-b border-soft-gray-200 px-4 flex-shrink-0">
                 <img src="{{ asset('img/logo-compost-cefa.webp') }}" alt="COMPOST CEFA" class="h-28 w-auto max-w-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
@@ -337,15 +352,19 @@
         </div>
         
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col overflow-hidden">
+        <div class="flex-1 flex flex-col overflow-hidden min-w-0">
             <!-- Top Navigation -->
-            <header class="h-16 bg-green-100 shadow-sm border-b border-soft-gray-200 flex items-center justify-between px-6">
-                <div class="flex items-center space-x-4">
-                    <h2 class="text-xl font-semibold text-soft-gray-800">Panel de Aprendiz</h2>
+            <header class="h-14 sm:h-16 bg-green-100 shadow-sm border-b border-soft-gray-200 flex items-center justify-between px-3 sm:px-4 lg:px-6">
+                <div class="flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0">
+                    <!-- Botón menú móvil -->
+                    <button @click="sidebarOpen = true" type="button" class="text-soft-gray-600 focus:outline-none lg:hidden flex-shrink-0 p-2" aria-label="Abrir menú">
+                        <i class="fas fa-bars text-lg sm:text-xl"></i>
+                    </button>
+                    <h2 class="text-base sm:text-lg lg:text-xl font-semibold text-soft-gray-800 truncate">Panel de Aprendiz</h2>
                 </div>
                 
                 <!-- User Menu -->
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-1 sm:space-x-2 lg:space-x-4 flex-shrink-0">
                     <!-- Notifications Bell -->
                     <div class="relative" x-data="{ notificationsOpen: false }">
                         @php
@@ -546,10 +565,6 @@
                             
                             <!-- Menu Items -->
                             <div class="py-1">
-                                <a href="#" class="flex items-center px-4 py-2 text-sm text-soft-gray-700 hover:bg-soft-gray-50 transition-colors duration-200">
-                                    <i class="fas fa-user-cog w-4 text-soft-gray-400 mr-3"></i>
-                                    Perfil
-                                </a>
                                 <a href="{{ url('/') }}" class="flex items-center px-4 py-2 text-sm text-soft-gray-700 hover:bg-soft-gray-50 transition-colors duration-200">
                                     <i class="fas fa-home w-4 text-soft-gray-400 mr-3"></i>
                                     Welcome
@@ -573,8 +588,10 @@
             </header>
             
             <!-- Page Content -->
-            <main class="flex-1 overflow-y-auto bg-soft-gray-50 p-6">
-                @yield('content')
+            <main class="flex-1 overflow-y-auto bg-soft-gray-50 p-3 sm:p-4 lg:p-6">
+                <div class="w-full max-w-full overflow-x-hidden">
+                    @yield('content')
+                </div>
             </main>
         </div>
     </div>

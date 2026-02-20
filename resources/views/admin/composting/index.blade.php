@@ -3,10 +3,6 @@
 @section('content')
 @vite(['resources/css/waste.css'])
 
-@php
-    use Illuminate\Support\Facades\Storage;
-@endphp
-
 <div class="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
     <!-- Header -->
     <div class="waste-header animate-fade-in-up">
@@ -122,14 +118,14 @@
 
         @if($compostings->count() > 0)
             <!-- Vista móvil: tarjetas -->
-            <div class="block md:hidden p-3 sm:p-4 space-y-4">
+            <div class="block lg:hidden p-3 sm:p-4 space-y-4">
                 @foreach($compostings as $composting)
                     <div class="waste-mobile-card bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm" data-id="{{ $composting->id }}">
                         <div class="flex gap-3">
                             <div class="flex-shrink-0">
                                 @if($composting->image)
-                                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 cursor-pointer" onclick="openImageModal('{{ Storage::url($composting->image) }}')">
-                                        <img src="{{ Storage::url($composting->image) }}" alt="{{ $composting->formatted_pile_num }}" class="w-full h-full object-cover" onerror="this.style.display='none';">
+                                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 cursor-pointer" onclick="openImageModal('{{ asset('storage/'.$composting->image) }}')">
+                                        <img src="{{ asset('storage/'.$composting->image) }}" alt="{{ $composting->formatted_pile_num }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                         <div class="w-full h-full bg-gray-200 flex items-center justify-center" style="display: none;"><i class="fas fa-mountain text-gray-400"></i></div>
                                     </div>
                                 @else
@@ -153,7 +149,7 @@
                 @endforeach
             </div>
 
-            <div class="hidden md:block overflow-x-auto -mx-3 sm:mx-0">
+            <div class="hidden lg:block overflow-x-auto -mx-3 sm:mx-0">
             <!--Tabla de pilas -->
             <div id="compostingsTable_wrapper" class="p-3 sm:p-4 md:p-6">
                 <!-- Contenedor para controles superiores -->
@@ -181,10 +177,10 @@
                         <tr data-id="{{ $composting->id }}">
                             <td class="text-center">
                                 @if($composting->image)
-                                    <img src="{{ Storage::url($composting->image) }}" 
+                                    <img src="{{ asset('storage/'.$composting->image) }}" 
                                          alt="{{ $composting->formatted_pile_num }}" 
                                          class="w-12 h-12 object-cover rounded-full cursor-pointer hover:opacity-80 transition-opacity"
-                                         onclick="openImageModal('{{ Storage::url($composting->image) }}')"
+                                         onclick="openImageModal('{{ asset('storage/'.$composting->image) }}')"
                                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                     <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center" style="display: none;">
                                         <i class="fas fa-image text-gray-400"></i>
@@ -929,6 +925,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 @endsection
 
-@endsection
+
 
 

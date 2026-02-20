@@ -54,12 +54,16 @@ class OrganicController extends Controller
 
         $data = $request->all();
         
-        // Handle image upload
+        // Handle image upload (public/storage/organics para que en el servidor no afecte)
         if ($request->hasFile('img')) {
-            $image = $request->file('img');
-            $imageName = time() . '_' . $image->getClientOriginalName();
-            $path = $image->storeAs('organics', $imageName, 'public');
-            $data['img'] = $path; // Guarda como 'organics/imagen.jpg'
+            $archivo = $request->file('img');
+            $nombre = time() . '_' . $archivo->getClientOriginalName();
+            $dir = upload_base_path('storage/organics');
+            if (!is_dir($dir)) {
+                mkdir($dir, 0755, true);
+            }
+            $archivo->move($dir, $nombre);
+            $data['img'] = 'organics/' . $nombre;
         }
 
         // Agregar el ID del usuario que crea el registro
@@ -89,35 +93,43 @@ class OrganicController extends Controller
     {
         // Si es una petición AJAX, devolver JSON
         if (request()->ajax()) {
-            // Cargar la relación del creador
-            $organic->load('creator');
-            
-            // Verificar si la imagen existe antes de generar la URL
-            $imgUrl = null;
-            if ($organic->img && Storage::disk('public')->exists($organic->img)) {
-                $imgUrl = Storage::url($organic->img);
+            try {
+                // Cargar la relación del creador
+                $organic->load('creator');
+
+                $imgUrl = null;
+                if ($organic->img) {
+                    $uploadPath = function_exists('upload_base_path')
+                        ? upload_base_path('storage/' . $organic->img)
+                        : public_path('storage/' . $organic->img);
+                    if (file_exists($uploadPath)) {
+                        $imgUrl = asset('storage/' . $organic->img);
+                    }
+                }
+
+                return response()->json([
+                    'id' => $organic->id,
+                    'date' => $organic->date ? $organic->date->format('Y-m-d') : null,
+                    'date_formatted' => $organic->date ? $organic->formatted_date : '',
+                    'type' => $organic->type,
+                    'type_in_spanish' => $organic->type_in_spanish,
+                    'weight' => (float) $organic->weight,
+                    'formatted_weight' => $organic->formatted_weight,
+                    'delivered_by' => $organic->delivered_by ?? '',
+                    'received_by' => $organic->received_by ?? '',
+                    'notes' => $organic->notes ?? '',
+                    'img' => $organic->img,
+                    'img_url' => $imgUrl,
+                    'created_at' => $organic->created_at ? $organic->created_at->format('Y-m-d H:i:s') : null,
+                    'created_at_formatted' => $organic->created_at ? $organic->created_at->format('d/m/Y H:i:s') : '',
+                    'created_by_info' => $organic->created_by_info ?? '',
+                    'updated_at' => $organic->updated_at ? $organic->updated_at->format('Y-m-d H:i:s') : null,
+                ]);
+            } catch (\Throwable $e) {
+                return response()->json(['error' => 'Error al cargar el registro.', 'message' => $e->getMessage()], 500);
             }
-            
-            return response()->json([
-                'id' => $organic->id,
-                'date' => $organic->date->format('Y-m-d'),
-                'date_formatted' => $organic->formatted_date,
-                'type' => $organic->type,
-                'type_in_spanish' => $organic->type_in_spanish,
-                'weight' => $organic->weight,
-                'formatted_weight' => $organic->formatted_weight,
-                'delivered_by' => $organic->delivered_by,
-                'received_by' => $organic->received_by,
-                'notes' => $organic->notes,
-                'img' => $organic->img,
-                'img_url' => $imgUrl,
-                'created_at' => $organic->created_at->format('Y-m-d H:i:s'),
-                'created_at_formatted' => $organic->created_at->format('d/m/Y H:i:s'),
-                'created_by_info' => $organic->created_by_info,
-                'updated_at' => $organic->updated_at->format('Y-m-d H:i:s'),
-            ]);
         }
-        
+
         return view('admin.organic.show', compact('organic'));
     }
 
@@ -144,23 +156,28 @@ class OrganicController extends Controller
             'img' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
         ]);
 
-        $data = $request->all();
+        $data = $request->only(['date', 'type', 'weight', 'delivered_by', 'received_by', 'notes']);
 
         // Guardar valores anteriores para localizar la entrada en bodega (registros sin organic_id)
         $oldWeight = $organic->weight;
         $oldDate = $organic->date?->format('Y-m-d');
         $oldType = $organic->type;
-        
-        // Handle image upload
+
+        // Imagen: solo actualizar si se sube una nueva; si no, conservar la actual
         if ($request->hasFile('img')) {
-            // Delete old image
-            if ($organic->img && Storage::disk('public')->exists($organic->img)) {
-                Storage::disk('public')->delete($organic->img);
+            if ($organic->img && file_exists(upload_base_path('storage/' . $organic->img))) {
+                unlink(upload_base_path('storage/' . $organic->img));
             }
-            $image = $request->file('img');
-            $imageName = time() . '_' . $image->getClientOriginalName();
-            $path = $image->storeAs('organics', $imageName, 'public');
-            $data['img'] = $path; // Guarda como 'organics/imagen.jpg'
+            $archivo = $request->file('img');
+            $nombre = time() . '_' . $archivo->getClientOriginalName();
+            $dir = upload_base_path('storage/organics');
+            if (!is_dir($dir)) {
+                mkdir($dir, 0755, true);
+            }
+            $archivo->move($dir, $nombre);
+            $data['img'] = 'organics/' . $nombre;
+        } else {
+            $data['img'] = $organic->img;
         }
 
         $organic->update($data);
@@ -211,8 +228,8 @@ class OrganicController extends Controller
         ]);
 
         // Delete image if exists
-        if ($organic->img && Storage::disk('public')->exists($organic->img)) {
-            Storage::disk('public')->delete($organic->img);
+        if ($organic->img && file_exists(upload_base_path('storage/' . $organic->img))) {
+            unlink(upload_base_path('storage/' . $organic->img));
         }
         
         $organic->delete();
@@ -257,8 +274,8 @@ class OrganicController extends Controller
         
         // Convertir imagen a base64 si existe
         $imageBase64 = null;
-        if ($organic->img && Storage::disk('public')->exists($organic->img)) {
-            $imagePath = Storage::disk('public')->path($organic->img);
+        if ($organic->img && file_exists(upload_base_path('storage/' . $organic->img))) {
+            $imagePath = upload_base_path('storage/' . $organic->img);
             $imageData = file_get_contents($imagePath);
             $imageInfo = getimagesize($imagePath);
             $mimeType = $imageInfo['mime'];

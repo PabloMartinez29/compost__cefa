@@ -5,10 +5,6 @@
 @section('content')
 @vite(['resources/css/waste.css'])
 
-@php
-    use Illuminate\Support\Facades\Storage;
-@endphp
-
 <!-- Modal para ver detalles de maquinaria -->
 <div class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop-blur z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[95vh] overflow-y-auto">
@@ -93,7 +89,7 @@
                         <div class="mb-4">
                             <p class="text-sm text-gray-600 mb-2">Imagen actual:</p>
                             <div class="relative inline-block">
-                                <img src="{{ Storage::url($machinery->image) }}" alt="Imagen actual" class="w-32 h-32 object-cover rounded-xl border-2 border-gray-300 shadow-lg">
+                                <img src="{{ asset('storage/'.$machinery->image) }}" alt="Imagen actual" class="w-32 h-32 object-cover rounded-xl border-2 border-gray-300 shadow-lg">
                             </div>
                         </div>
                     @endif
@@ -177,7 +173,7 @@
                 <!-- Image Section -->
                 @if($machinery->image)
                     <div class="mb-8 text-center">
-                        <img src="{{ Storage::url($machinery->image) }}" 
+                        <img src="{{ asset('storage/'.$machinery->image) }}" 
                              alt="{{ $machinery->name }}" 
                              class="max-w-full h-64 object-cover rounded-lg shadow-md mx-auto">
                     </div>
