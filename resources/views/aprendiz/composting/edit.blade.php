@@ -3,10 +3,6 @@
 @section('content')
 @vite(['resources/css/waste.css'])
 
-@php
-    use Illuminate\Support\Facades\Storage;
-@endphp
-
 <div class="container mx-auto px-6 py-8">
     <!-- Header -->
     <div class="waste-header animate-fade-in-up">
@@ -109,7 +105,7 @@
                             <div class="mb-4">
                                 <p class="text-sm text-gray-600 mb-2">Imagen actual:</p>
                                 <div class="relative inline-block">
-                                    <img src="{{ Storage::url($composting->image) }}" alt="Imagen actual" class="w-32 h-32 object-cover rounded-xl border-2 border-gray-300 shadow-lg">
+                                    <img src="{{ asset('storage/'.$composting->image) }}" alt="Imagen actual" class="w-32 h-32 object-cover rounded-xl border-2 border-gray-300 shadow-lg">
                                     <button type="button" onclick="removeCurrentImage()" class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600 transition-colors">
                                         <i class="fas fa-times"></i>
                                     </button>

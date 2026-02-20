@@ -417,8 +417,8 @@ class SupplierController extends Controller
         
         // Convertir imagen a base64 si existe
         $imageBase64 = null;
-        if ($supplier->machinery && $supplier->machinery->image && file_exists(public_path($supplier->machinery->image))) {
-            $imagePath = public_path($supplier->machinery->image);
+        if ($supplier->machinery && $supplier->machinery->image && file_exists(upload_base_path('storage/' . $supplier->machinery->image))) {
+            $imagePath = upload_base_path('storage/' . $supplier->machinery->image);
             $imageData = file_get_contents($imagePath);
             $imageInfo = getimagesize($imagePath);
             $mimeType = $imageInfo['mime'];

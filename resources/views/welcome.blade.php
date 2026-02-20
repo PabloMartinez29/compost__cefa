@@ -2,7 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         
         <!-- Favicon -->
         <link rel="icon" type="image/webp" href="{{ asset('img/logo-compost-cefa.webp') }}">
@@ -66,6 +66,18 @@
         }
     </script>
             <style>
+        /* Forzar ancho completo en móvil y evitar franja blanca */
+        html {
+            width: 100%;
+            min-width: 100%;
+            overflow-x: hidden;
+        }
+        body {
+            width: 100%;
+            min-width: 100%;
+            overflow-x: hidden;
+            max-width: 100vw;
+        }
         .typewriter-text {
             border-right: 4px solid #16a34a;
             animation: blink 1s step-end infinite;
@@ -136,10 +148,10 @@
         }
             </style>
     </head>
-<body class="font-inter bg-white min-h-screen" x-data="{ mobileMenuOpen: false }">
+<body class="font-inter bg-white min-h-screen w-full min-w-0" x-data="{ mobileMenuOpen: false }">
     <!-- Header -->
-    <header class="bg-gradient-to-r from-compost-100 to-compost-200 border-b border-compost-200 fixed top-0 left-0 right-0 z-50 shadow-lg transition-all duration-300">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header class="w-full min-w-full bg-gradient-to-r from-compost-100 to-compost-200 border-b border-compost-200 fixed top-0 left-0 right-0 z-50 shadow-lg transition-all duration-300">
+        <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <nav class="flex justify-between items-center py-4 relative">
                 <div class="flex items-center space-x-4">
                     <div class="w-12 h-12 bg-gradient-to-br from-compost-600 to-compost-700 rounded-xl flex items-center justify-center shadow-lg">
@@ -266,7 +278,7 @@
         </header>
 
     <!-- Hero Section -->
-    <section id="hero-section" class="pt-24 md:pt-32 pb-20 relative overflow-hidden min-h-screen flex items-center" style="min-height: 100vh;">
+    <section id="hero-section" class="w-full min-w-full pt-24 md:pt-32 pb-20 relative overflow-hidden min-h-screen flex items-center" style="min-height: 100vh;">
         <!-- Video Background -->
         <video id="hero-video" autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover z-0" style="transform-origin: center center;">
             <source src="{{ asset('videos/hero-background.mp4') }}" type="video/mp4">
@@ -276,7 +288,7 @@
         <div id="hero-overlay" class="absolute inset-0 bg-black/60 z-10"></div>
         
         <!-- Contenido sobre el video -->
-        <div id="hero-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
+        <div id="hero-content" class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
             <div class="text-center">
                 <!-- Main Title with Typewriter Effect -->
                 <div class="mb-6 md:mb-8">
@@ -328,8 +340,8 @@
     </section>
 
     <!-- About Section -->
-    <section id="about" class="py-20 pb-32 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="about" class="w-full py-20 pb-32 bg-white">
+        <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
                 <h2 class="scroll-animated-title text-4xl md:text-5xl font-bold text-compost-800 mb-6">¿Qué es COMPOST CEFA?</h2>
                 <div class="w-24 h-1 bg-gradient-to-r from-compost-600 to-compost-500 mx-auto"></div>
@@ -398,8 +410,8 @@
 
 
     <!-- Modules Section -->
-    <section id="modules" class="py-20 bg-gradient-to-br from-compost-50 to-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="modules" class="w-full py-20 bg-gradient-to-br from-compost-50 to-white">
+        <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
                 <h2 class="scroll-animated-title text-4xl md:text-5xl font-bold text-compost-800 mb-6">Módulos del Sistema</h2>
                 <div class="w-24 h-1 bg-gradient-to-r from-compost-600 to-compost-500 mx-auto mb-8"></div>
@@ -509,8 +521,8 @@
     </section>
 
     <!-- Features Section -->
-    <section id="features" class="py-20 bg-gradient-to-br from-compost-50 to-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section id="features" class="w-full py-20 bg-gradient-to-br from-compost-50 to-white">
+        <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
                 <h2 class="scroll-animated-title text-4xl md:text-5xl font-bold text-compost-800 mb-6">Características Principales</h2>
                 <div class="w-24 h-1 bg-gradient-to-r from-compost-600 to-compost-500 mx-auto"></div>
@@ -579,8 +591,8 @@
     </section>
 
     <!-- Footer -->
-    <footer class="bg-gradient-to-br from-compost-800 to-compost-900 text-white py-16">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <footer class="w-full bg-gradient-to-br from-compost-800 to-compost-900 text-white py-16">
+        <div class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Main Footer Content -->
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
                 <!-- Map -->

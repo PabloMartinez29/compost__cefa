@@ -104,12 +104,17 @@ class CompostingController extends Controller
 
         DB::beginTransaction();
         try {
-            // Handle image upload
+            // Handle image upload (public/storage/compostings para que en el servidor no afecte)
             $imagePath = null;
             if ($request->hasFile('image')) {
-                $file = $request->file('image');
-                $name = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
-                $imagePath = $file->storeAs('compostings', $name, 'public');
+                $archivo = $request->file('image');
+                $nombre = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $archivo->getClientOriginalName());
+                $dir = upload_base_path('storage/compostings');
+                if (!is_dir($dir)) {
+                    mkdir($dir, 0755, true);
+                }
+                $archivo->move($dir, $nombre);
+                $imagePath = 'compostings/' . $nombre;
             }
             
             // Crear el compostaje
@@ -317,19 +322,29 @@ class CompostingController extends Controller
             ];
             
             if ($request->hasFile('image')) {
-                if ($composting->image && Storage::disk('public')->exists($composting->image)) {
-                    Storage::disk('public')->delete($composting->image);
+                if ($composting->image && file_exists(upload_base_path('storage/' . $composting->image))) {
+                    unlink(upload_base_path('storage/' . $composting->image));
                 }
-                $file = $request->file('image');
-                $name = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
-                $data['image'] = $file->storeAs('compostings', $name, 'public');
+                $archivo = $request->file('image');
+                $nombre = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $archivo->getClientOriginalName());
+                $dir = upload_base_path('storage/compostings');
+                if (!is_dir($dir)) {
+                    mkdir($dir, 0755, true);
+                }
+                $archivo->move($dir, $nombre);
+                $data['image'] = 'compostings/' . $nombre;
             }
             
             if ($request->has('remove_image') && $request->remove_image == '1') {
-                if ($composting->image && Storage::disk('public')->exists($composting->image)) {
-                    Storage::disk('public')->delete($composting->image);
+                if ($composting->image && file_exists(upload_base_path('storage/' . $composting->image))) {
+                    unlink(upload_base_path('storage/' . $composting->image));
                 }
                 $data['image'] = null;
+            } else {
+                // Si no se sube nueva imagen ni se pide eliminar, conservar la actual
+                if (!$request->hasFile('image')) {
+                    $data['image'] = $composting->image;
+                }
             }
             
             // Actualizar el compostaje (solo los campos permitidos, los ingredientes no se tocan)
@@ -358,8 +373,8 @@ class CompostingController extends Controller
     {
         DB::beginTransaction();
         try {
-            if ($composting->image && Storage::disk('public')->exists($composting->image)) {
-                Storage::disk('public')->delete($composting->image);
+            if ($composting->image && file_exists(upload_base_path('storage/' . $composting->image))) {
+                unlink(upload_base_path('storage/' . $composting->image));
             }
             
             // Eliminar la pila (esto también eliminará los ingredientes por cascada)
@@ -416,8 +431,8 @@ class CompostingController extends Controller
         
         // Convertir imagen a base64 si existe
         $imageBase64 = null;
-        if ($composting->image && Storage::disk('public')->exists($composting->image)) {
-            $imagePath = Storage::disk('public')->path($composting->image);
+        if ($composting->image && file_exists(upload_base_path('storage/' . $composting->image))) {
+            $imagePath = upload_base_path('storage/' . $composting->image);
             $imageData = file_get_contents($imagePath);
             $imageInfo = getimagesize($imagePath);
             $mimeType = $imageInfo['mime'];

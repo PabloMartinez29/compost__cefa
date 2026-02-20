@@ -3,10 +3,6 @@
 @section('content')
 @vite(['resources/css/waste.css'])
 
-@php
-    use Illuminate\Support\Facades\Storage;
-@endphp
-
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -113,13 +109,14 @@
 
         @if($maintenances->count() > 0)
             <!-- Vista móvil: tarjetas -->
-            <div class="block md:hidden p-3 sm:p-4 space-y-4">
+            <div class="block lg:hidden p-3 sm:p-4 space-y-4">
                 @foreach($maintenances as $maintenance)
                     <div class="waste-mobile-card bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm" data-id="{{ $maintenance->id }}">
                         <div class="flex gap-3">
                             @if($maintenance->machinery && $maintenance->machinery->image)
-                                <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 cursor-pointer" onclick="openImageModal('{{ Storage::url($maintenance->machinery->image) }}')">
-                                    <img src="{{ Storage::url($maintenance->machinery->image) }}" alt="" class="w-full h-full object-cover">
+                                <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 cursor-pointer" onclick="openImageModal('{{ asset('storage/'.$maintenance->machinery->image) }}')">
+                                    <img src="{{ asset('storage/'.$maintenance->machinery->image) }}" alt="" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="w-full h-full bg-gray-200 flex items-center justify-center" style="display: none;"><i class="fas fa-image text-gray-400"></i></div>
                                 </div>
                             @else
                                 <div class="w-14 h-14 rounded-xl bg-gray-200 flex items-center justify-center flex-shrink-0"><i class="fas fa-cogs text-gray-400 text-xl"></i></div>
@@ -140,7 +137,7 @@
                 @endforeach
             </div>
             <!-- Tabla (escritorio) -->
-            <div class="hidden md:block overflow-x-auto -mx-3 sm:mx-0">
+            <div class="hidden lg:block overflow-x-auto -mx-3 sm:mx-0">
                 <div id="maintenancesTable_wrapper" class="p-3 sm:p-4 md:p-6">
                     <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
                         <div id="dt-length-container" style="float: left;"></div>
@@ -166,10 +163,10 @@
                                     <td class="font-mono">#{{ str_pad($maintenance->id, 3, '0', STR_PAD_LEFT) }}</td>
                                     <td>
                                         @if($maintenance->machinery && $maintenance->machinery->image)
-                                            <img src="{{ Storage::url($maintenance->machinery->image) }}?v={{ $maintenance->machinery->updated_at->timestamp }}" 
+                                            <img src="{{ asset('storage/'.$maintenance->machinery->image) }}?v={{ $maintenance->machinery->updated_at->timestamp }}" 
                                                  alt="Imagen de maquinaria" 
                                                  class="w-12 h-12 object-cover rounded-full cursor-pointer hover:opacity-80 transition-opacity"
-                                                 onclick="openImageModal('{{ Storage::url($maintenance->machinery->image) }}?v={{ $maintenance->machinery->updated_at->timestamp }}')"
+                                                 onclick="openImageModal('{{ asset('storage/'.$maintenance->machinery->image) }}?v={{ $maintenance->machinery->updated_at->timestamp }}')"
                                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                             <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center" style="display: none;">
                                                 <i class="fas fa-image text-gray-400"></i>

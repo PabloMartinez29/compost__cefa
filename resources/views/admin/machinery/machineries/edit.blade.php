@@ -5,10 +5,6 @@
 @section('content')
 @vite(['resources/css/waste.css'])
 
-@php
-    use Illuminate\Support\Facades\Storage;
-@endphp
-
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -159,7 +155,7 @@
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-600 mb-2">Imagen actual:</label>
                             <div class="relative">
-                                <img src="{{ Storage::url($machinery->image) }}" 
+                                <img src="{{ asset('storage/'.$machinery->image) }}" 
                                      alt="Imagen actual de {{ $machinery->name }}" 
                                      class="w-full h-48 object-cover rounded-lg border border-gray-200">
                             </div>

@@ -6,8 +6,6 @@
 @vite(['resources/css/waste.css'])
 
 @php
-    use Illuminate\Support\Facades\Storage;
-    
     // Pasar los IDs de notificaciones al JavaScript
     $approvedTrackingIds = $approvedTrackingIds ?? [];
     $pendingTrackingIds = $pendingTrackingIds ?? [];
@@ -637,10 +635,10 @@ function requestDeletePermission(trackingId) {
                                 <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:space-x-4">
                                     <div class="flex-shrink-0">
                                         @if($composting->image)
-                                            <img src="{{ Storage::url($composting->image) }}" 
+                                            <img src="{{ asset('storage/'.$composting->image) }}" 
                                                  alt="{{ $composting->formatted_pile_num }}" 
                                                  class="w-16 h-16 object-cover rounded-lg border-2 border-green-200 shadow-sm cursor-pointer hover:opacity-80 transition-opacity"
-                                                 onclick="openImageModal('{{ Storage::url($composting->image) }}')"
+                                                 onclick="openImageModal('{{ asset('storage/'.$composting->image) }}')"
                                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                             <div class="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center border-2 border-green-200" style="display: none;">
                                                 <i class="fas fa-layer-group text-green-600 text-lg"></i>
