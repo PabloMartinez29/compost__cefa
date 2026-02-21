@@ -34,7 +34,9 @@ class CompostingController extends Controller
             return $composting->ingredients->count();
         });
 
-        return view('admin.composting.index', compact('compostings', 'totalPiles', 'activePiles', 'completedPiles', 'totalIngredients'));
+        $response = response()->view('admin.composting.index', compact('compostings', 'totalPiles', 'activePiles', 'completedPiles', 'totalIngredients'));
+        $response->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0');
+        return $response;
     }
 
     /**
@@ -77,18 +79,19 @@ class CompostingController extends Controller
             'end_date' => 'nullable|date|after:start_date',
             'total_kg' => 'nullable|numeric|min:0',
             'efficiency' => 'nullable|numeric|min:0|max:100',
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
             'ingredients' => 'required|array|min:1',
             'ingredients.*.organic_id' => 'required|exists:organics,id',
             'ingredients.*.amount' => 'required|numeric|min:0.01',
             'ingredients.*.notes' => 'nullable|string|max:255'
         ];
-        
-        // Validar imagen solo si está presente
-        if ($request->hasFile('image')) {
-            $rules['image'] = 'image|mimes:jpeg,png,jpg,gif,webp|max:2048';
-        }
-        
-        $request->validate($rules);
+
+        $request->validate($rules, [
+            'image.required' => 'La imagen de la pila es obligatoria.',
+            'image.image' => 'El archivo debe ser una imagen.',
+            'image.mimes' => 'La imagen debe ser JPEG, PNG, JPG, GIF o WEBP.',
+            'image.max' => 'La imagen no debe superar 2 MB.',
+        ]);
 
         // Validar que no exceda la cantidad disponible
         foreach ($request->ingredients as $ingredientData) {

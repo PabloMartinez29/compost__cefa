@@ -21,6 +21,7 @@ class Machinery extends Model
         'maint_freq',
         'next_maintenance_due_at',
         'image',
+        'created_by',
     ];
 
     protected $casts = [

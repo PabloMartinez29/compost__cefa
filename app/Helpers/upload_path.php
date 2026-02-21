@@ -18,3 +18,13 @@ if (!function_exists('upload_base_path')) {
         return $base . '/' . ltrim(str_replace('\\', '/', $path), '/');
     }
 }
+
+/**
+ * URL para archivos en storage (usa /storage-file/ para evitar 403 en Laragon/Windows).
+ */
+if (!function_exists('storage_asset')) {
+    function storage_asset(string $path): string
+    {
+        return asset('storage-file/' . ltrim(str_replace('\\', '/', $path), '/'));
+    }
+}

@@ -42,7 +42,7 @@
                 <!-- Image Section -->
                 @if($supplier->machinery && $supplier->machinery->image)
                     <div class="mb-8 text-center">
-                        <img src="{{ asset('storage/'.$supplier->machinery->image) }}" 
+                        <img src="{{ asset('storage-file/'.$supplier->machinery->image) }}" 
                              alt="{{ $supplier->machinery->name }}" 
                              class="max-w-full h-64 object-cover rounded-lg shadow-md mx-auto">
                     </div>

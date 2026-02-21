@@ -121,8 +121,8 @@
                         <div class="flex gap-3">
                             <div class="flex-shrink-0">
                                 @if($organic->img)
-                                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 cursor-pointer" onclick="openImageModal('{{ asset('storage/'.$organic->img) }}?v={{ $organic->updated_at->timestamp }}')">
-                                        <img src="{{ asset('storage/'.$organic->img) }}?v={{ $organic->updated_at->timestamp }}" alt="Residuo" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 cursor-pointer" onclick="openImageModal('{{ asset('storage-file/'.$organic->img) }}?v={{ $organic->updated_at->timestamp }}')">
+                                        <img src="{{ asset('storage-file/'.$organic->img) }}?v={{ $organic->updated_at->timestamp }}" alt="Residuo" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                         <div class="w-full h-full bg-gray-200 flex items-center justify-center" style="display: none;"><i class="fas fa-image text-gray-400"></i></div>
                                     </div>
                                 @else
@@ -176,7 +176,7 @@
                             <td>{{ $organic->formatted_date }}</td>
                             <td>
                                 @if($organic->img)
-                                    @php $imageUrl = asset('storage/'.$organic->img); @endphp
+                                    @php $imageUrl = asset('storage-file/'.$organic->img); @endphp
                                     <img src="{{ $imageUrl }}?v={{ $organic->updated_at->timestamp }}" 
                                          alt="Imagen del residuo" 
                                          class="w-12 h-12 object-cover rounded-full cursor-pointer hover:opacity-80 transition-opacity"

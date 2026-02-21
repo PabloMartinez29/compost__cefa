@@ -159,7 +159,7 @@ class UsageControlController extends Controller
                 'created_at' => $usageControl->created_at->format('d/m/Y H:i:s'),
                 'created_at_formatted' => $usageControl->created_at->format('d/m/Y H:i:s'),
                 'machinery_image_url' => $usageControl->machinery && $usageControl->machinery->image 
-                    ? asset($usageControl->machinery->image) 
+                    ? asset('storage-file/' . $usageControl->machinery->image) 
                     : null,
             ]);
         }

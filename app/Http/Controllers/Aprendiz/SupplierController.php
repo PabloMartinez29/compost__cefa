@@ -126,8 +126,10 @@ class SupplierController extends Controller
         }
 
         try {
-            Supplier::create($request->all());
-            
+            $data = $request->all();
+            $data['created_by'] = auth()->id();
+            Supplier::create($data);
+
             return redirect()->route('aprendiz.machinery.supplier.index')
                 ->with('success', 'Proveedor registrado exitosamente.');
         } catch (\Exception $e) {
@@ -160,7 +162,7 @@ class SupplierController extends Controller
                 'created_at' => $supplier->created_at->format('d/m/Y H:i:s'),
                 'created_at_formatted' => $supplier->created_at->format('d/m/Y H:i:s'),
                 'machinery_image_url' => $supplier->machinery && $supplier->machinery->image 
-                    ? asset($supplier->machinery->image) 
+                    ? asset('storage-file/' . $supplier->machinery->image) 
                     : null,
             ]);
         }
@@ -264,6 +266,12 @@ class SupplierController extends Controller
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
 
+        // Un aprendiz no puede solicitar eliminar registros de otro aprendiz
+        if ($supplier->created_by !== null && $supplier->created_by !== $currentUserId) {
+            return redirect()->route('aprendiz.machinery.supplier.index')
+                ->with('error', 'No puede solicitar permisos para eliminar registros que no le pertenecen.');
+        }
+
         $existing = \App\Models\Notification::where('from_user_id', $currentUserId)
             ->where('supplier_id', $supplier->id)
             ->where('type', 'delete_request')
@@ -306,7 +314,7 @@ class SupplierController extends Controller
         }
 
         return redirect()->route('aprendiz.machinery.supplier.index')
-            ->with('success', 'Solicitud de eliminación enviada al administrador. Recibirá una notificación cuando sea aprobada.');
+            ->with('success', 'Solicitud de eliminación enviada al administrador.');
     }
 
     /**
@@ -355,6 +363,12 @@ class SupplierController extends Controller
     public function destroy(Supplier $supplier)
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
+
+        // Un aprendiz no puede eliminar registros de otro aprendiz
+        if ($supplier->created_by !== null && $supplier->created_by !== $currentUserId) {
+            return redirect()->back()
+                ->with('error', 'No tiene permisos para eliminar este registro. Solo puede eliminar sus propios registros.');
+        }
 
         $approvedNotification = \App\Models\Notification::where('user_id', $currentUserId)
             ->where('supplier_id', $supplier->id)

@@ -160,7 +160,8 @@ class UsageControlController extends Controller
                 $data['end_date'] = null;
                 $data['hours'] = $request->hours ?? 0;
             }
-            
+
+            $data['created_by'] = auth()->id();
             UsageControl::create($data);
             
             return redirect()->route('aprendiz.machinery.usage-control.index')
@@ -198,7 +199,7 @@ class UsageControlController extends Controller
                 'created_at' => $usageControl->created_at->format('d/m/Y H:i:s'),
                 'created_at_formatted' => $usageControl->created_at->format('d/m/Y H:i:s'),
                 'machinery_image_url' => $usageControl->machinery && $usageControl->machinery->image 
-                    ? asset($usageControl->machinery->image) 
+                    ? asset('storage-file/' . $usageControl->machinery->image) 
                     : null,
             ]);
         }
@@ -336,6 +337,12 @@ class UsageControlController extends Controller
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
 
+        // Un aprendiz no puede solicitar eliminar registros de otro aprendiz
+        if ($usageControl->created_by !== null && $usageControl->created_by !== $currentUserId) {
+            return redirect()->route('aprendiz.machinery.usage-control.index')
+                ->with('error', 'No puede solicitar permisos para eliminar registros que no le pertenecen.');
+        }
+
         $existing = \App\Models\Notification::where('from_user_id', $currentUserId)
             ->where('usage_control_id', $usageControl->id)
             ->where('type', 'delete_request')
@@ -378,7 +385,7 @@ class UsageControlController extends Controller
         }
 
         return redirect()->route('aprendiz.machinery.usage-control.index')
-            ->with('success', 'Solicitud de eliminación enviada al administrador. Recibirá una notificación cuando sea aprobada.');
+            ->with('success', 'Solicitud de eliminación enviada al administrador.');
     }
 
     /**
@@ -427,6 +434,12 @@ class UsageControlController extends Controller
     public function destroy(UsageControl $usageControl)
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
+
+        // Un aprendiz no puede eliminar registros de otro aprendiz
+        if ($usageControl->created_by !== null && $usageControl->created_by !== $currentUserId) {
+            return redirect()->back()
+                ->with('error', 'No tiene permisos para eliminar este registro. Solo puede eliminar sus propios registros.');
+        }
 
         $approvedNotification = \App\Models\Notification::where('user_id', $currentUserId)
             ->where('usage_control_id', $usageControl->id)

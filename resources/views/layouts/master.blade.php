@@ -232,10 +232,10 @@
 
         <!-- Sidebar -->
         <div :class="sidebarOpen ? 'translate-x-0 ease-out' : '-translate-x-full ease-in'" class="fixed inset-y-0 left-0 z-30 w-64 sm:w-72 bg-white shadow-lg transition duration-300 transform lg:translate-x-0 lg:static lg:inset-0 flex flex-col h-screen overflow-hidden">
-            <!-- Logo/Brand -->
+            <!-- Logo/Brand (si no existe img, se muestra fallback COMPOST CEFA) -->
             <div class="h-32 flex items-center justify-center border-b border-soft-gray-200 px-4 flex-shrink-0">
-                <img src="{{ asset('img/logo-compost-cefa.webp') }}" alt="COMPOST CEFA" class="h-28 w-auto max-w-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                <div class="h-28 hidden items-center justify-center gap-2 text-soft-green-700 font-bold text-lg" style="display: none;">
+                <img src="{{ asset('img/logo-compost-cefa.webp') }}" alt="COMPOST CEFA" class="h-28 w-auto max-w-full object-contain logo-img" onerror="this.classList.add('!hidden'); var fb = this.nextElementSibling; if(fb) { fb.classList.remove('hidden'); fb.style.display = 'flex'; }">
+                <div class="h-28 hidden items-center justify-center gap-2 text-soft-green-700 font-bold text-lg logo-fallback" style="display: none;">
                     <i class="fas fa-seedling text-2xl"></i>
                     <span>COMPOST CEFA</span>
                 </div>
@@ -492,12 +492,12 @@
                             @endif
                         </button>
                         
-                        <!-- Notifications Dropdown -->
-                        <div id="notificationsMenu" class="hidden absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-lg shadow-lg border border-soft-gray-200 py-2 z-50 max-h-96 overflow-y-auto">
-                            <div class="px-4 py-2 border-b border-soft-gray-100 flex items-center justify-between">
+                        <!-- Notifications Dropdown: en móvil fixed para verse completo en pantalla, en escritorio absolute bajo la campana -->
+                        <div id="notificationsMenu" class="hidden fixed left-2 right-2 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80 bg-white rounded-lg shadow-lg border border-soft-gray-200 py-2 z-50 max-h-[70vh] sm:max-h-96 overflow-y-auto min-w-0">
+                            <div class="px-3 sm:px-4 py-2 border-b border-soft-gray-100 flex flex-wrap items-center justify-between gap-2">
                                 <h3 class="text-sm font-semibold text-soft-gray-800">Notificaciones</h3>
                                 <a href="{{ route('admin.notifications.history') }}" 
-                                   class="text-xs text-soft-green-600 hover:text-soft-green-700 font-medium">
+                                   class="text-xs text-soft-green-600 hover:text-soft-green-700 font-medium whitespace-nowrap">
                                     Ver historial
                                 </a>
                             </div>
@@ -515,25 +515,17 @@
                             @forelse($notifications as $notification)
                                 @if($notification->type === 'maintenance_reminder')
                                     <!-- Notificación de Mantenimiento -->
-                                    <div class="px-4 py-3 hover:bg-soft-gray-50 border-b border-soft-gray-100 last:border-b-0">
-                                        <div class="flex items-start space-x-3">
+                                    <div class="px-3 sm:px-4 py-3 hover:bg-soft-gray-50 border-b border-soft-gray-100 last:border-b-0">
+                                        <div class="flex items-start gap-2 sm:space-x-3 min-w-0">
                                             <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
                                                 <i class="fas fa-tools text-orange-600 text-sm"></i>
                                             </div>
                                             <div class="flex-1 min-w-0">
-                                                <p class="text-sm font-medium text-soft-gray-800">
-                                                    Recordatorio de Mantenimiento
-                                                </p>
-                                                <p class="text-xs text-soft-gray-600 mt-1">
-                                                    {{ $notification->machinery->name ?? 'Maquinaria no encontrada' }}
-                                                </p>
-                                                <p class="text-xs text-soft-gray-500 mt-1">
-                                                    {{ $notification->message }}
-                                                </p>
-                                                <p class="text-xs text-soft-gray-500 mt-1">
-                                                    {{ $notification->created_at->diffForHumans() }}
-                                                </p>
-                                                <div class="flex space-x-2 mt-2">
+                                                <p class="text-sm font-medium text-soft-gray-800 break-words">Recordatorio de Mantenimiento</p>
+                                                <p class="text-xs text-soft-gray-600 mt-1 break-words">{{ $notification->machinery->name ?? 'Maquinaria no encontrada' }}</p>
+                                                <p class="text-xs text-soft-gray-500 mt-1 break-words">{{ $notification->message }}</p>
+                                                <p class="text-xs text-soft-gray-500 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
+                                                <div class="flex flex-wrap gap-2 mt-2">
                                                     <button onclick="markNotificationAsRead({{ $notification->id }})" 
                                                         class="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600 transition-colors">
                                                         Marcar como leída
@@ -544,16 +536,14 @@
                                     </div>
                                 @elseif($notification->type === 'delete_request')
                                     <!-- Notificación de Solicitud de Eliminación -->
-                                    <div class="px-4 py-3 hover:bg-soft-gray-50 border-b border-soft-gray-100 last:border-b-0">
-                                        <div class="flex items-start space-x-3">
+                                    <div class="px-3 sm:px-4 py-3 hover:bg-soft-gray-50 border-b border-soft-gray-100 last:border-b-0">
+                                        <div class="flex items-start gap-2 sm:space-x-3 min-w-0">
                                             <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
                                                 <i class="fas fa-trash text-yellow-600 text-sm"></i>
                                             </div>
                                             <div class="flex-1 min-w-0">
-                                                <p class="text-sm font-medium text-soft-gray-800">
-                                                    {{ $notification->fromUser->name ?? 'Usuario desconocido' }}
-                                                </p>
-                                                <p class="text-xs text-soft-gray-600 mt-1">
+                                                <p class="text-sm font-medium text-soft-gray-800 break-words">{{ $notification->fromUser->name ?? 'Usuario desconocido' }}</p>
+                                                <p class="text-xs text-soft-gray-600 mt-1 break-words">
                                                     @if($notification->composting_id)
                                                         Solicita eliminar pila de compostaje #{{ $notification->composting->formatted_pile_num ?? 'N/A' }}
                                                     @elseif($notification->organic_id)
@@ -570,10 +560,8 @@
                                                         {{ $notification->message }}
                                                     @endif
                                                 </p>
-                                                <p class="text-xs text-soft-gray-500 mt-1">
-                                                    {{ $notification->created_at->diffForHumans() }}
-                                                </p>
-                                                <div class="flex space-x-2 mt-2">
+                                                <p class="text-xs text-soft-gray-500 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
+                                                <div class="flex flex-wrap gap-2 mt-2">
                                                     <button onclick="approveDeleteRequest({{ $notification->id }})" 
                                                         class="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors">
                                                         Aprobar
@@ -588,7 +576,7 @@
                                     </div>
                                 @endif
                             @empty
-                                <div class="px-4 py-6 text-center">
+                                <div class="px-3 sm:px-4 py-6 text-center">
                                     <i class="fas fa-bell-slash text-soft-gray-400 text-2xl mb-2"></i>
                                     <p class="text-sm text-soft-gray-500">No hay notificaciones pendientes</p>
                                 </div>
@@ -778,31 +766,42 @@
         }
 
         function approveDeleteRequest(notificationId) {
+            const csrf = document.querySelector('meta[name="csrf-token"]');
+            const token = csrf ? csrf.getAttribute('content') : '';
             fetch(`/admin/notifications/${notificationId}/approve`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                }
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json'
+                },
+                body: new URLSearchParams({ _token: token })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(d => Promise.reject(d));
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     Swal.fire({
                         title: '¡Aprobado!',
-                        text: 'Solicitud de eliminación aprobada exitosamente',
+                        text: 'Solicitud aprobada. Recarga la página para ver el conteo.',
                         icon: 'success',
                         confirmButtonColor: '#22c55e'
                     }).then(() => {
                         location.reload();
                     });
+                } else {
+                    Swal.fire({ title: 'Error', text: data.message || 'No se pudo aprobar', icon: 'error' });
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
                 Swal.fire({
                     title: 'Error',
-                    text: 'Ocurrió un error al procesar la solicitud',
+                    text: error.message || 'Ocurrió un error al procesar la solicitud',
                     icon: 'error'
                 });
             });

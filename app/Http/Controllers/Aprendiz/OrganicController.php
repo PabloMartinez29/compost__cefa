@@ -404,7 +404,7 @@ class OrganicController extends Controller
         }
 
         return redirect()->route('aprendiz.organic.index')
-            ->with('success', 'Solicitud de eliminación enviada al administrador. Recibirá una notificación cuando sea aprobada.');
+            ->with('success', 'Solicitud de eliminación enviada al administrador.');
     }
 
     /**

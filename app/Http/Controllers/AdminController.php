@@ -137,6 +137,11 @@ class AdminController extends Controller
      */
     public function approveNotification(Notification $notification)
     {
+        // Solo el admin receptor puede aprobar; la notificación debe ser para él
+        if ($notification->user_id !== auth()->id()) {
+            return response()->json(['success' => false, 'message' => 'No autorizado'], 403);
+        }
+
         $notification->update([
             'status' => 'approved',
             'read_at' => null // Reset read_at so apprentice sees the response
@@ -301,12 +306,27 @@ class AdminController extends Controller
      */
     public function notificationsHistory()
     {
-        $notifications = Notification::where('user_id', auth()->id())
-            ->whereIn('type', ['delete_request', 'maintenance_reminder'])
+        $userId = auth()->id();
+        $types = ['delete_request', 'maintenance_reminder'];
+
+        $notifications = Notification::where('user_id', $userId)
+            ->whereIn('type', $types)
             ->with(['fromUser', 'organic', 'composting', 'machinery', 'maintenance', 'supplier', 'usageControl'])
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
-        return view('admin.notifications.history', compact('notifications'));
+        // Conteos sobre todo el historial del admin (las que recibió y su estado actual)
+        $totalCount = Notification::where('user_id', $userId)->whereIn('type', $types)->count();
+        $pendingCount = Notification::where('user_id', $userId)->whereIn('type', $types)->where('status', 'pending')->count();
+        $approvedCount = Notification::where('user_id', $userId)->whereIn('type', $types)->where('status', 'approved')->count();
+        $rejectedCount = Notification::where('user_id', $userId)->whereIn('type', $types)->where('status', 'rejected')->count();
+
+        return view('admin.notifications.history', compact(
+            'notifications',
+            'totalCount',
+            'pendingCount',
+            'approvedCount',
+            'rejectedCount'
+        ));
     }
 }

@@ -557,7 +557,7 @@ class CompostingController extends Controller
 
         \Log::info('=== REQUEST DELETE PERMISSION END ===');
         return redirect()->route('aprendiz.composting.index')
-            ->with('success', 'Solicitud de eliminación enviada al administrador. Recibirá una notificación cuando sea aprobada.');
+            ->with('success', 'Solicitud de eliminación enviada al administrador.');
     }
 
     /**

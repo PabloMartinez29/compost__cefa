@@ -24,6 +24,18 @@
 
     <!-- Main Content -->
     <div class="waste-container animate-fade-in-up animate-delay-2">
+        @if($availableOrganics->isEmpty())
+            <div class="bg-amber-50 border border-amber-300 text-amber-800 rounded-lg p-4 mb-6">
+                <p class="font-semibold flex items-center">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    No hay residuos orgánicos con stock en bodega
+                </p>
+                <p class="text-sm mt-1">Para crear una pila debes tener <strong>residuos orgánicos</strong> registrados (módulo Residuos) y <strong>stock en bodega</strong> (módulo Bodega). Carga al menos un tipo de residuo y registra entradas en bodega; luego podrás crear la pila.</p>
+                <a href="{{ route('admin.composting.index') }}" class="inline-flex items-center mt-3 text-amber-700 hover:text-amber-900 font-medium">
+                    <i class="fas fa-arrow-left mr-1"></i> Volver al listado
+                </a>
+            </div>
+        @endif
         <form action="{{ route('admin.composting.store') }}" method="POST" id="compostingForm" enctype="multipart/form-data">
             @csrf
             
@@ -98,9 +110,9 @@
 
                     <!-- Imagen de la Pila -->
                     <div class="waste-form-group md:col-span-3">
-                        <label class="waste-form-label">Imagen de la Pila</label>
+                        <label class="waste-form-label">Imagen de la Pila <span class="text-red-500">*</span></label>
                         <div class="relative">
-                            <input type="file" name="image" id="image" 
+                            <input type="file" name="image" id="image" required
                                    class="waste-form-input @error('image') border-red-500 @enderror" 
                                    accept="image/*" onchange="previewImage(this)">
                             <div id="imagePreview" class="mt-4 hidden">

@@ -26,16 +26,38 @@ use App\Http\Controllers\Aprendiz\SupplierController as AprendizSupplierControll
 use App\Http\Controllers\Aprendiz\MaintenanceController as AprendizMaintenanceController;
 use App\Http\Controllers\Aprendiz\UsageControlController as AprendizUsageControlController;
 
-// Servir archivos de storage cuando el enlace simbólico devuelve 403 (p. ej. en algunos entornos Windows/Laragon)
-Route::get('/storage/{path}', function (string $path) {
+// Función para servir archivos de storage (evita 403 cuando el servidor bloquea public/storage)
+$serveStorageFile = function (string $path) {
     $path = str_replace(['../', '..\\'], '', $path);
-    if (!Storage::disk('public')->exists($path)) {
-        abort(404);
+    $fullPath = null;
+    if (Storage::disk('public')->exists($path)) {
+        $fullPath = Storage::disk('public')->path($path);
     }
-    $fullPath = Storage::disk('public')->path($path);
+    if (!$fullPath && function_exists('upload_base_path')) {
+        $publicPath = upload_base_path('storage/' . $path);
+        if (file_exists($publicPath) && is_file($publicPath)) {
+            $fullPath = $publicPath;
+        }
+    }
+    if (!$fullPath || !file_exists($fullPath)) {
+        // Devolver placeholder en lugar de 404: no llena la consola y se ve un icono
+        $svg = '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">'
+            . '<rect width="100" height="100" fill="#e5e7eb"/>'
+            . '<path d="M30 35h40v30H30z" fill="#9ca3af"/>'
+            . '<circle cx="50" cy="42" r="8" fill="#6b7280"/>'
+            . '<path d="M32 65l8-10 6 8 12-14 14 16H32z" fill="#6b7280"/>'
+            . '</svg>';
+        return response($svg, 200, ['Content-Type' => 'image/svg+xml', 'Cache-Control' => 'public, max-age=3600']);
+    }
     $mime = mime_content_type($fullPath) ?: 'application/octet-stream';
     return response()->file($fullPath, ['Content-Type' => $mime]);
-})->where('path', '.*')->name('storage.serve');
+};
+
+// Ruta /storage/ (el servidor puede devolver 403 si sirve la carpeta directamente)
+Route::get('/storage/{path}', $serveStorageFile)->where('path', '.*')->name('storage.serve');
+
+// Ruta alternativa /storage-file/ para que Laravel siempre sirva el archivo (evita 403 en Laragon/Windows)
+Route::get('/storage-file/{path}', $serveStorageFile)->where('path', '.*')->name('storage.file');
 
 Route::get('/', function () {
     return view('welcome');
