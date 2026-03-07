@@ -5,6 +5,8 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\NoCacheHeaders;
+use Illuminate\Session\TokenMismatchException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -13,13 +15,17 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Alias de roles
         $middleware->alias([
             'role' => CheckRole::class,
         ]);
-        // Asegurar que todas las rutas web usen español para mensajes de validación y alertas
-        $middleware->web(append: [SetLocale::class]);
+        // Middleware global web
+        $middleware->web(append: [SetLocale::class, NoCacheHeaders::class]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        // Manejo de sesión expirada (419)
+        $exceptions->renderable(function (TokenMismatchException $e, $request) {
+            return redirect()->route('login')
+                ->with('error', 'Tu sesión expiró. Por favor inicia sesión nuevamente.');
+        });
     })->create();
-

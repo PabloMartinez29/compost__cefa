@@ -1,5 +1,6 @@
 <?php
 
+// Comando UpdateMaintenanceNotificationMessages — Actualiza mensajes de notificación
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;

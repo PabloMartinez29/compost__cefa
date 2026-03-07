@@ -3,10 +3,6 @@
 @section('content')
 @vite(['resources/css/waste.css'])
 
-@php
-    use Illuminate\Support\Facades\Storage;
-@endphp
-
 <div class="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
     <!-- Header -->
     <div class="waste-header animate-fade-in-up">
@@ -127,8 +123,8 @@
                         <div class="flex gap-3">
                             <div class="flex-shrink-0">
                                 @if($composting->image)
-                                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 cursor-pointer" onclick="openImageModal('{{ Storage::url($composting->image) }}')">
-                                        <img src="{{ Storage::url($composting->image) }}" alt="{{ $composting->formatted_pile_num }}" class="w-full h-full object-cover" onerror="this.style.display='none';">
+                                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 cursor-pointer" onclick="openImageModal('{{ asset('storage-file/'.$composting->image) }}')">
+                                        <img src="{{ asset('storage-file/'.$composting->image) }}" alt="{{ $composting->formatted_pile_num }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                         <div class="w-full h-full bg-gray-200 flex items-center justify-center" style="display: none;"><i class="fas fa-mountain text-gray-400"></i></div>
                                     </div>
                                 @else
@@ -144,8 +140,41 @@
                         </div>
                         <div class="waste-mobile-card-actions mt-4 pt-3 border-t border-gray-200">
                             <button type="button" onclick="openViewModal({{ $composting->id }})" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg flex-shrink-0" title="Ver"><i class="fas fa-eye"></i></button>
-                            <a href="{{ route('aprendiz.composting.edit', $composting) }}" class="p-2 text-green-600 hover:bg-green-50 rounded-lg flex-shrink-0" title="Editar"><i class="fas fa-edit"></i></a>
-                            <form action="{{ route('aprendiz.composting.destroy', $composting) }}" method="POST" class="inline flex-shrink-0" onsubmit="return confirmDelete(event, this)">@csrf @method('DELETE')<button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Eliminar"><i class="fas fa-trash"></i></button></form>
+                            @if($composting->created_by === auth()->id())
+                                <a href="{{ route('aprendiz.composting.edit', $composting) }}" class="p-2 text-green-600 hover:bg-green-50 rounded-lg flex-shrink-0" title="Editar"><i class="fas fa-edit"></i></a>
+                                @php
+                                    $isApprovedC = isset($approvedCompostingIds) && in_array($composting->id, $approvedCompostingIds);
+                                    $isPendingC = isset($pendingCompostingIds) && in_array($composting->id, $pendingCompostingIds);
+                                    $isRejectedC = isset($rejectedCompostingIds) && in_array($composting->id, $rejectedCompostingIds);
+                                @endphp
+                                @if($isRejectedC)
+                                    <button type="button" onclick="showRejectedAlert({{ $composting->id }})" class="p-2 text-red-600 rounded-lg flex-shrink-0" title="Solicitud rechazada"><i class="fas fa-ban"></i></button>
+                                @elseif($isApprovedC)
+                                    <form id="delete-form-card-c-{{ $composting->id }}" action="{{ route('aprendiz.composting.destroy', $composting) }}" method="POST" class="inline flex-shrink-0">@csrf @method('DELETE')<button type="button" onclick="confirmDelete('delete-form-card-c-{{ $composting->id }}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Eliminar"><i class="fas fa-trash"></i></button></form>
+                                @elseif($isPendingC)
+                                    <button type="button" class="p-2 text-yellow-500 cursor-default rounded-lg flex-shrink-0" title="Permiso pendiente"><i class="fas fa-hourglass-half"></i></button>
+                                @else
+                                    <button type="button" onclick="requestDeletePermission({{ $composting->id }})" class="p-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="Solicitar eliminar"><i class="fas fa-trash"></i></button>
+                                @endif
+                            @elseif($composting->creator && $composting->creator->role === 'admin')
+                                @php
+                                    $isApprovedC = isset($approvedCompostingIds) && in_array($composting->id, $approvedCompostingIds);
+                                    $isPendingC = isset($pendingCompostingIds) && in_array($composting->id, $pendingCompostingIds);
+                                    $isRejectedC = isset($rejectedCompostingIds) && in_array($composting->id, $rejectedCompostingIds);
+                                @endphp
+                                @if($isRejectedC)
+                                    <button type="button" onclick="showRejectedAlert({{ $composting->id }})" class="p-2 text-red-600 rounded-lg flex-shrink-0" title="Solicitud rechazada"><i class="fas fa-ban"></i></button>
+                                @elseif($isApprovedC)
+                                    <form id="delete-form-card-c-{{ $composting->id }}" action="{{ route('aprendiz.composting.destroy', $composting) }}" method="POST" class="inline flex-shrink-0">@csrf @method('DELETE')<button type="button" onclick="confirmDelete('delete-form-card-c-{{ $composting->id }}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Eliminar"><i class="fas fa-trash"></i></button></form>
+                                @elseif($isPendingC)
+                                    <button type="button" class="p-2 text-yellow-500 cursor-default rounded-lg flex-shrink-0" title="Permiso pendiente"><i class="fas fa-hourglass-half"></i></button>
+                                @else
+                                    <button type="button" onclick="requestDeletePermission({{ $composting->id }})" class="p-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="Solicitar eliminar"><i class="fas fa-trash"></i></button>
+                                @endif
+                            @else
+                                <button type="button" class="p-2 text-gray-400 rounded-lg flex-shrink-0 cursor-not-allowed" title="Solo puede eliminar sus propias pilas"><i class="fas fa-lock"></i></button>
+                                <button type="button" class="p-2 text-gray-400 rounded-lg flex-shrink-0 cursor-not-allowed" title="No puede eliminar pilas de otro aprendiz"><i class="fas fa-trash"></i></button>
+                            @endif
                             <a href="{{ route('aprendiz.composting.download.pdf', $composting) }}" class="p-2 text-red-700 hover:bg-red-50 rounded-lg flex-shrink-0" title="PDF"><i class="fas fa-file-pdf"></i></a>
                         </div>
                     </div>
@@ -177,10 +206,10 @@
                         <tr data-id="{{ $composting->id }}">
                             <td class="text-center">
                                 @if($composting->image)
-                                    <img src="{{ Storage::url($composting->image) }}" 
+                                    <img src="{{ asset('storage-file/'.$composting->image) }}" 
                                          alt="{{ $composting->formatted_pile_num }}" 
                                          class="w-12 h-12 object-cover rounded-full cursor-pointer hover:opacity-80 transition-opacity"
-                                         onclick="openImageModal('{{ Storage::url($composting->image) }}')"
+                                         onclick="openImageModal('{{ asset('storage-file/'.$composting->image) }}')"
                                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                     <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center" style="display: none;">
                                         <i class="fas fa-image text-gray-400"></i>

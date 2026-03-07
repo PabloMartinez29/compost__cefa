@@ -174,11 +174,11 @@
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Fecha de registro:</span>
-                        <span class="detail-value">{{ $fertilizer->created_at->format('d/m/Y H:i:s') }}</span>
+                        <span class="detail-value">{{ $fertilizer->created_at ? $fertilizer->created_at->format('d/m/Y H:i:s') : 'N/A' }}</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Última actualización:</span>
-                        <span class="detail-value">{{ $fertilizer->updated_at->format('d/m/Y H:i:s') }}</span>
+                        <span class="detail-value">{{ $fertilizer->updated_at ? $fertilizer->updated_at->format('d/m/Y H:i:s') : 'N/A' }}</span>
                     </div>
                 </td>
             </tr>

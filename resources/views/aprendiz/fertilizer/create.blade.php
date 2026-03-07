@@ -91,7 +91,8 @@
                             </label>
                             <div class="relative">
                                 <select name="composting_id" id="composting_id" 
-                                        class="w-full px-3 py-2.5 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 text-sm @error('composting_id') border-red-500 @enderror appearance-none bg-white" 
+                                        class="w-full px-3 py-2.5 pr-10 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 text-sm @error('composting_id') border-red-500 @enderror appearance-none bg-white" 
+                                        style="background-image: none;"
                                         required>
                                     <option value="">Seleccionar pila completada...</option>
                                     @foreach($completedCompostings ?? [] as $composting)
@@ -103,6 +104,9 @@
                                         </option>
                                     @endforeach
                                 </select>
+                                <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
+                                    <i class="fas fa-chevron-down text-sm"></i>
+                                </span>
                             </div>
                             <p id="selectedPileText" class="text-xs text-gray-600 mt-1 italic hidden"></p>
                             @error('composting_id')

@@ -1,5 +1,6 @@
 <?php
 
+// Controlador Aprendiz MaintenanceController — Mantenimientos (vista aprendiz)
 namespace App\Http\Controllers\Aprendiz;
 
 use App\Http\Controllers\Controller;
@@ -12,9 +13,7 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class MaintenanceController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Listar todos los registros
     public function index()
     {
         $maintenances = Maintenance::with('machinery')
@@ -66,6 +65,7 @@ class MaintenanceController extends Controller
         $rejectedMaintenanceIds = array_unique(array_merge($rejectedMaintenanceIds, $rejectedFromPending));
         $machineries = Machinery::orderBy('name')->get();
 
+        // Mostrar vista
         return view('aprendiz.machinery.maintenances.index', compact(
             'maintenances', 
             'totalMaintenances', 
@@ -80,19 +80,16 @@ class MaintenanceController extends Controller
         ));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    // Mostrar formulario de creación
     public function create()
     {
         // Mostrar todas las maquinarias, incluso las que ya tienen registros
         $machineries = Machinery::orderBy('name')->get();
+        // Mostrar vista
         return view('aprendiz.machinery.maintenances.create', compact('machineries'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Guardar nuevo registro
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -119,6 +116,7 @@ class MaintenanceController extends Controller
         ]);
 
         if ($validator->fails()) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
@@ -135,18 +133,18 @@ class MaintenanceController extends Controller
             $data['created_by'] = auth()->id();
             Maintenance::create($data);
 
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.machinery.maintenance.index')
                 ->with('success', 'Registro de mantenimiento creado exitosamente.');
         } catch (\Exception $e) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Error al crear el registro: ' . $e->getMessage())
                 ->withInput();
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
+    // Mostrar detalle del registro
     public function show(Maintenance $maintenance)
     {
         $maintenance->load('machinery');
@@ -169,12 +167,11 @@ class MaintenanceController extends Controller
             ]);
         }
         
+        // Mostrar vista
         return view('aprendiz.machinery.maintenances.show', compact('maintenance'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    // Mostrar formulario de edición
     public function edit(Maintenance $maintenance)
     {
         $machineries = Machinery::orderBy('name')->get();
@@ -202,12 +199,11 @@ class MaintenanceController extends Controller
             ]);
         }
         
+        // Mostrar vista
         return view('aprendiz.machinery.maintenances.edit', compact('maintenance', 'machineries'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    // Actualizar registro existente
     public function update(Request $request, Maintenance $maintenance)
     {
         $validator = Validator::make($request->all(), [
@@ -234,6 +230,7 @@ class MaintenanceController extends Controller
         ]);
 
         if ($validator->fails()) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
@@ -249,24 +246,29 @@ class MaintenanceController extends Controller
                 $maintenance->machinery->scheduleNextMaintenanceDue();
             }
             
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.machinery.maintenance.index')
                 ->with('success', 'Registro de mantenimiento actualizado exitosamente.');
         } catch (\Exception $e) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Error al actualizar el registro: ' . $e->getMessage())
                 ->withInput();
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    /**
-     * Request permission to delete maintenance
-     */
+    // Eliminar registro del sistema
+    // Request permission to delete maintenance
     public function requestDeletePermission(Maintenance $maintenance)
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
+
+        // Un aprendiz no puede solicitar eliminar registros de otro aprendiz
+        if ($maintenance->created_by !== $currentUserId) {
+            // Redirigir con mensaje
+            return redirect()->route('aprendiz.machinery.maintenance.index')
+                ->with('permission_required', 'No puede solicitar permisos para registros que no le pertenecen.');
+        }
 
         // Evitar solicitudes duplicadas
         $existing = \App\Models\Notification::where('from_user_id', $currentUserId)
@@ -276,11 +278,13 @@ class MaintenanceController extends Controller
             ->first();
         
         if ($existing && $existing->status === 'pending') {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.machinery.maintenance.index')
                 ->with('permission_required', 'Su solicitud de eliminación ya está pendiente de aprobación del administrador.');
         }
         
         if ($existing && $existing->status === 'approved') {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.machinery.maintenance.index')
                 ->with('success', 'Su solicitud ya fue aprobada. Ahora puede eliminar el registro.');
         }
@@ -312,13 +316,12 @@ class MaintenanceController extends Controller
             }
         }
 
-        return redirect()->route('aprendiz.machinery.maintenance.index')
-            ->with('success', 'Solicitud de eliminación enviada al administrador. Recibirá una notificación cuando sea aprobada.');
+        // Redirigir con mensaje
+            return redirect()->route('aprendiz.machinery.maintenance.index')
+            ->with('success', 'Solicitud de eliminación enviada al administrador.');
     }
 
-    /**
-     * Check delete permission status
-     */
+    // Check delete permission status
     public function checkDeletePermissionStatus(Maintenance $maintenance)
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
@@ -363,6 +366,13 @@ class MaintenanceController extends Controller
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
 
+        // Un aprendiz no puede eliminar registros de otro aprendiz
+        if ($maintenance->created_by !== $currentUserId) {
+            // Redirigir con mensaje
+            return redirect()->back()
+                ->with('error', 'No tiene permisos para eliminar este registro. Solo puede eliminar sus propios registros.');
+        }
+
         // Verificar si hay una notificación de aprobación
         $approvedNotification = \App\Models\Notification::where('user_id', $currentUserId)
             ->where('maintenance_id', $maintenance->id)
@@ -371,6 +381,7 @@ class MaintenanceController extends Controller
             ->first();
 
         if (!$approvedNotification) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'No tiene permiso para eliminar este registro. La solicitud de eliminación no ha sido aprobada por el administrador.');
         }
@@ -381,17 +392,17 @@ class MaintenanceController extends Controller
             // Eliminar la notificación de aprobación
             $approvedNotification->delete();
             
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.machinery.maintenance.index')
                 ->with('success', 'Registro de mantenimiento eliminado exitosamente.');
         } catch (\Exception $e) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Error al eliminar el registro: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Generate PDF for all maintenances (o solo los filtrados si se pasan ids)
-     */
+    // Generate PDF for all maintenances (o solo
     public function downloadAllMaintenancesPDF(Request $request)
     {
         $query = Maintenance::with('machinery')->orderBy('date', 'desc');
@@ -417,17 +428,15 @@ class MaintenanceController extends Controller
         return $pdf->download('todos_los_mantenimientos_' . date('Y-m-d') . '.pdf');
     }
 
-    /**
-     * Generate PDF for individual maintenance
-     */
+    // Generate PDF for individual maintenance
     public function downloadMaintenancePDF(Maintenance $maintenance)
     {
         $maintenance->load('machinery');
         
         // Convertir imagen a base64 si existe
         $imageBase64 = null;
-        if ($maintenance->machinery && $maintenance->machinery->image && file_exists(public_path($maintenance->machinery->image))) {
-            $imagePath = public_path($maintenance->machinery->image);
+        if ($maintenance->machinery && $maintenance->machinery->image && file_exists(upload_base_path('storage/' . $maintenance->machinery->image))) {
+            $imagePath = upload_base_path('storage/' . $maintenance->machinery->image);
             $imageData = file_get_contents($imagePath);
             $imageInfo = getimagesize($imagePath);
             $mimeType = $imageInfo['mime'];
@@ -446,9 +455,7 @@ class MaintenanceController extends Controller
         return $pdf->download('mantenimiento_' . $maintenance->id . '_' . date('Y-m-d') . '.pdf');
     }
 
-    /**
-     * Devuelve la fecha/hora del próximo mantenimiento por frecuencia (para cronómetro).
-     */
+    // Devuelve la fecha/hora del próximo mantenimiento por
     public function nextMaintenanceDue(Request $request)
     {
         $machineryId = $request->query('machinery_id');

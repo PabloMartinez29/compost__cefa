@@ -6,15 +6,15 @@
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-<div class="container mx-auto px-6 py-8">
+<div class="container mx-auto px-3 sm:px-6 py-4 sm:py-8">
     <!-- Header con colores suaves como la vista de lista -->
     <div class="waste-header animate-fade-in-up">
         <div>
-            <h1 class="text-3xl font-bold text-gray-800">
-                <i class="fas fa-plus text-green-500 mr-3"></i>
+            <h1 class="text-xl sm:text-3xl font-bold text-gray-800">
+                <i class="fas fa-plus text-green-500 mr-2 sm:mr-3"></i>
                 Registrar Uso del Equipo
             </h1>
-            <p class="waste-subtitle">
+            <p class="waste-subtitle text-xs sm:text-base">
                 <i class="fas fa-user-shield text-green-400 mr-2"></i>
                 {{ Auth::user()->name }} - Crear nuevo registro
             </p>
@@ -24,31 +24,32 @@
     <!-- Formulario con estilo de tarjeta como la vista de lista -->
     <div class="waste-card animate-fade-in-up animate-delay-1">
         <!-- Header del formulario -->
-        <div class="waste-card-header">
+        <div class="waste-card-header px-4 sm:px-6 py-3 sm:py-4">
             <div class="flex items-center space-x-3">
                 <div class="waste-card-icon text-green-600">
                     <i class="fas fa-clipboard-check"></i>
                 </div>
-                <h2 class="text-2xl font-bold text-gray-800">Información del Uso del Equipo</h2>
+                <h2 class="text-lg sm:text-2xl font-bold text-gray-800">Información del Uso del Equipo</h2>
             </div>
         </div>
 
         <!-- Cuerpo del formulario -->
-        <div class="p-8">
-            <form action="{{ route('admin.machinery.usage-control.store') }}" method="POST" class="space-y-8" id="usageControlForm">
+        <div class="p-4 sm:p-6 md:p-8">
+            <form action="{{ route('admin.machinery.usage-control.store') }}" method="POST" class="space-y-6 sm:space-y-8" id="usageControlForm">
                 @csrf
                 
                 <!-- Primera fila -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-8">
                     <!-- Maquinaria -->
                     <div class="space-y-2">
-                        <label class="flex items-center text-sm font-semibold text-soft-gray-700">
+                        <label class="flex items-center text-xs sm:text-sm font-semibold text-soft-gray-700">
                             <i class="fas fa-cogs text-soft-green-500 mr-2"></i>
                             Maquinaria *
                         </label>
-                        <div>
+                        <div class="relative">
                             <select name="machinery_id" required
-                                    class="w-full px-4 py-4 pr-10 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 @error('machinery_id') border-red-500 @enderror bg-white">
+                                    class="w-full px-3 sm:px-4 py-3 sm:py-4 pr-10 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 @error('machinery_id') border-red-500 @enderror appearance-none bg-white"
+                                    style="background-image: none;">
                                 <option value="">Seleccionar maquinaria</option>
                                 @foreach($machineries as $machinery)
                                     <option value="{{ $machinery->id }}" {{ old('machinery_id') == $machinery->id ? 'selected' : '' }}>
@@ -56,6 +57,9 @@
                                     </option>
                                 @endforeach
                             </select>
+                            <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
+                                <i class="fas fa-chevron-down text-sm"></i>
+                            </span>
                         </div>
                         @error('machinery_id')
                             <p class="text-red-500 text-sm mt-1 flex items-center">
@@ -67,16 +71,16 @@
 
                     <!-- Responsable -->
                     <div class="space-y-2">
-                        <label class="flex items-center text-sm font-semibold text-soft-gray-700">
+                        <label class="flex items-center text-xs sm:text-sm font-semibold text-soft-gray-700">
                             <i class="fas fa-user text-soft-green-500 mr-2"></i>
                             Responsable *
                         </label>
                         <input type="text" name="responsible" maxlength="150" required
                                value="{{ old('responsible') }}"
                                placeholder="Nombre del responsable"
-                               class="w-full px-4 py-4 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 @error('responsible') border-red-500 @enderror">
+                               class="w-full px-3 sm:px-4 py-3 sm:py-4 text-sm sm:text-base border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 @error('responsible') border-red-500 @enderror">
                         @error('responsible')
-                            <p class="text-red-500 text-sm mt-1 flex items-center">
+                            <p class="text-red-500 text-xs sm:text-sm mt-1 flex items-center">
                                 <i class="fas fa-exclamation-circle mr-1"></i>
                                 {{ $message }}
                             </p>
@@ -85,18 +89,18 @@
                 </div>
 
                 <!-- Segunda fila -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8">
                     <!-- Hora Inicio -->
                     <div class="space-y-2">
-                        <label class="flex items-center text-sm font-semibold text-soft-gray-700">
+                        <label class="flex items-center text-xs sm:text-sm font-semibold text-soft-gray-700">
                             <i class="fas fa-clock text-soft-green-500 mr-2"></i>
                             Fecha/Hora Inicio *
                         </label>
                         <input type="datetime-local" name="start_date" required
                                value="{{ old('start_date') }}"
-                               class="w-full px-4 py-4 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 @error('start_date') border-red-500 @enderror">
+                               class="w-full px-3 sm:px-4 py-3 sm:py-4 text-sm sm:text-base border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 @error('start_date') border-red-500 @enderror">
                         @error('start_date')
-                            <p class="text-red-500 text-sm mt-1 flex items-center">
+                            <p class="text-red-500 text-xs sm:text-sm mt-1 flex items-center">
                                 <i class="fas fa-exclamation-circle mr-1"></i>
                                 {{ $message }}
                             </p>
@@ -105,28 +109,28 @@
 
                     <!-- Hora Fin -->
                     <div class="space-y-2">
-                        <label class="flex items-center text-sm font-semibold text-soft-gray-700">
+                        <label class="flex items-center text-xs sm:text-sm font-semibold text-soft-gray-700">
                             <i class="fas fa-clock text-soft-green-500 mr-2"></i>
                             Fecha/Hora Fin
                         </label>
                         <input type="datetime-local" name="end_date"
                                value="{{ old('end_date') }}"
-                               class="w-full px-4 py-4 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 @error('end_date') border-red-500 @enderror">
+                               class="w-full px-3 sm:px-4 py-3 sm:py-4 text-sm sm:text-base border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 @error('end_date') border-red-500 @enderror">
                         @error('end_date')
-                            <p class="text-red-500 text-sm mt-1 flex items-center">
+                            <p class="text-red-500 text-xs sm:text-sm mt-1 flex items-center">
                                 <i class="fas fa-exclamation-circle mr-1"></i>
                                 {{ $message }}
                             </p>
                         @enderror
-                        <p class="text-gray-500 text-sm mt-1 flex items-center">
+                        <p class="text-gray-500 text-xs sm:text-sm mt-1 flex items-center">
                             <i class="fas fa-info-circle mr-1"></i>
                             Campo opcional. Se puede completar cuando se entregue la maquinaria
                         </p>
                     </div>
 
                     <!-- Total Horas -->
-                    <div class="space-y-2">
-                        <label class="flex items-center text-sm font-semibold text-soft-gray-700">
+                    <div class="space-y-2 sm:col-span-2 lg:col-span-1">
+                        <label class="flex items-center text-xs sm:text-sm font-semibold text-soft-gray-700">
                             <i class="fas fa-hourglass-half text-soft-green-500 mr-2"></i>
                             Total Horas de Uso
                         </label>
@@ -134,14 +138,14 @@
                                value="{{ old('hours', 0) }}"
                                placeholder="0"
                                readonly
-                               class="w-full px-4 py-4 border-2 border-gray-300 rounded-xl bg-gray-100 cursor-not-allowed focus:outline-none @error('hours') border-red-500 @enderror">
+                               class="w-full px-3 sm:px-4 py-3 sm:py-4 text-sm sm:text-base border-2 border-gray-300 rounded-xl bg-gray-100 cursor-not-allowed focus:outline-none @error('hours') border-red-500 @enderror">
                         @error('hours')
-                            <p class="text-red-500 text-sm mt-1 flex items-center">
+                            <p class="text-red-500 text-xs sm:text-sm mt-1 flex items-center">
                                 <i class="fas fa-exclamation-circle mr-1"></i>
                                 {{ $message }}
                             </p>
                         @enderror
-                        <p class="text-gray-500 text-sm mt-1 flex items-center">
+                        <p class="text-gray-500 text-xs sm:text-sm mt-1 flex items-center">
                             <i class="fas fa-info-circle mr-1"></i>
                             Se calcula automáticamente cuando se registran ambas fechas
                         </p>

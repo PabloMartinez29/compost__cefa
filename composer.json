@@ -30,7 +30,8 @@
         },
         "files": [
             "app/Helpers/DateHelper.php",
-            "app/Helpers/TinkerHelper.php"
+            "app/Helpers/TinkerHelper.php",
+            "app/Helpers/upload_path.php"
         ]
     },
     "autoload-dev": {

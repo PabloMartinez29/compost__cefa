@@ -2,13 +2,16 @@
 <html lang="es">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="theme-color" content="#16a34a">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Sistema de Compostaje - Aprendiz</title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/webp" href="{{ asset('img/logo-compost-cefa.webp') }}">
-    <link rel="shortcut icon" type="image/webp" href="{{ asset('img/logo-compost-cefa.webp') }}">
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('favicon.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('img/logo-compost-cefa.webp') }}">
     
     <!-- Fonts -->
@@ -92,19 +95,40 @@
         nav::-webkit-scrollbar-thumb:hover {
             background-color: #9ca3af;
         }
+
+        /* Firefox scrollbar */
+        nav {
+            scrollbar-width: thin;
+            scrollbar-color: #d1d5db transparent;
+        }
+
+        [x-cloak] { display: none !important; }
+
+        /* Sidebar en móvil: oculto por defecto (funciona aunque Alpine no haya cargado) */
+        @media (max-width: 1023px) {
+            .sidebar-aprendiz { transform: translateX(-100%); }
+            .sidebar-aprendiz.sidebar-aprendiz-open { transform: translateX(0); }
+        }
+        @media (min-width: 1024px) {
+            .sidebar-aprendiz { transform: none; }
+        }
     </style>
 </head>
 
 
-<body class="bg-soft-gray-50 font-sans">
+<body class="bg-soft-gray-50 font-sans" x-data="{ sidebarOpen: false }">
     <div class="flex h-screen overflow-hidden">
-        
-        <!-- Sidebar -->
-        <div class="w-64 bg-white shadow-lg sidebar-transition flex flex-col h-screen overflow-hidden">
-            <!-- Logo/Brand -->
+        <!-- Overlay móvil: tap para cerrar sidebar -->
+        <div x-show="sidebarOpen" @click="sidebarOpen = false" x-transition:enter="transition-opacity ease-linear duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity ease-linear duration-300" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-20 bg-black bg-opacity-50 lg:hidden" x-cloak aria-hidden="true"></div>
+
+        <!-- Sidebar: en móvil oculto por defecto (-translate-x-full), en lg siempre visible -->
+        <div class="sidebar-aprendiz fixed inset-y-0 left-0 z-30 w-64 sm:w-72 bg-white shadow-lg flex flex-col h-screen overflow-hidden transition-transform duration-300 ease-in-out -translate-x-full lg:translate-x-0 lg:static lg:inset-0"
+             :class="{ 'translate-x-0 sidebar-aprendiz-open': sidebarOpen, '-translate-x-full': !sidebarOpen }"
+             @click="if ($event.target.closest('a')) sidebarOpen = false">
+            <!-- Logo/Brand (si no existe img, se muestra fallback COMPOST CEFA) -->
             <div class="h-32 flex items-center justify-center border-b border-soft-gray-200 px-4 flex-shrink-0">
-                <img src="{{ asset('img/logo-compost-cefa.webp') }}" alt="COMPOST CEFA" class="h-28 w-auto max-w-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                <div class="h-28 hidden items-center justify-center gap-2 text-soft-green-700 font-bold text-lg" style="display: none;">
+                <img src="{{ asset('img/logo-compost-cefa.webp') }}" alt="COMPOST CEFA" class="h-28 w-auto max-w-full object-contain logo-img" onerror="this.classList.add('!hidden'); var fb = this.nextElementSibling; if(fb) { fb.classList.remove('hidden'); fb.style.display = 'flex'; }">
+                <div class="h-28 hidden items-center justify-center gap-2 text-soft-green-700 font-bold text-lg logo-fallback" style="display: none;">
                     <i class="fas fa-seedling text-2xl"></i>
                     <span>COMPOST CEFA</span>
                 </div>
@@ -337,15 +361,19 @@
         </div>
         
         <!-- Main Content -->
-        <div class="flex-1 flex flex-col overflow-hidden">
+        <div class="flex-1 flex flex-col overflow-hidden min-w-0">
             <!-- Top Navigation -->
-            <header class="h-16 bg-green-100 shadow-sm border-b border-soft-gray-200 flex items-center justify-between px-6">
-                <div class="flex items-center space-x-4">
-                    <h2 class="text-xl font-semibold text-soft-gray-800">Panel de Aprendiz</h2>
+            <header class="h-14 sm:h-16 bg-green-100 shadow-sm border-b border-soft-gray-200 flex items-center justify-between px-3 sm:px-4 lg:px-6">
+                <div class="flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0">
+                    <!-- Botón menú móvil -->
+                    <button @click="sidebarOpen = true" type="button" class="text-soft-gray-600 focus:outline-none lg:hidden flex-shrink-0 p-2" aria-label="Abrir menú">
+                        <i class="fas fa-bars text-lg sm:text-xl"></i>
+                    </button>
+                    <h2 class="text-base sm:text-lg lg:text-xl font-semibold text-soft-gray-800 truncate">Panel de Aprendiz</h2>
                 </div>
                 
                 <!-- User Menu -->
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-1 sm:space-x-2 lg:space-x-4 flex-shrink-0">
                     <!-- Notifications Bell -->
                     <div class="relative" x-data="{ notificationsOpen: false }">
                         @php
@@ -353,7 +381,6 @@
                             $showMaintenanceReminderAlert = \App\Models\Notification::where('user_id', auth()->id())
                                 ->where('type', 'maintenance_reminder')
                                 ->whereNull('read_at')
-                                ->where('created_at', '<=', now()->subMinute())
                                 ->exists();
                             $pendingResponses = \App\Models\Notification::where('from_user_id', auth()->id())
                                 ->where('type', 'delete_request')
@@ -378,7 +405,7 @@
                             @endif
                         </button>
                         
-                        <!-- Notifications Dropdown -->
+                        <!-- Notifications Dropdown: en móvil fixed para verse completo en pantalla, en escritorio absolute bajo la campana -->
                         <div x-show="notificationsOpen" 
                              @click.away="notificationsOpen = false"
                              x-transition:enter="transition ease-out duration-200"
@@ -387,11 +414,11 @@
                              x-transition:leave="transition ease-in duration-150"
                              x-transition:leave-start="opacity-100 scale-100"
                              x-transition:leave-end="opacity-0 scale-95"
-                             class="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-soft-gray-200 py-2 z-50 max-h-96 overflow-y-auto">
-                            <div class="px-4 py-2 border-b border-soft-gray-100 flex items-center justify-between">
+                             class="fixed left-2 right-2 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80 bg-white rounded-lg shadow-lg border border-soft-gray-200 py-2 z-50 max-h-[70vh] sm:max-h-96 overflow-y-auto min-w-0">
+                            <div class="px-3 sm:px-4 py-2 border-b border-soft-gray-100 flex flex-wrap items-center justify-between gap-2">
                                 <h3 class="text-sm font-semibold text-soft-gray-800">Notificaciones</h3>
                                 <a href="{{ route('aprendiz.notifications.history') }}" 
-                                   class="text-xs text-soft-green-600 hover:text-soft-green-700 font-medium">
+                                   class="text-xs text-soft-green-600 hover:text-soft-green-700 font-medium whitespace-nowrap">
                                     Ver historial
                                 </a>
                             </div>
@@ -417,33 +444,33 @@
                             @forelse($notifications as $notification)
                                 @if($notification->type === 'maintenance_reminder')
                                     <!-- Recordatorio de Mantenimiento -->
-                                    <div class="px-4 py-3 hover:bg-soft-gray-50 border-b border-soft-gray-100 last:border-b-0">
-                                        <div class="flex items-start space-x-3">
+                                    <div class="px-3 sm:px-4 py-3 hover:bg-soft-gray-50 border-b border-soft-gray-100 last:border-b-0">
+                                        <div class="flex items-start gap-2 sm:space-x-3 min-w-0">
                                             <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
                                                 <i class="fas fa-tools text-orange-600 text-sm"></i>
                                             </div>
                                             <div class="flex-1 min-w-0">
-                                                <p class="text-sm font-medium text-soft-gray-800">Recordatorio de Mantenimiento</p>
-                                                <p class="text-xs text-soft-gray-600 mt-1">{{ $notification->machinery->name ?? 'Maquinaria no encontrada' }}</p>
-                                                <p class="text-xs text-soft-gray-500 mt-1">{{ $notification->message }}</p>
+                                                <p class="text-sm font-medium text-soft-gray-800 break-words">Recordatorio de Mantenimiento</p>
+                                                <p class="text-xs text-soft-gray-600 mt-1 break-words">{{ $notification->machinery->name ?? 'Maquinaria no encontrada' }}</p>
+                                                <p class="text-xs text-soft-gray-500 mt-1 break-words">{{ $notification->message }}</p>
                                                 <p class="text-xs text-soft-gray-500 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
-                                                <div class="flex space-x-2 mt-2">
+                                                <div class="flex flex-wrap gap-2 mt-2">
                                                     <button onclick="markAsRead({{ $notification->id }})" class="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600 transition-colors">Marcar como leída</button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 @else
-                                <div class="px-4 py-3 hover:bg-soft-gray-50 border-b border-soft-gray-100 last:border-b-0">
-                                    <div class="flex items-start space-x-3">
+                                <div class="px-3 sm:px-4 py-3 hover:bg-soft-gray-50 border-b border-soft-gray-100 last:border-b-0">
+                                    <div class="flex items-start gap-2 sm:space-x-3 min-w-0">
                                         <div class="w-8 h-8 {{ $notification->status === 'approved' ? 'bg-green-100' : 'bg-red-100' }} rounded-full flex items-center justify-center flex-shrink-0">
                                             <i class="fas {{ $notification->status === 'approved' ? 'fa-check text-green-600' : 'fa-times text-red-600' }} text-sm"></i>
                                         </div>
                                         <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-medium text-soft-gray-800">
+                                            <p class="text-sm font-medium text-soft-gray-800 break-words">
                                                 Solicitud {{ $notification->status === 'approved' ? 'Aprobada' : 'Rechazada' }}
                                             </p>
-                                            <p class="text-xs text-soft-gray-600 mt-1">
+                                            <p class="text-xs text-soft-gray-600 mt-1 break-words">
                                                 @if($notification->composting_id)
                                                     Pila de compostaje #{{ $notification->composting->formatted_pile_num ?? 'N/A' }}
                                                 @elseif($notification->machinery_id)
@@ -463,7 +490,7 @@
                                             <p class="text-xs text-soft-gray-500 mt-1">
                                                 {{ $notification->updated_at->diffForHumans() }}
                                             </p>
-                                            <div class="flex space-x-2 mt-2">
+                                            <div class="flex flex-wrap gap-2 mt-2">
                                                 <button onclick="markAsRead({{ $notification->id }})" 
                                                     class="px-2 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600 transition-colors">
                                                     Marcar como leída
@@ -507,11 +534,40 @@
                                 </div>
                                 @endif
                             @empty
-                                <div class="px-4 py-6 text-center">
+                                <div class="px-3 sm:px-4 py-6 text-center">
                                     <i class="fas fa-bell-slash text-soft-gray-400 text-2xl mb-2"></i>
                                     <p class="text-sm text-soft-gray-500">No hay notificaciones nuevas</p>
                                 </div>
                             @endforelse
+                        </div>
+                    </div>
+
+                    <!-- Help Button -->
+                    <div class="relative" x-data="{ helpOpen: false }">
+                        <button @click="helpOpen = !helpOpen" 
+                            class="relative p-1.5 sm:p-2 text-soft-gray-600 hover:text-soft-green-600 hover:bg-soft-gray-100 rounded-lg transition-all duration-200">
+                            <i class="fas fa-question-circle text-base sm:text-lg"></i>
+                        </button>
+                        
+                        <div x-show="helpOpen" 
+                             @click.away="helpOpen = false"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-soft-gray-200 py-2 z-50">
+                            <div class="px-4 py-2 border-b border-soft-gray-100">
+                                <h3 class="text-sm font-semibold text-soft-gray-800"><i class="fas fa-book mr-1"></i> Manual</h3>
+                            </div>
+                            <div class="py-1">
+                                <a href="{{ route('manual.view', 'aprendiz') }}" target="_blank" rel="noopener"
+                                   class="flex items-center px-4 py-2.5 text-sm text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 transition-colors duration-200">
+                                    <i class="fas fa-file-pdf text-red-500 w-5 mr-3"></i>
+                                    Manual de Aprendiz
+                                </a>
+                            </div>
                         </div>
                     </div>
                     
@@ -546,10 +602,6 @@
                             
                             <!-- Menu Items -->
                             <div class="py-1">
-                                <a href="#" class="flex items-center px-4 py-2 text-sm text-soft-gray-700 hover:bg-soft-gray-50 transition-colors duration-200">
-                                    <i class="fas fa-user-cog w-4 text-soft-gray-400 mr-3"></i>
-                                    Perfil
-                                </a>
                                 <a href="{{ url('/') }}" class="flex items-center px-4 py-2 text-sm text-soft-gray-700 hover:bg-soft-gray-50 transition-colors duration-200">
                                     <i class="fas fa-home w-4 text-soft-gray-400 mr-3"></i>
                                     Welcome
@@ -573,8 +625,10 @@
             </header>
             
             <!-- Page Content -->
-            <main class="flex-1 overflow-y-auto bg-soft-gray-50 p-6">
-                @yield('content')
+            <main class="flex-1 overflow-y-auto bg-soft-gray-50 p-3 sm:p-4 lg:p-6">
+                <div class="w-full max-w-full overflow-x-hidden">
+                    @yield('content')
+                </div>
             </main>
         </div>
     </div>
@@ -630,14 +684,36 @@
 
         @if(!empty($showMaintenanceReminderAlert))
         document.addEventListener('DOMContentLoaded', function() {
+            function showMaintenanceReminder() {
+                Swal.fire({
+                    title: 'Recordatorio de Mantenimiento',
+                    text: 'Tiene recordatorios de mantenimiento sin leer. Revise sus notificaciones.',
+                    icon: 'warning',
+                    timer: 15000,
+                    timerProgressBar: true,
+                    showConfirmButton: true,
+                    confirmButtonText: '<i class="fas fa-bell mr-1"></i> Ver Notificaciones',
+                    confirmButtonColor: '#f59e0b'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const bellButton = document.querySelector('[\\@click="notificationsOpen = !notificationsOpen"]');
+                        if (bellButton) bellButton.click();
+                    }
+                });
+            }
+            showMaintenanceReminder();
+            setInterval(showMaintenanceReminder, 15000);
+        });
+        @endif
+
+        @if(session('unauthorized_access'))
+        document.addEventListener('DOMContentLoaded', function() {
             Swal.fire({
-                title: 'Recordatorio de Mantenimiento',
-                text: 'Tiene recordatorios de mantenimiento sin leer. La información se encuentra en Notificaciones.',
-                icon: 'warning',
-                timer: 15000,
-                timerProgressBar: true,
-                showConfirmButton: true,
-                confirmButtonText: 'Entendido'
+                title: '¡Acceso No Autorizado!',
+                text: 'No tienes permisos para acceder a esa sección.',
+                icon: 'error',
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#ef4444'
             });
         });
         @endif

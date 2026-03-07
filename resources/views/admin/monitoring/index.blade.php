@@ -883,6 +883,8 @@ function createExpandedChart(canvasId, data, module) {
         if (isChartJS4) {
             // Configuración para Chart.js 4.x
             const isPieChart = chartType === 'pie' || chartType === 'doughnut';
+            const isNarrow = typeof window !== 'undefined' && window.innerWidth < 640;
+            const legendPosition = isPieChart ? (isNarrow ? 'bottom' : 'right') : 'top';
             
             chartConfig = {
                 type: chartType,
@@ -919,12 +921,13 @@ function createExpandedChart(canvasId, data, module) {
                     plugins: {
                         legend: {
                             display: true,
-                            position: isPieChart ? 'right' : 'top',
+                            position: legendPosition,
                             labels: {
                                 padding: 15,
                                 usePointStyle: isPieChart,
+                                boxWidth: isNarrow ? 12 : 40,
                                 font: {
-                                    size: 14,
+                                    size: isNarrow ? 12 : 14,
                                     weight: 'bold'
                                 }
                             }
@@ -965,6 +968,8 @@ function createExpandedChart(canvasId, data, module) {
         } else {
             // Configuración para Chart.js 2.x
             const isPieChart = chartType === 'pie' || chartType === 'doughnut';
+            const isNarrow = typeof window !== 'undefined' && window.innerWidth < 640;
+            const legendPosition = isPieChart ? (isNarrow ? 'bottom' : 'right') : 'top';
             
             chartConfig = {
                 type: chartType,
@@ -1000,11 +1005,12 @@ function createExpandedChart(canvasId, data, module) {
                     }),
                     legend: {
                         display: true,
-                        position: isPieChart ? 'right' : 'top',
+                        position: legendPosition,
                         labels: {
                             padding: 15,
                             usePointStyle: isPieChart,
-                            fontSize: 14,
+                            boxWidth: isNarrow ? 12 : 40,
+                            fontSize: isNarrow ? 12 : 14,
                             fontStyle: 'bold'
                         }
                     },

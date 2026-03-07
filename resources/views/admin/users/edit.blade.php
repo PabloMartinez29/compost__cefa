@@ -78,50 +78,6 @@
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
                 </div>
-
-                <!-- Password Field -->
-                <div class="waste-form-group">
-                    <label for="password" class="waste-form-label">Nueva Contraseña</label>
-                    <div class="relative">
-                        <input type="password" 
-                               id="password" 
-                               name="password" 
-                               class="waste-form-input @error('password') border-red-500 @enderror pr-10"
-                               placeholder="Dejar vacío para mantener la actual">
-                        <button type="button" 
-                                onclick="togglePassword('password')"
-                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                            <i class="fas fa-eye" id="password-eye"></i>
-                        </button>
-                    </div>
-                    <p class="text-gray-500 text-sm mt-1">
-                        <i class="fas fa-info-circle mr-1"></i>
-                        Deje vacío si no desea cambiar la contraseña
-                    </p>
-                    @error('password')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Confirm Password Field -->
-                <div class="waste-form-group">
-                    <label for="password_confirmation" class="waste-form-label">Confirmar Nueva Contraseña</label>
-                    <div class="relative">
-                        <input type="password" 
-                               id="password_confirmation" 
-                               name="password_confirmation" 
-                               class="waste-form-input @error('password_confirmation') border-red-500 @enderror pr-10"
-                               placeholder="Repita la nueva contraseña">
-                        <button type="button" 
-                                onclick="togglePassword('password_confirmation')"
-                                class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                            <i class="fas fa-eye" id="password_confirmation-eye"></i>
-                        </button>
-                    </div>
-                    @error('password_confirmation')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
             </div>
 
             <!-- User Information -->
@@ -194,49 +150,5 @@
         </form>
     </div>
 </div>
-
-<script>
-function togglePassword(fieldId) {
-    const field = document.getElementById(fieldId);
-    const eye = document.getElementById(fieldId + '-eye');
-    
-    if (field.type === 'password') {
-        field.type = 'text';
-        eye.classList.remove('fa-eye');
-        eye.classList.add('fa-eye-slash');
-    } else {
-        field.type = 'password';
-        eye.classList.remove('fa-eye-slash');
-        eye.classList.add('fa-eye');
-    }
-}
-
-// Password validation
-document.getElementById('password').addEventListener('input', function(e) {
-    const password = e.target.value;
-    const confirmPassword = document.getElementById('password_confirmation');
-    
-    if (password && confirmPassword.value) {
-        if (password !== confirmPassword.value) {
-            confirmPassword.setCustomValidity('Las contraseñas no coinciden');
-        } else {
-            confirmPassword.setCustomValidity('');
-        }
-    }
-});
-
-document.getElementById('password_confirmation').addEventListener('input', function(e) {
-    const password = document.getElementById('password').value;
-    const confirmPassword = e.target.value;
-    
-    if (password && confirmPassword) {
-        if (password !== confirmPassword) {
-            e.target.setCustomValidity('Las contraseñas no coinciden');
-        } else {
-            e.target.setCustomValidity('');
-        }
-    }
-});
-</script>
 
 @endsection

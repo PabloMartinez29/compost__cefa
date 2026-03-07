@@ -1,5 +1,6 @@
 <?php
 
+// Controlador Admin MonitoringController — Monitoreo de pilas en tiempo real
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -16,9 +17,7 @@ use Illuminate\Support\Facades\DB;
 
 class MonitoringController extends Controller
 {
-    /**
-     * Display the monitoring dashboard
-     */
+    // Display the monitoring dashboard
     public function index(Request $request)
     {
         $period = $request->get('period', 'monthly'); // daily, weekly, biweekly, monthly, yearly
@@ -107,6 +106,7 @@ class MonitoringController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
         
+        // Mostrar vista
         return view('admin.monitoring.index', compact(
             'stats',
             'organicData',
@@ -129,9 +129,7 @@ class MonitoringController extends Controller
         ));
     }
     
-    /**
-     * Get date range based on period
-     */
+    // Get date range based on period
     private function getDateRange($period, $startDate = null, $endDate = null)
     {
         if ($startDate && $endDate) {
@@ -176,9 +174,7 @@ class MonitoringController extends Controller
         }
     }
     
-    /**
-     * Get organic waste data for charts
-     */
+    // Get organic waste data for charts
     private function getOrganicData($startDate, $endDate, $period)
     {
         $organics = Organic::with('creator')->whereBetween('created_at', [$startDate, $endDate])->get();
@@ -213,9 +209,7 @@ class MonitoringController extends Controller
         ];
     }
     
-    /**
-     * Get organic waste data general (all records, for small charts)
-     */
+    // Get organic waste data general (all records,
     private function getOrganicDataGeneral()
     {
         $organics = Organic::with('creator')->get();
@@ -241,9 +235,7 @@ class MonitoringController extends Controller
         ];
     }
     
-    /**
-     * Get composting data general (all records, for small charts)
-     */
+    // Get composting data general (all records, for
     private function getCompostingDataGeneral()
     {
         $compostings = Composting::with('creator')->get();
@@ -259,9 +251,7 @@ class MonitoringController extends Controller
         ];
     }
     
-    /**
-     * Get fertilizer data general (all records, for small charts)
-     */
+    // Get fertilizer data general (all records, for
     private function getFertilizerDataGeneral()
     {
         $fertilizers = Fertilizer::all();
@@ -290,9 +280,7 @@ class MonitoringController extends Controller
         ];
     }
     
-    /**
-     * Get composting data for charts
-     */
+    // Get composting data for charts
     private function getCompostingData($startDate, $endDate, $period)
     {
         $compostings = Composting::with('creator')->whereBetween('created_at', [$startDate, $endDate])->get();
@@ -321,9 +309,7 @@ class MonitoringController extends Controller
         ];
     }
     
-    /**
-     * Get tracking data for charts
-     */
+    // Get tracking data for charts
     private function getTrackingData($startDate, $endDate, $period)
     {
         $trackings = Tracking::whereBetween('created_at', [$startDate, $endDate])->get();
@@ -343,9 +329,7 @@ class MonitoringController extends Controller
         ];
     }
     
-    /**
-     * Get fertilizer data for charts
-     */
+    // Get fertilizer data for charts
     private function getFertilizerData($startDate, $endDate, $period)
     {
         $fertilizers = Fertilizer::whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])->get();
@@ -369,9 +353,7 @@ class MonitoringController extends Controller
         ];
     }
     
-    /**
-     * Get warehouse data
-     */
+    // Get warehouse data
     private function getWarehouseData()
     {
         $inventory = WarehouseClassification::getInventoryByType();
@@ -382,9 +364,7 @@ class MonitoringController extends Controller
         ];
     }
     
-    /**
-     * Get machinery data
-     */
+    // Get machinery data
     private function getMachineryData()
     {
         $machineries = Machinery::all();
@@ -417,9 +397,7 @@ class MonitoringController extends Controller
         ];
     }
     
-    /**
-     * Get user activity data
-     */
+    // Get user activity data
     private function getUserActivity($startDate, $endDate)
     {
         $organics = Organic::whereBetween('created_at', [$startDate, $endDate])->get();
@@ -443,9 +421,7 @@ class MonitoringController extends Controller
         return collect($activity)->sortByDesc('organics_count')->take(10);
     }
     
-    /**
-     * Group data by period
-     */
+    // Group data by period
     private function groupByPeriod($collection, $startDate, $endDate, $period, $dateField = 'created_at')
     {
         $grouped = [];
@@ -498,9 +474,7 @@ class MonitoringController extends Controller
         return $grouped;
     }
     
-    /**
-     * Group by period with weight (for organics and fertilizers)
-     */
+    // Group by period with weight (for organics
     private function groupByPeriodWithWeight($collection, $startDate, $endDate, $period, $dateField = 'created_at', $sumColumn = 'weight')
     {
         $grouped = [];
@@ -557,9 +531,7 @@ class MonitoringController extends Controller
         return $grouped;
     }
     
-    /**
-     * Parse date from various formats
-     */
+    // Parse date from various formats
     private function parseDate($date)
     {
         if (is_null($date)) {
@@ -581,9 +553,7 @@ class MonitoringController extends Controller
         return null;
     }
     
-    /**
-     * Generate PDF for monitoring report
-     */
+    // Generate PDF for monitoring report
     public function downloadMonitoringPDF(Request $request)
     {
         $module = $request->get('module', 'residuos');
@@ -646,9 +616,7 @@ class MonitoringController extends Controller
         return $pdf->download('monitoreo_' . $module . '_' . date('Y-m-d') . '.pdf');
     }
     
-    /**
-     * Generate Excel export for monitoring report
-     */
+    // Generate Excel export for monitoring report
     public function downloadMonitoringExcel(Request $request)
     {
         $module = $request->get('module', 'residuos');

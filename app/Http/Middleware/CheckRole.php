@@ -1,5 +1,6 @@
 <?php
 
+// Middleware CheckRole — Verifica el rol del usuario (admin/aprendiz)
 namespace App\Http\Middleware;
 
 use Closure;
@@ -8,11 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 class CheckRole
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
+    // Handle an incoming request
     public function handle(Request $request, Closure $next, $role): Response
     {
         if (!auth()->check()) { 
@@ -39,9 +36,11 @@ class CheckRole
         }
         
         if ($userRole !== $role) { 
-            abort(403, 'Acceso no autorizado.'); 
+            // Redirigir al dashboard correcto del usuario con SweetAlert
+            $redirectRoute = $userRole === 'admin' ? 'dashboard.admin' : 'aprendiz.dashboard';
+            return redirect()->route($redirectRoute)
+                ->with('unauthorized_access', true);
         } 
-
 
         return $next($request);
         

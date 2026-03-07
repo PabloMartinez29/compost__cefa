@@ -1,5 +1,6 @@
 <?php
 
+// Controlador Auth — Restablecer contraseña
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -15,21 +16,17 @@ use Illuminate\View\View;
 
 class NewPasswordController extends Controller
 {
-    /**
-     * Display the password reset view.
-     */
+    // Display the password reset view
     public function create(Request $request): View
     {
+        // Mostrar vista
         return view('auth.reset-password', ['request' => $request]);
     }
 
-    /**
-     * Handle an incoming new password request.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
+    // Handle an incoming new password request
     public function store(Request $request): RedirectResponse
     {
+        // Validar datos recibidos
         $request->validate([
             'token' => ['required'],
             'email' => ['required', 'email'],
@@ -55,6 +52,7 @@ class NewPasswordController extends Controller
         // the application's home authenticated view. If there is an error we can
         // redirect them back to where they came from with their error message.
         if ($status == Password::PASSWORD_RESET) {
+            // Redirigir con mensaje
             return redirect()->route('login')->with('status', __($status));
         }
 

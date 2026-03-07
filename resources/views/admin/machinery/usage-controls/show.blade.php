@@ -5,10 +5,6 @@
 @section('content')
 @vite(['resources/css/waste.css'])
 
-@php
-    use Illuminate\Support\Facades\Storage;
-@endphp
-
 <!-- Modal para ver detalles del uso del equipo -->
 <div class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop-blur z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[95vh] overflow-y-auto">
@@ -46,7 +42,7 @@
                 <!-- Image Section -->
                 @if($usageControl->machinery && $usageControl->machinery->image)
                     <div class="mb-8 text-center">
-                        <img src="{{ Storage::url($usageControl->machinery->image) }}" 
+                        <img src="{{ asset('storage-file/'.$usageControl->machinery->image) }}" 
                              alt="{{ $usageControl->machinery->name }}" 
                              class="max-w-full h-64 object-cover rounded-lg shadow-md mx-auto">
                     </div>

@@ -1,5 +1,6 @@
 <?php
 
+// Controlador Aprendiz CompostingController — CRUD de pilas (vista aprendiz)
 namespace App\Http\Controllers\Aprendiz;
 
 use App\Http\Controllers\Controller;
@@ -14,9 +15,7 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class CompostingController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Listar todos los registros
     public function index()
     {
         $compostings = Composting::with(['ingredients.organic', 'creator', 'trackings'])
@@ -68,6 +67,7 @@ class CompostingController extends Controller
         
         $rejectedCompostingIds = array_unique(array_merge($rejectedCompostingIds, $rejectedFromPending));
 
+        // Mostrar vista
         return view('aprendiz.composting.index', compact(
             'compostings', 
             'totalPiles', 
@@ -80,9 +80,7 @@ class CompostingController extends Controller
         ));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    // Mostrar formulario de creación
     public function create()
     {
         // Un solo ítem por tipo de residuo, con el total disponible en bodega (no duplicados por registro)
@@ -106,12 +104,11 @@ class CompostingController extends Controller
             ]);
         }
 
+        // Mostrar vista
         return view('aprendiz.composting.create', compact('availableOrganics'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Guardar nuevo registro
     public function store(Request $request)
     {
         $rules = [
@@ -127,10 +124,12 @@ class CompostingController extends Controller
         ];
         
         // Validar imagen solo si está presente
+        // Procesar archivo
         if ($request->hasFile('image')) {
             $rules['image'] = 'image|mimes:jpeg,png,jpg,gif,webp|max:2048';
         }
         
+        // Validar datos recibidos
         $request->validate($rules);
 
         // Validar que no se exceda la cantidad disponible en bodega
@@ -140,20 +139,28 @@ class CompostingController extends Controller
             $availableQuantity = $inventory[$organic->type] ?? 0;
             
             if ($ingredient['amount'] > $availableQuantity) {
-                return redirect()->back()
+                // Redirigir con mensaje
+            return redirect()->back()
                     ->withInput()
                     ->with('error', "La cantidad solicitada para {$organic->type_in_spanish} excede la cantidad disponible en bodega ({$availableQuantity} Kg)");
             }
         }
 
+        // Iniciar transacción
         DB::beginTransaction();
         try {
-            // Handle image upload
+            // Handle image upload (public/storage/compostings para que en el servidor no afecte)
             $imagePath = null;
-            if ($request->hasFile('image')) {
-                $file = $request->file('image');
-                $name = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
-                $imagePath = $file->storeAs('compostings', $name, 'public');
+            // Procesar archivo
+        if ($request->hasFile('image')) {
+                $archivo = $request->file('image');
+                $nombre = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $archivo->getClientOriginalName());
+                $dir = upload_base_path('storage/compostings');
+                if (!is_dir($dir)) {
+                    mkdir($dir, 0755, true);
+                }
+                $archivo->move($dir, $nombre);
+                $imagePath = 'compostings/' . $nombre;
             }
             
             // Crear el compostaje
@@ -187,8 +194,10 @@ class CompostingController extends Controller
                     $availableInventory = WarehouseClassification::getAvailableInventory($organic->type);
                     $typeInSpanish = $organic->type_in_spanish;
                     if ($ingredientData['amount'] > $availableInventory) {
-                        DB::rollback();
-                        return redirect()->back()
+                        // Revertir error
+            DB::rollback();
+                        // Redirigir con mensaje
+            return redirect()->back()
                             ->withInput()
                             ->with('error', "No hay suficiente inventario disponible para {$typeInSpanish}. Inventario disponible: " . number_format($availableInventory, 2) . " kg. Intenta usar: " . number_format($ingredientData['amount'], 2) . " kg.");
                     }
@@ -222,22 +231,24 @@ class CompostingController extends Controller
                 }
             }
 
+            // Confirmar cambios
             DB::commit();
 
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.composting.index')
                 ->with('success', 'Pila de compostaje registrada exitosamente!');
 
         } catch (\Exception $e) {
+            // Revertir error
             DB::rollback();
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Error al registrar la pila: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
+    // Mostrar detalle del registro
     public function show(Composting $composting)
     {
         \Log::info('Show method called for composting ID: ' . $composting->id);
@@ -275,12 +286,11 @@ class CompostingController extends Controller
         }
         
         \Log::info('Regular request for composting ID: ' . $composting->id);
+        // Mostrar vista
         return view('aprendiz.composting.show', compact('composting'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    // Mostrar formulario de edición
     public function edit(Composting $composting)
     {
         // Obtener inventario actual de bodega por tipo
@@ -320,12 +330,11 @@ class CompostingController extends Controller
             ];
         })->toArray();
 
+        // Mostrar vista
         return view('aprendiz.composting.edit', compact('composting', 'availableOrganics', 'existingIngredients'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    // Actualizar registro existente
     public function update(Request $request, Composting $composting)
     {
         $rules = [
@@ -343,31 +352,40 @@ class CompostingController extends Controller
         // Nota: Los ingredientes se validan pero no se modifican, solo se usan para validar el formulario
         
         // Validar imagen solo si está presente
+        // Procesar archivo
         if ($request->hasFile('image')) {
             $rules['image'] = 'image|mimes:jpeg,png,jpg,gif,webp|max:2048';
         }
         
+        // Validar datos recibidos
         $request->validate($rules);
 
+        // Iniciar transacción
         DB::beginTransaction();
         try {
             // Handle image upload
             $imagePath = $composting->image; // Mantener la imagen actual por defecto
             
             if ($request->has('remove_image') && $request->remove_image == '1') {
-                if ($composting->image && Storage::disk('public')->exists($composting->image)) {
-                    Storage::disk('public')->delete($composting->image);
+                if ($composting->image && file_exists(upload_base_path('storage/' . $composting->image))) {
+                    unlink(upload_base_path('storage/' . $composting->image));
                 }
                 $imagePath = null;
             }
             
-            if ($request->hasFile('image')) {
-                if ($composting->image && Storage::disk('public')->exists($composting->image)) {
-                    Storage::disk('public')->delete($composting->image);
+            // Procesar archivo
+        if ($request->hasFile('image')) {
+                if ($composting->image && file_exists(upload_base_path('storage/' . $composting->image))) {
+                    unlink(upload_base_path('storage/' . $composting->image));
                 }
-                $file = $request->file('image');
-                $name = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
-                $imagePath = $file->storeAs('compostings', $name, 'public');
+                $archivo = $request->file('image');
+                $nombre = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $archivo->getClientOriginalName());
+                $dir = upload_base_path('storage/compostings');
+                if (!is_dir($dir)) {
+                    mkdir($dir, 0755, true);
+                }
+                $archivo->move($dir, $nombre);
+                $imagePath = 'compostings/' . $nombre;
             }
             
             // Actualizar el compostaje (solo los campos permitidos, los ingredientes no se tocan)
@@ -383,22 +401,24 @@ class CompostingController extends Controller
             // Los ingredientes no se modifican en edición - se mantienen los existentes
             // No es necesario validar ni modificar los ingredientes, simplemente se ignoran
 
+            // Confirmar cambios
             DB::commit();
 
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.composting.index')
                 ->with('success', 'Pila de compostaje actualizada exitosamente!');
 
         } catch (\Exception $e) {
+            // Revertir error
             DB::rollback();
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Error al actualizar la pila: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    // Eliminar registro del sistema
     public function destroy(Composting $composting)
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
@@ -409,6 +429,7 @@ class CompostingController extends Controller
         $isCreatedByAdmin = $composting->creator && $composting->creator->role === 'admin';
         
         if (!$isOwner && !$isCreatedByAdmin) {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.composting.index')
                 ->with('permission_required', 'No tiene permisos para eliminar este registro.');
         }
@@ -422,14 +443,16 @@ class CompostingController extends Controller
             ->first();
         
         if (!$approvedNotification) {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.composting.index')
                 ->with('permission_required', 'No tiene permiso para eliminar esta pila. Debe solicitar permiso primero y esperar la aprobación del administrador.');
         }
         
+        // Iniciar transacción
         DB::beginTransaction();
         try {
-            if ($composting->image && Storage::disk('public')->exists($composting->image)) {
-                Storage::disk('public')->delete($composting->image);
+            if ($composting->image && file_exists(upload_base_path('storage/' . $composting->image))) {
+                unlink(upload_base_path('storage/' . $composting->image));
             }
             
             // Eliminar la pila (esto también eliminará los ingredientes por cascada)
@@ -439,40 +462,42 @@ class CompostingController extends Controller
             // Marcar la notificación como procesada o eliminarla
             $approvedNotification->update(['read_at' => now()]);
             
+            // Confirmar cambios
             DB::commit();
             
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.composting.index')
                 ->with('success', 'Pila de compostaje eliminada exitosamente!');
                 
         } catch (\Exception $e) {
+            // Revertir error
             DB::rollback();
             \Log::error('Error al eliminar pila de compostaje: ' . $e->getMessage());
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Error al eliminar la pila. Por favor, intente nuevamente.');
         }
     }
 
-    /**
-     * Solicitar permiso para editar un registro
-     */
+    // Solicitar permiso para editar un registro
     public function requestEditPermission(Composting $composting)
     {
         // Verificar que el registro pertenece al usuario
         $currentUserId = auth()->check() ? auth()->id() : null;
         if ($composting->created_by !== $currentUserId) {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.composting.index')
                 ->with('permission_required', 'No puede solicitar permisos para registros que no le pertenecen.');
         }
 
         // Aquí se implementaría la lógica para enviar notificación al administrador
         // Por ahora, solo mostramos un mensaje
-        return redirect()->route('aprendiz.composting.index')
+        // Redirigir con mensaje
+            return redirect()->route('aprendiz.composting.index')
             ->with('success', 'Solicitud de edición enviada al administrador. Recibirá una notificación cuando sea aprobada.');
     }
 
-    /**
-     * Solicitar permiso para eliminar un registro
-     */
+    // Solicitar permiso para eliminar un registro
     public function requestDeletePermission(Composting $composting)
     {
         \Log::info('=== REQUEST DELETE PERMISSION START ===');
@@ -491,6 +516,7 @@ class CompostingController extends Controller
         
         if (!$isOwner && !$isCreatedByAdmin) {
             \Log::info('User is not the creator and creator is not admin, redirecting with permission_required message');
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.composting.index')
                 ->with('permission_required', 'No puede solicitar permisos para registros que no le pertenecen.');
         }
@@ -504,11 +530,13 @@ class CompostingController extends Controller
             ->first();
         
         if ($existing && $existing->status === 'pending') {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.composting.index')
                 ->with('permission_required', 'Su solicitud de eliminación ya está pendiente de aprobación del administrador.');
         }
         
         if ($existing && $existing->status === 'approved') {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.composting.index')
                 ->with('success', 'Su solicitud ya fue aprobada. Ahora puede eliminar el registro.');
         }
@@ -546,13 +574,12 @@ class CompostingController extends Controller
         }
 
         \Log::info('=== REQUEST DELETE PERMISSION END ===');
-        return redirect()->route('aprendiz.composting.index')
-            ->with('success', 'Solicitud de eliminación enviada al administrador. Recibirá una notificación cuando sea aprobada.');
+        // Redirigir con mensaje
+            return redirect()->route('aprendiz.composting.index')
+            ->with('success', 'Solicitud de eliminación enviada al administrador.');
     }
 
-    /**
-     * Verificar el estado de una solicitud de eliminación
-     */
+    // Verificar el estado de una solicitud de
     public function checkDeletePermissionStatus(Composting $composting)
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
@@ -602,9 +629,7 @@ class CompostingController extends Controller
         ]);
     }
 
-    /**
-     * Generate PDF for all compostings (o solo los filtrados si se pasan ids)
-     */
+    // Generate PDF for all compostings (o solo
     public function downloadAllCompostingsPDF(Request $request)
     {
         $query = Composting::with(['ingredients.organic', 'creator'])
@@ -631,17 +656,15 @@ class CompostingController extends Controller
         return $pdf->download('todas_las_pilas_' . date('Y-m-d') . '.pdf');
     }
 
-    /**
-     * Generate PDF for individual composting
-     */
+    // Generate PDF for individual composting
     public function downloadCompostingPDF(Composting $composting)
     {
         $composting->load(['ingredients.organic', 'creator', 'trackings']);
         
         // Convertir imagen a base64 si existe
         $imageBase64 = null;
-        if ($composting->image && Storage::disk('public')->exists($composting->image)) {
-            $imagePath = Storage::disk('public')->path($composting->image);
+        if ($composting->image && file_exists(upload_base_path('storage/' . $composting->image))) {
+            $imagePath = upload_base_path('storage/' . $composting->image);
             $imageData = file_get_contents($imagePath);
             $imageInfo = getimagesize($imagePath);
             $mimeType = $imageInfo['mime'];

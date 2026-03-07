@@ -3,10 +3,6 @@
 @section('content')
 @vite(['resources/css/waste.css'])
 
-@php
-    use Illuminate\Support\Facades\Storage;
-@endphp
-
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -117,8 +113,9 @@
                     <div class="waste-mobile-card bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm" data-id="{{ $maintenance->id }}">
                         <div class="flex gap-3">
                             @if($maintenance->machinery && $maintenance->machinery->image)
-                                <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 cursor-pointer" onclick="openImageModal('{{ Storage::url($maintenance->machinery->image) }}')">
-                                    <img src="{{ Storage::url($maintenance->machinery->image) }}" alt="" class="w-full h-full object-cover">
+                                <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 cursor-pointer" onclick="openImageModal('{{ asset('storage-file/'.$maintenance->machinery->image) }}')">
+                                    <img src="{{ asset('storage-file/'.$maintenance->machinery->image) }}" alt="" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="w-full h-full bg-gray-200 flex items-center justify-center" style="display: none;"><i class="fas fa-image text-gray-400"></i></div>
                                 </div>
                             @else
                                 <div class="w-14 h-14 rounded-xl bg-gray-200 flex items-center justify-center flex-shrink-0"><i class="fas fa-wrench text-gray-400 text-xl"></i></div>
@@ -131,8 +128,25 @@
                         </div>
                         <div class="waste-mobile-card-actions mt-4 pt-3 border-t border-gray-200">
                             <button type="button" onclick="openViewModal({{ $maintenance->id }})" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg flex-shrink-0" title="Ver"><i class="fas fa-eye"></i></button>
-                            <button type="button" onclick="confirmEdit({{ $maintenance->id }})" class="p-2 text-green-600 hover:bg-green-50 rounded-lg flex-shrink-0" title="Editar"><i class="fas fa-edit"></i></button>
-                            <form action="{{ route('aprendiz.machinery.maintenance.destroy', $maintenance) }}" method="POST" class="inline flex-shrink-0" onsubmit="return confirmDelete(event, this)">@csrf @method('DELETE')<button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Eliminar"><i class="fas fa-trash"></i></button></form>
+                            <button type="button" onclick="confirmEdit(event, {{ $maintenance->id }})" class="p-2 text-green-600 hover:bg-green-50 rounded-lg flex-shrink-0" title="Editar"><i class="fas fa-edit"></i></button>
+                            @if($maintenance->created_by == auth()->id())
+                                @php
+                                    $isApprovedM = isset($approvedMaintenanceIds) && in_array($maintenance->id, $approvedMaintenanceIds);
+                                    $isPendingM = isset($pendingMaintenanceIds) && in_array($maintenance->id, $pendingMaintenanceIds);
+                                    $isRejectedM = isset($rejectedMaintenanceIds) && in_array($maintenance->id, $rejectedMaintenanceIds);
+                                @endphp
+                                @if($isRejectedM)
+                                    <button type="button" onclick="showRejectedAlert({{ $maintenance->id }})" class="p-2 text-red-600 rounded-lg flex-shrink-0" title="Solicitud rechazada"><i class="fas fa-ban"></i></button>
+                                @elseif($isApprovedM)
+                                    <form id="delete-form-card-m-{{ $maintenance->id }}" action="{{ route('aprendiz.machinery.maintenance.destroy', $maintenance) }}" method="POST" class="inline flex-shrink-0">@csrf @method('DELETE')<button type="button" onclick="confirmDelete('delete-form-card-m-{{ $maintenance->id }}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Eliminar"><i class="fas fa-trash"></i></button></form>
+                                @elseif($isPendingM)
+                                    <button type="button" class="p-2 text-yellow-500 cursor-default rounded-lg flex-shrink-0" title="Permiso pendiente"><i class="fas fa-hourglass-half"></i></button>
+                                @else
+                                    <button type="button" onclick="requestDeletePermission({{ $maintenance->id }})" class="p-2 text-red-500 hover:bg-red-50 rounded-lg flex-shrink-0" title="Solicitar eliminar"><i class="fas fa-trash"></i></button>
+                                @endif
+                            @else
+                                <button type="button" class="p-2 text-gray-400 rounded-lg flex-shrink-0 cursor-not-allowed" title="Solo puede eliminar sus propios registros"><i class="fas fa-lock"></i></button>
+                            @endif
                             <a href="{{ route('aprendiz.machinery.maintenance.download.pdf', $maintenance) }}" class="p-2 text-red-700 hover:bg-red-50 rounded-lg flex-shrink-0" title="PDF"><i class="fas fa-file-pdf"></i></a>
                         </div>
                     </div>
@@ -165,10 +179,10 @@
                                     <td class="font-mono">#{{ str_pad($maintenance->id, 3, '0', STR_PAD_LEFT) }}</td>
                                     <td>
                                         @if($maintenance->machinery && $maintenance->machinery->image)
-                                            <img src="{{ Storage::url($maintenance->machinery->image) }}?v={{ $maintenance->machinery->updated_at->timestamp }}" 
+                                            <img src="{{ asset('storage-file/'.$maintenance->machinery->image) }}?v={{ $maintenance->machinery->updated_at->timestamp }}" 
                                                  alt="Imagen de maquinaria" 
                                                  class="w-12 h-12 object-cover rounded-full cursor-pointer hover:opacity-80 transition-opacity"
-                                                 onclick="openImageModal('{{ Storage::url($maintenance->machinery->image) }}?v={{ $maintenance->machinery->updated_at->timestamp }}')"
+                                                 onclick="openImageModal('{{ asset('storage-file/'.$maintenance->machinery->image) }}?v={{ $maintenance->machinery->updated_at->timestamp }}')"
                                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                             <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center" style="display: none;">
                                                 <i class="fas fa-image text-gray-400"></i>
@@ -221,34 +235,40 @@
                                                 <i class="fas fa-edit"></i>
                                             </button>
                                             
-                                            @php
-                                                $isApproved = isset($approvedMaintenanceIds) && in_array($maintenance->id, $approvedMaintenanceIds);
-                                                $isPending = isset($pendingMaintenanceIds) && in_array($maintenance->id, $pendingMaintenanceIds);
-                                                $isRejected = isset($rejectedMaintenanceIds) && in_array($maintenance->id, $rejectedMaintenanceIds);
-                                            @endphp
+                                            @if($maintenance->created_by == auth()->id())
+                                                @php
+                                                    $isApproved = isset($approvedMaintenanceIds) && in_array($maintenance->id, $approvedMaintenanceIds);
+                                                    $isPending = isset($pendingMaintenanceIds) && in_array($maintenance->id, $pendingMaintenanceIds);
+                                                    $isRejected = isset($rejectedMaintenanceIds) && in_array($maintenance->id, $rejectedMaintenanceIds);
+                                                @endphp
 
-                                            @if($isRejected)
-                                                <button type="button" class="inline-flex items-center text-red-600 hover:text-red-800" title="Solicitud rechazada"
-                                                    onclick="showRejectedAlert({{ $maintenance->id }})">
-                                                    <i class="fas fa-ban text-lg"></i>
-                                                </button>
-                                            @elseif($isApproved)
-                                                <form id="delete-form-{{ $maintenance->id }}" action="{{ route('aprendiz.machinery.maintenance.destroy', $maintenance) }}" method="POST" class="inline-flex items-center" style="margin: 0; padding: 0; margin-left: 0.5rem;">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="button" class="inline-flex items-center text-red-500 hover:text-red-700" title="Eliminar"
-                                                        onclick="confirmDelete('delete-form-{{ $maintenance->id }}')">
+                                                @if($isRejected)
+                                                    <button type="button" class="inline-flex items-center text-red-600 hover:text-red-800" title="Solicitud rechazada"
+                                                        onclick="showRejectedAlert({{ $maintenance->id }})">
+                                                        <i class="fas fa-ban text-lg"></i>
+                                                    </button>
+                                                @elseif($isApproved)
+                                                    <form id="delete-form-{{ $maintenance->id }}" action="{{ route('aprendiz.machinery.maintenance.destroy', $maintenance) }}" method="POST" class="inline-flex items-center" style="margin: 0; padding: 0; margin-left: 0.5rem;">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="button" class="inline-flex items-center text-red-500 hover:text-red-700" title="Eliminar"
+                                                            onclick="confirmDelete('delete-form-{{ $maintenance->id }}')">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                @elseif($isPending)
+                                                    <button type="button" class="inline-flex items-center text-yellow-500 cursor-default" title="Permiso pendiente de aprobación">
+                                                        <i class="fas fa-hourglass-half"></i>
+                                                    </button>
+                                                @else
+                                                    <button id="deleteBtn{{ $maintenance->id }}" onclick="requestDeletePermission({{ $maintenance->id }})" 
+                                                       class="inline-flex items-center text-red-500 hover:text-red-700" title="Solicitar Eliminación">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
-                                                </form>
-                                            @elseif($isPending)
-                                                <button type="button" class="inline-flex items-center text-yellow-500 cursor-default" title="Permiso pendiente de aprobación">
-                                                    <i class="fas fa-hourglass-half"></i>
-                                                </button>
+                                                @endif
                                             @else
-                                                <button id="deleteBtn{{ $maintenance->id }}" onclick="requestDeletePermission({{ $maintenance->id }})" 
-                                                   class="inline-flex items-center text-red-500 hover:text-red-700" title="Solicitar Eliminación">
-                                                    <i class="fas fa-trash"></i>
+                                                <button type="button" class="inline-flex items-center text-gray-400 cursor-not-allowed" title="Solo puede eliminar sus propios registros">
+                                                    <i class="fas fa-lock"></i>
                                                 </button>
                                             @endif
                                             <a href="{{ route('aprendiz.machinery.maintenance.download.pdf', $maintenance) }}" 

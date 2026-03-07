@@ -138,8 +138,26 @@
                         </div>
                         <div class="waste-mobile-card-actions mt-4 pt-3 border-t border-gray-200">
                             <button type="button" onclick="openViewModal({{ $fertilizer->id }})" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg flex-shrink-0" title="Ver"><i class="fas fa-eye"></i></button>
-                            <button type="button" onclick="openEditModal({{ $fertilizer->id }})" class="p-2 text-green-600 hover:bg-green-50 rounded-lg flex-shrink-0" title="Editar"><i class="fas fa-edit"></i></button>
-                            <form action="{{ route('aprendiz.fertilizer.destroy', $fertilizer) }}" method="POST" class="inline flex-shrink-0" onsubmit="return confirmDelete(event, this)">@csrf @method('DELETE')<button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Eliminar"><i class="fas fa-trash"></i></button></form>
+                            @if($fertilizer->created_by == auth()->id())
+                                <button type="button" onclick="openEditModal({{ $fertilizer->id }})" class="p-2 text-green-600 hover:bg-green-50 rounded-lg flex-shrink-0" title="Editar"><i class="fas fa-edit"></i></button>
+                                @php
+                                    $isApprovedF = isset($approvedFertilizerIds) && in_array($fertilizer->id, $approvedFertilizerIds);
+                                    $isPendingF = isset($pendingFertilizerIds) && in_array($fertilizer->id, $pendingFertilizerIds);
+                                    $isRejectedF = isset($rejectedFertilizerIds) && in_array($fertilizer->id, $rejectedFertilizerIds);
+                                @endphp
+                                @if($isRejectedF)
+                                    <button type="button" onclick="showRejectedAlert({{ $fertilizer->id }})" class="p-2 text-red-600 rounded-lg flex-shrink-0" title="Solicitud rechazada"><i class="fas fa-ban"></i></button>
+                                @elseif($isApprovedF)
+                                    <form id="delete-form-card-f-{{ $fertilizer->id }}" action="{{ route('aprendiz.fertilizer.destroy', $fertilizer) }}" method="POST" class="inline flex-shrink-0">@csrf @method('DELETE')<button type="button" onclick="confirmDelete('delete-form-card-f-{{ $fertilizer->id }}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Eliminar"><i class="fas fa-trash"></i></button></form>
+                                @elseif($isPendingF)
+                                    <button type="button" class="p-2 text-yellow-500 cursor-default rounded-lg flex-shrink-0" title="Permiso pendiente"><i class="fas fa-hourglass-half"></i></button>
+                                @else
+                                    <form id="request-delete-form-card-{{ $fertilizer->id }}" action="{{ route('aprendiz.fertilizer.request-delete', $fertilizer) }}" method="POST" class="inline flex-shrink-0">@csrf<button type="button" onclick="confirmRequestPermission('request-delete-form-card-{{ $fertilizer->id }}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Solicitar eliminar"><i class="fas fa-trash"></i></button></form>
+                                @endif
+                            @else
+                                <button type="button" onclick="showPermissionAlert()" class="p-2 text-gray-400 rounded-lg flex-shrink-0" title="Sin permisos"><i class="fas fa-lock"></i></button>
+                                <button type="button" class="p-2 text-gray-400 rounded-lg flex-shrink-0 cursor-not-allowed" title="No puede eliminar registros de otro aprendiz"><i class="fas fa-trash"></i></button>
+                            @endif
                             <a href="{{ route('aprendiz.fertilizer.download.pdf', $fertilizer) }}" class="p-2 text-red-700 hover:bg-red-50 rounded-lg flex-shrink-0" title="PDF"><i class="fas fa-file-pdf"></i></a>
                         </div>
                     </div>
@@ -204,7 +222,7 @@
                                        class="inline-flex items-center text-blue-400 hover:text-blue-500" title="Ver Detalles">
                                         <i class="fas fa-eye"></i>
                                     </button>
-                                    @if($fertilizer->composting && $fertilizer->composting->created_by == auth()->id())
+                                    @if($fertilizer->created_by == auth()->id())
                                         <button onclick="openEditModal({{ $fertilizer->id }})" 
                                            class="inline-flex items-center text-green-500 hover:text-green-700" title="Editar">
                                             <i class="fas fa-edit"></i>
@@ -776,27 +794,25 @@ const cancelEditBtn = document.getElementById('cancelEditModal');
 const editForm = document.getElementById('editForm');
 
 function showEditModal() {
-    editModal.classList.remove('hidden');
+    if (editModal) editModal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 }
 
 function closeEditModal() {
-    editModal.classList.add('hidden');
+    if (editModal) editModal.classList.add('hidden');
     document.body.style.overflow = 'auto';
 }
 
-closeEditBtn.addEventListener('click', closeEditModal);
-cancelEditBtn.addEventListener('click', closeEditModal);
-editModal.addEventListener('click', (e) => {
-    // Cerrar solo cuando se hace clic directamente sobre el fondo del modal,
-    // evitando que se cierre al interactuar con el formulario interno.
+if (closeEditBtn) closeEditBtn.addEventListener('click', closeEditModal);
+if (cancelEditBtn) cancelEditBtn.addEventListener('click', closeEditModal);
+if (editModal) editModal.addEventListener('click', (e) => {
     if (e.target === editModal) {
         closeEditModal();
     }
 });
 
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && !editModal.classList.contains('hidden')) {
+    if (e.key === 'Escape' && editModal && !editModal.classList.contains('hidden')) {
         closeEditModal();
     }
 });
