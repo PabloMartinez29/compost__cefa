@@ -1,5 +1,6 @@
 <?php
 
+// Comando UpdateUserRoles — Actualiza roles de usuarios
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
@@ -8,23 +9,13 @@ use Illuminate\Support\Facades\DB;
 
 class UpdateUserRoles extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
+    // The name and signature of the console
     protected $signature = 'users:update-roles {--check : Solo verificar usuarios sin actualizar}';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
+    // The console command description
     protected $description = 'Actualizar roles de usuarios en la base de datos';
 
-    /**
-     * Execute the console command.
-     */
+    // Execute the console command
     public function handle()
     {
         if ($this->option('check')) {

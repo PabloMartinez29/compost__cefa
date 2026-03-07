@@ -66,7 +66,8 @@
                         </label>
                         <div class="relative">
                             <select name="machinery_id" id="machinery_id_select" required
-                                    class="w-full px-4 py-4 pr-10 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 @error('machinery_id') border-red-500 @enderror appearance-none bg-white">
+                                    class="w-full px-4 py-4 pr-10 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 @error('machinery_id') border-red-500 @enderror appearance-none bg-white"
+                                    style="background-image: none;">
                                 <option value="">Seleccionar maquinaria</option>
                                 @foreach($machineries as $machinery)
                                     <option value="{{ $machinery->id }}" {{ old('machinery_id') == $machinery->id ? 'selected' : '' }}>
@@ -74,6 +75,9 @@
                                     </option>
                                 @endforeach
                             </select>
+                            <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
+                                <i class="fas fa-chevron-down text-sm"></i>
+                            </span>
                         </div>
                         @error('machinery_id')
                             <p class="text-red-500 text-sm mt-1 flex items-center">

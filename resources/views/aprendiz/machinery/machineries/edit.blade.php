@@ -5,10 +5,6 @@
 @section('content')
 @vite(['resources/css/waste.css'])
 
-@php
-    use Illuminate\Support\Facades\Storage;
-@endphp
-
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -174,7 +170,8 @@
                         </label>
                         <div class="relative">
                             <select name="maint_freq" id="maint_freq" required
-                                    class="w-full px-4 py-4 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 appearance-none bg-white @error('maint_freq') border-red-500 @enderror">
+                                    class="w-full px-4 py-4 pr-10 border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all duration-300 appearance-none bg-white @error('maint_freq') border-red-500 @enderror"
+                                    style="background-image: none;">
                                 <option value="">Seleccionar frecuencia...</option>
                                 <option value="Diario" {{ old('maint_freq', $machinery->maint_freq) == 'Diario' ? 'selected' : '' }}>Diario</option>
                                 <option value="Semanal" {{ old('maint_freq', $machinery->maint_freq) == 'Semanal' ? 'selected' : '' }}>Semanal</option>
@@ -185,6 +182,9 @@
                                 <option value="Semestral" {{ old('maint_freq', $machinery->maint_freq) == 'Semestral' ? 'selected' : '' }}>Semestral</option>
                                 <option value="Anual" {{ old('maint_freq', $machinery->maint_freq) == 'Anual' ? 'selected' : '' }}>Anual</option>
                             </select>
+                            <span class="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
+                                <i class="fas fa-chevron-down text-sm"></i>
+                            </span>
                         </div>
                         @error('maint_freq')
                             <p class="text-red-500 text-sm mt-1 flex items-center">
@@ -216,7 +216,7 @@
                             <div class="mb-4">
                                 <label class="block text-sm font-medium text-gray-600 mb-2">Imagen actual:</label>
                                 <div class="relative">
-                                    <img src="{{ Storage::url($machinery->image) }}" 
+                                    <img src="{{ asset('storage-file/'.$machinery->image) }}" 
                                          alt="Imagen actual de {{ $machinery->name }}" 
                                          class="w-full h-48 object-cover rounded-xl border-2 border-gray-300 shadow-lg">
                                 </div>

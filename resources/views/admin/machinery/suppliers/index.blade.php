@@ -3,10 +3,6 @@
 @section('content')
 @vite(['resources/css/waste.css'])
 
-@php
-    use Illuminate\Support\Facades\Storage;
-@endphp
-
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -116,8 +112,9 @@
                     <div class="waste-mobile-card bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm" data-id="{{ $supplier->id }}">
                         <div class="flex gap-3">
                             @if($supplier->machinery && $supplier->machinery->image)
-                                <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 cursor-pointer" onclick="openImageModal('{{ Storage::url($supplier->machinery->image) }}')">
-                                    <img src="{{ Storage::url($supplier->machinery->image) }}" alt="" class="w-full h-full object-cover">
+                                <div class="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 cursor-pointer" onclick="openImageModal('{{ asset('storage-file/'.$supplier->machinery->image) }}')">
+                                    <img src="{{ asset('storage-file/'.$supplier->machinery->image) }}" alt="" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="w-full h-full bg-gray-200 flex items-center justify-center" style="display: none;"><i class="fas fa-image text-gray-400"></i></div>
                                 </div>
                             @else
                                 <div class="w-14 h-14 rounded-xl bg-gray-200 flex items-center justify-center flex-shrink-0"><i class="fas fa-cogs text-gray-400 text-xl"></i></div>
@@ -164,10 +161,10 @@
                                 <td class="font-mono">#{{ str_pad($supplier->id, 3, '0', STR_PAD_LEFT) }}</td>
                                 <td>
                                     @if($supplier->machinery && $supplier->machinery->image)
-                                        <img src="{{ Storage::url($supplier->machinery->image) }}?v={{ $supplier->machinery->updated_at->timestamp }}" 
+                                        <img src="{{ asset('storage-file/'.$supplier->machinery->image) }}?v={{ $supplier->machinery->updated_at->timestamp }}" 
                                              alt="Imagen de maquinaria" 
                                              class="w-12 h-12 object-cover rounded-full cursor-pointer hover:opacity-80 transition-opacity"
-                                             onclick="openImageModal('{{ Storage::url($supplier->machinery->image) }}?v={{ $supplier->machinery->updated_at->timestamp }}')"
+                                             onclick="openImageModal('{{ asset('storage-file/'.$supplier->machinery->image) }}?v={{ $supplier->machinery->updated_at->timestamp }}')"
                                              onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                         <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center" style="display: none;">
                                             <i class="fas fa-image text-gray-400"></i>
@@ -280,9 +277,9 @@
 
                 <!-- Información del proveedor -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="waste-form-group">
+                    <div class="waste-form-group min-w-0">
                         <label class="waste-form-label">Maquinaria</label>
-                        <div class="waste-form-input bg-gray-50" id="viewMachinery"></div>
+                        <div class="waste-form-input bg-gray-50 min-w-0 break-words overflow-visible" id="viewMachinery"></div>
                     </div>
 
                     <div class="waste-form-group">
@@ -333,17 +330,17 @@
     </div>
 </div>
 
-<!-- Modal de edición -->
-<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop-blur hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+<!-- Modal de edición (responsive: nombre maquinaria visible en móvil) -->
+<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 modal-backdrop-blur hidden z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl my-4 max-h-[calc(100vh-2rem)] flex flex-col min-w-0 overflow-hidden">
         <!-- Modal Header -->
-        <div class="waste-header">
-            <div class="text-center">
-                <h3 class="waste-title text-xl justify-center">
+        <div class="waste-header flex-shrink-0">
+            <div class="text-center min-w-0">
+                <h3 class="waste-title text-lg sm:text-xl justify-center break-words">
                     <i class="fas fa-edit waste-icon"></i>
                     Editar Proveedor
                 </h3>
-                <p class="waste-subtitle">
+                <p class="waste-subtitle break-words">
                     <i class="fas fa-user-shield text-green-400 mr-2"></i>
                     <span id="editUserInfo">{{ Auth::user()->name }} - Registro #<span id="editSupplierId"></span></span>
                 </p>
@@ -354,19 +351,20 @@
         </div>
 
         <!-- Modal Body -->
-        <div class="p-6">
+        <div class="p-4 sm:p-6 overflow-y-auto flex-1 min-h-0 min-w-0">
             <form id="editForm" method="POST">
                 @csrf
                 @method('PUT')
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Maquinaria -->
-                    <div class="waste-form-group md:col-span-2">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 min-w-0">
+                    <!-- Maquinaria: nombre completo siempre visible debajo (el select trunca en todos los tamaños) -->
+                    <div class="waste-form-group md:col-span-2 min-w-0">
                         <label for="edit_machinery_id" class="waste-form-label">Maquinaria *</label>
-                        <div>
-                            <select id="edit_machinery_id" name="machinery_id" required class="waste-form-select">
+                        <div class="min-w-0">
+                            <select id="edit_machinery_id" name="machinery_id" required class="waste-form-select min-w-0 w-full max-w-full">
                                 <option value="">Seleccionar maquinaria</option>
                             </select>
+                            <div id="edit_machinery_full_name" class="mt-1.5 text-sm text-gray-600 break-words min-w-0" aria-live="polite"></div>
                         </div>
                     </div>
 
@@ -419,8 +417,8 @@
                     </div>
                 </div>
 
-                <!-- Form Actions -->
-                <div class="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                <!-- Form Actions: ambos botones mismo tamaño (ancho y altura) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 pt-4 sm:pt-6 border-t border-gray-200">
                     <button type="button" id="cancelEditModal" class="waste-btn-secondary">
                         <i class="fas fa-times mr-2"></i>
                         Cancelar
@@ -550,6 +548,15 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
+// En móvil: mostrar nombre completo de la maquinaria al cambiar el select
+var editMachinerySelect = document.getElementById('edit_machinery_id');
+var editMachineryFullName = document.getElementById('edit_machinery_full_name');
+if (editMachinerySelect && editMachineryFullName) {
+    editMachinerySelect.addEventListener('change', function() {
+        editMachineryFullName.textContent = this.selectedIndex > 0 ? this.options[this.selectedIndex].textContent : '';
+    });
+}
+
 // Confirmación antes de editar
 function confirmEdit(supplierId) {
     Swal.fire({
@@ -598,13 +605,16 @@ function openEditSupplierModal(supplierId) {
             
             // Llenar select de maquinarias
             const select = document.getElementById('edit_machinery_id');
+            const fullNameEl = document.getElementById('edit_machinery_full_name');
             select.innerHTML = '<option value="">Seleccionar maquinaria</option>';
             machineries.forEach(machinery => {
                 const option = document.createElement('option');
                 option.value = machinery.id;
-                option.textContent = `${machinery.name} - ${machinery.brand} ${machinery.model}`;
+                const label = `${machinery.name} - ${machinery.brand || ''} ${machinery.model || ''}`.trim();
+                option.textContent = label;
                 if (machinery.id == data.machinery_id) {
                     option.selected = true;
+                    if (fullNameEl) fullNameEl.textContent = label;
                 }
                 select.appendChild(option);
             });

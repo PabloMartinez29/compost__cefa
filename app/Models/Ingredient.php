@@ -1,5 +1,7 @@
 <?php
 
+// Modelo Ingredient — Ingredientes (residuos orgánicos) usados en cada pila
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -18,33 +20,25 @@ class Ingredient extends Model
         'amount' => 'decimal:2'
     ];
 
-    /**
-     * Relación con compostaje
-     */
+    // Relación con compostaje
     public function composting(): BelongsTo
     {
         return $this->belongsTo(Composting::class);
     }
 
-    /**
-     * Relación con residuo orgánico
-     */
+    // Relación con residuo orgánico
     public function organic(): BelongsTo
     {
         return $this->belongsTo(Organic::class);
     }
 
-    /**
-     * Accessor para la cantidad formateada
-     */
+    // Cantidad formateada
     public function getFormattedAmountAttribute(): string
     {
         return number_format($this->amount, 2) . ' Kg';
     }
 
-    /**
-     * Accessor para el nombre del ingrediente
-     */
+    // Nombre del ingrediente
     public function getIngredientNameAttribute(): string
     {
         return $this->organic ? $this->organic->type_in_spanish : 'Ingrediente no disponible';

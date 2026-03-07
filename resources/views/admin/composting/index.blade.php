@@ -3,10 +3,6 @@
 @section('content')
 @vite(['resources/css/waste.css'])
 
-@php
-    use Illuminate\Support\Facades\Storage;
-@endphp
-
 <div class="container mx-auto px-3 sm:px-4 md:px-6 py-4 sm:py-6 md:py-8">
     <!-- Header -->
     <div class="waste-header animate-fade-in-up">
@@ -128,8 +124,8 @@
                         <div class="flex gap-3">
                             <div class="flex-shrink-0">
                                 @if($composting->image)
-                                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 cursor-pointer" onclick="openImageModal('{{ Storage::url($composting->image) }}')">
-                                        <img src="{{ Storage::url($composting->image) }}" alt="{{ $composting->formatted_pile_num }}" class="w-full h-full object-cover" onerror="this.style.display='none';">
+                                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 cursor-pointer" onclick="openImageModal('{{ asset('storage-file/'.$composting->image) }}')">
+                                        <img src="{{ asset('storage-file/'.$composting->image) }}" alt="{{ $composting->formatted_pile_num }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                         <div class="w-full h-full bg-gray-200 flex items-center justify-center" style="display: none;"><i class="fas fa-mountain text-gray-400"></i></div>
                                     </div>
                                 @else
@@ -181,10 +177,10 @@
                         <tr data-id="{{ $composting->id }}">
                             <td class="text-center">
                                 @if($composting->image)
-                                    <img src="{{ Storage::url($composting->image) }}" 
+                                    <img src="{{ asset('storage-file/'.$composting->image) }}" 
                                          alt="{{ $composting->formatted_pile_num }}" 
                                          class="w-12 h-12 object-cover rounded-full cursor-pointer hover:opacity-80 transition-opacity"
-                                         onclick="openImageModal('{{ Storage::url($composting->image) }}')"
+                                         onclick="openImageModal('{{ asset('storage-file/'.$composting->image) }}')"
                                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                     <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center" style="display: none;">
                                         <i class="fas fa-image text-gray-400"></i>
@@ -491,115 +487,115 @@
     </div>
 </div>
 
-<!-- Modal para ver detalles -->
-<div id="viewModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full">
+<!-- Modal para ver detalles (responsive: scroll interno en móvil, no se corta el contenido) -->
+<div id="viewModal" class="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl my-4 max-h-[calc(100vh-2rem)] flex flex-col min-h-0">
         <!-- Modal Header -->
-        <div class="bg-gradient-to-r from-green-50 to-green-100 rounded-t-xl p-6 border-b border-green-200">
-            <div class="text-center">
-                <h3 class="text-2xl font-bold text-gray-800 mb-2 flex items-center justify-center">
-                    <i class="fas fa-eye text-green-500 mr-3"></i>
-                    Detalles de la Pila de Compostaje
+        <div class="bg-gradient-to-r from-green-50 to-green-100 rounded-t-xl p-4 sm:p-6 border-b border-green-200 flex-shrink-0">
+            <div class="text-center min-w-0">
+                <h3 class="text-lg sm:text-2xl font-bold text-gray-800 mb-1 sm:mb-2 flex items-center justify-center flex-wrap">
+                    <i class="fas fa-eye text-green-500 mr-2 sm:mr-3"></i>
+                    <span class="break-words">Detalles de la Pila</span>
                 </h3>
-                <p class="text-gray-600 text-lg flex items-center justify-center">
+                <p class="text-gray-600 text-sm sm:text-lg flex items-center justify-center flex-wrap">
                     <i class="fas fa-user-shield text-green-500 mr-2"></i>
                     <span id="viewPileInfo">Pila #<span id="viewPileNum"></span></span>
                 </p>
             </div>
         </div>
 
-        <!-- Modal Body -->
-        <div class="p-6">
-            <div class="space-y-8">
+        <!-- Modal Body: scroll interno en móvil -->
+        <div class="p-4 sm:p-6 overflow-y-auto flex-1 min-h-0">
+            <div class="space-y-6 sm:space-y-8 min-w-0">
                 <!-- Información General con diseño mejorado -->
-                <div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
-                        <i class="fas fa-info-circle text-green-600 mr-3"></i>
-                        Información General
+                <div class="min-w-0">
+                    <h3 class="text-lg sm:text-xl font-bold text-gray-800 mb-4 sm:mb-6 flex items-center min-w-0">
+                        <i class="fas fa-info-circle text-green-600 mr-2 sm:mr-3 flex-shrink-0"></i>
+                        <span class="break-words">Información General</span>
                     </h3>
                     
                     <!-- Primera fila - Información básica -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
                         <!-- Número de Pila -->
-                        <div class="bg-gradient-to-br from-soft-green-50 to-soft-green-100 p-4 rounded-xl border border-soft-green-200 shadow-sm hover:shadow-md transition-shadow">
-                            <div class="flex items-center mb-2">
-                                <i class="fas fa-hashtag text-soft-green-600 mr-2"></i>
-                                <span class="text-sm font-medium text-soft-gray-600">Número de Pila</span>
+                        <div class="bg-gradient-to-br from-soft-green-50 to-soft-green-100 p-3 sm:p-4 rounded-xl border border-soft-green-200 shadow-sm min-w-0">
+                            <div class="flex items-center mb-2 min-w-0">
+                                <i class="fas fa-hashtag text-soft-green-600 mr-2 flex-shrink-0"></i>
+                                <span class="text-sm font-medium text-soft-gray-600 truncate">Número de Pila</span>
                             </div>
-                            <div class="text-xl font-bold text-soft-green-800 font-mono" id="viewPileNumber"></div>
+                            <div class="text-lg sm:text-xl font-bold text-soft-green-800 font-mono break-words" id="viewPileNumber"></div>
                         </div>
 
                         <!-- Fecha de Inicio -->
-                        <div class="bg-gradient-to-br from-soft-green-50 to-soft-green-100 p-4 rounded-xl border border-soft-green-200 shadow-sm hover:shadow-md transition-shadow">
-                            <div class="flex items-center mb-2">
-                                <i class="fas fa-calendar-plus text-soft-green-600 mr-2"></i>
-                                <span class="text-sm font-medium text-soft-gray-600">Fecha de Inicio</span>
+                        <div class="bg-gradient-to-br from-soft-green-50 to-soft-green-100 p-3 sm:p-4 rounded-xl border border-soft-green-200 shadow-sm min-w-0">
+                            <div class="flex items-center mb-2 min-w-0">
+                                <i class="fas fa-calendar-plus text-soft-green-600 mr-2 flex-shrink-0"></i>
+                                <span class="text-sm font-medium text-soft-gray-600 truncate">Fecha de Inicio</span>
                             </div>
-                            <div class="text-lg font-semibold text-soft-green-800" id="viewStartDate"></div>
+                            <div class="text-base sm:text-lg font-semibold text-soft-green-800 break-words" id="viewStartDate"></div>
                         </div>
 
                         <!-- Fecha de Fin -->
-                        <div class="bg-gradient-to-br from-soft-green-50 to-soft-green-100 p-4 rounded-xl border border-soft-green-200 shadow-sm hover:shadow-md transition-shadow">
-                            <div class="flex items-center mb-2">
-                                <i class="fas fa-calendar-check text-soft-green-600 mr-2"></i>
-                                <span class="text-sm font-medium text-soft-gray-600">Fecha de Fin</span>
+                        <div class="bg-gradient-to-br from-soft-green-50 to-soft-green-100 p-3 sm:p-4 rounded-xl border border-soft-green-200 shadow-sm min-w-0">
+                            <div class="flex items-center mb-2 min-w-0">
+                                <i class="fas fa-calendar-check text-soft-green-600 mr-2 flex-shrink-0"></i>
+                                <span class="text-sm font-medium text-soft-gray-600 truncate">Fecha de Fin</span>
                             </div>
-                            <div class="text-lg font-semibold text-soft-green-800" id="viewEndDate"></div>
+                            <div class="text-base sm:text-lg font-semibold text-soft-green-800 break-words" id="viewEndDate"></div>
                         </div>
                     </div>
 
                     <!-- Segunda fila - Métricas importantes -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                         <!-- Kilogramos Beneficiados -->
-                        <div class="bg-gradient-to-br from-soft-green-50 to-soft-green-100 p-4 rounded-xl border border-soft-green-200 shadow-sm hover:shadow-md transition-shadow">
-                            <div class="flex items-center mb-2">
-                                <i class="fas fa-weight text-soft-green-600 mr-2"></i>
-                                <span class="text-sm font-medium text-soft-gray-600">Kg Beneficiados</span>
+                        <div class="bg-gradient-to-br from-soft-green-50 to-soft-green-100 p-3 sm:p-4 rounded-xl border border-soft-green-200 shadow-sm min-w-0">
+                            <div class="flex items-center mb-2 min-w-0">
+                                <i class="fas fa-weight text-soft-green-600 mr-2 flex-shrink-0"></i>
+                                <span class="text-sm font-medium text-soft-gray-600 truncate">Kg Beneficiados</span>
                             </div>
-                            <div class="text-lg font-bold text-soft-green-800" id="viewTotalKg"></div>
+                            <div class="text-base sm:text-lg font-bold text-soft-green-800 break-words" id="viewTotalKg"></div>
                         </div>
 
                         <!-- Eficiencia -->
-                        <div class="bg-gradient-to-br from-soft-green-50 to-soft-green-100 p-4 rounded-xl border border-soft-green-200 shadow-sm hover:shadow-md transition-shadow">
-                            <div class="flex items-center mb-2">
-                                <i class="fas fa-percentage text-soft-green-600 mr-2"></i>
-                                <span class="text-sm font-medium text-soft-gray-600">Eficiencia</span>
+                        <div class="bg-gradient-to-br from-soft-green-50 to-soft-green-100 p-3 sm:p-4 rounded-xl border border-soft-green-200 shadow-sm min-w-0">
+                            <div class="flex items-center mb-2 min-w-0">
+                                <i class="fas fa-percentage text-soft-green-600 mr-2 flex-shrink-0"></i>
+                                <span class="text-sm font-medium text-soft-gray-600 truncate">Eficiencia</span>
                             </div>
-                            <div class="text-lg font-bold text-soft-green-800" id="viewEfficiency"></div>
+                            <div class="text-base sm:text-lg font-bold text-soft-green-800 break-words" id="viewEfficiency"></div>
                         </div>
 
                         <!-- Total Ingredientes -->
-                        <div class="bg-gradient-to-br from-soft-green-50 to-soft-green-100 p-4 rounded-xl border border-soft-green-200 shadow-sm hover:shadow-md transition-shadow">
-                            <div class="flex items-center mb-2">
-                                <i class="fas fa-leaf text-soft-green-600 mr-2"></i>
-                                <span class="text-sm font-medium text-soft-gray-600">Total Ingredientes</span>
+                        <div class="bg-gradient-to-br from-soft-green-50 to-soft-green-100 p-3 sm:p-4 rounded-xl border border-soft-green-200 shadow-sm min-w-0">
+                            <div class="flex items-center mb-2 min-w-0">
+                                <i class="fas fa-leaf text-soft-green-600 mr-2 flex-shrink-0"></i>
+                                <span class="text-sm font-medium text-soft-gray-600 truncate">Total Ingredientes</span>
                             </div>
-                            <div class="text-lg font-bold text-soft-green-800" id="viewTotalIngredients"></div>
+                            <div class="text-base sm:text-lg font-bold text-soft-green-800 break-words" id="viewTotalIngredients"></div>
                         </div>
 
                         <!-- Total Kg Ingredientes -->
-                        <div class="bg-gradient-to-br from-soft-green-50 to-soft-green-100 p-4 rounded-xl border border-soft-green-200 shadow-sm hover:shadow-md transition-shadow">
-                            <div class="flex items-center mb-2">
-                                <i class="fas fa-balance-scale text-soft-green-600 mr-2"></i>
-                                <span class="text-sm font-medium text-soft-gray-600">Total Kg Ingredientes</span>
+                        <div class="bg-gradient-to-br from-soft-green-50 to-soft-green-100 p-3 sm:p-4 rounded-xl border border-soft-green-200 shadow-sm min-w-0">
+                            <div class="flex items-center mb-2 min-w-0">
+                                <i class="fas fa-balance-scale text-soft-green-600 mr-2 flex-shrink-0"></i>
+                                <span class="text-sm font-medium text-soft-gray-600 truncate">Total Kg Ingredientes</span>
                             </div>
-                            <div class="text-lg font-bold text-soft-green-800" id="viewTotalIngredientKg"></div>
+                            <div class="text-base sm:text-lg font-bold text-soft-green-800 break-words" id="viewTotalIngredientKg"></div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Ingredientes con diseño mejorado -->
-                <div>
-                    <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
-                        <i class="fas fa-leaf text-green-600 mr-3"></i>
-                        Ingredientes de la Pila
+                <div class="min-w-0">
+                    <h3 class="text-lg sm:text-xl font-bold text-gray-800 mb-4 sm:mb-6 flex items-center">
+                        <i class="fas fa-leaf text-green-600 mr-2 sm:mr-3 flex-shrink-0"></i>
+                        <span class="break-words">Ingredientes de la Pila</span>
                     </h3>
-                    <div id="viewIngredients" class="space-y-4"></div>
+                    <div id="viewIngredients" class="space-y-3 sm:space-y-4 min-w-0"></div>
                 </div>
 
                 <!-- Form Actions -->
-                <div class="flex justify-end pt-6 border-t border-gray-200">
-                    <button onclick="closeViewModal()" class="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white px-8 py-3 rounded-xl transition-all duration-200 flex items-center shadow-lg hover:shadow-xl transform hover:scale-105">
+                <div class="flex justify-end pt-4 sm:pt-6 border-t border-gray-200 flex-shrink-0">
+                    <button onclick="closeViewModal()" class="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-xl transition-all duration-200 flex items-center shadow-lg text-sm sm:text-base">
                         <i class="fas fa-times mr-2"></i>
                         Cerrar
                     </button>
@@ -665,30 +661,30 @@ function openViewModal(compostingId) {
             if (data.ingredients && data.ingredients.length > 0) {
                 data.ingredients.forEach((ingredient, index) => {
                     const ingredientDiv = document.createElement('div');
-                    ingredientDiv.className = 'bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden';
+                    ingredientDiv.className = 'bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden min-w-0';
                     ingredientDiv.innerHTML = `
-                        <div class="p-6">
-                            <div class="flex items-center justify-between mb-3">
-                                <div class="flex items-center">
-                                    <div class="w-10 h-10 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mr-4">
+                        <div class="p-4 sm:p-6 min-w-0">
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3 min-w-0">
+                                <div class="flex items-center min-w-0">
+                                    <div class="w-10 h-10 flex-shrink-0 bg-gradient-to-br from-green-100 to-green-200 rounded-full flex items-center justify-center mr-3 sm:mr-4">
                                         <i class="fas fa-leaf text-green-600 text-lg"></i>
                                     </div>
-                                    <div>
-                                        <h4 class="font-bold text-gray-800 text-lg">${ingredient.ingredient_name}</h4>
+                                    <div class="min-w-0">
+                                        <h4 class="font-bold text-gray-800 text-base sm:text-lg break-words">${ingredient.ingredient_name}</h4>
                                         <p class="text-sm text-gray-500">Ingrediente #${index + 1}</p>
                                     </div>
                                 </div>
-                                <div class="text-right">
-                                    <div class="bg-gradient-to-r from-green-100 to-green-200 px-4 py-2 rounded-full">
-                                        <span class="text-green-800 font-bold text-lg">${ingredient.formatted_amount}</span>
+                                <div class="sm:text-right flex-shrink-0">
+                                    <div class="bg-gradient-to-r from-green-100 to-green-200 px-3 sm:px-4 py-2 rounded-full inline-block">
+                                        <span class="text-green-800 font-bold text-base sm:text-lg break-words">${ingredient.formatted_amount}</span>
                                     </div>
                                 </div>
                             </div>
                             ${ingredient.notes ? `
-                                <div class="mt-3 p-3 bg-gray-50 rounded-lg">
-                                    <div class="flex items-start">
-                                        <i class="fas fa-sticky-note text-gray-400 mr-2 mt-1"></i>
-                                        <p class="text-sm text-gray-600">${ingredient.notes}</p>
+                                <div class="mt-3 p-3 bg-gray-50 rounded-lg min-w-0">
+                                    <div class="flex items-start min-w-0">
+                                        <i class="fas fa-sticky-note text-gray-400 mr-2 mt-1 flex-shrink-0"></i>
+                                        <p class="text-sm text-gray-600 break-words">${ingredient.notes}</p>
                                     </div>
                                 </div>
                             ` : ''}
@@ -750,7 +746,8 @@ document.getElementById('imageModal').addEventListener('click', function(e) {
     }
 });
 
-function confirmDelete(compostingId) {
+function confirmDelete(event, formElement) {
+    if (event && event.preventDefault) event.preventDefault();
     Swal.fire({
         title: '¿Eliminar pila?',
         text: 'Esta acción no se puede deshacer.',
@@ -761,28 +758,11 @@ function confirmDelete(compostingId) {
         confirmButtonText: 'Sí, eliminar',
         cancelButtonText: 'Cancelar'
     }).then((result) => {
-        if (result.isConfirmed) {
-            // Crear formulario para eliminar
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = `/admin/composting/${compostingId}`;
-            
-            const methodField = document.createElement('input');
-            methodField.type = 'hidden';
-            methodField.name = '_method';
-            methodField.value = 'DELETE';
-            
-            const tokenField = document.createElement('input');
-            tokenField.type = 'hidden';
-            tokenField.name = '_token';
-            tokenField.value = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            
-            form.appendChild(methodField);
-            form.appendChild(tokenField);
-            document.body.appendChild(form);
-            form.submit();
+        if (result.isConfirmed && formElement && formElement.submit) {
+            formElement.submit();
         }
     });
+    return false;
 }
 
 // Cerrar modal al hacer clic fuera
@@ -929,6 +909,6 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 @endsection
 
-@endsection
+
 
 

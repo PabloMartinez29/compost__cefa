@@ -1,9 +1,5 @@
 @extends('layouts.masteraprendiz')
 
-@php
-use Illuminate\Support\Facades\Storage;
-@endphp
-
 @section('content')
 <div class="min-h-screen bg-soft-gray-50 py-8">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -98,10 +94,10 @@ use Illuminate\Support\Facades\Storage;
                             <div>
                                 <label class="block text-sm font-medium text-soft-gray-600 mb-2">Imagen</label>
                                 <div class="relative">
-                                    <img src="{{ Storage::url($warehouse->img) }}" 
+                                    <img src="{{ asset('storage-file/'.$warehouse->img) }}" 
                                          alt="Imagen del movimiento" 
                                          class="w-full max-w-sm rounded-lg shadow-sm border border-soft-gray-200 cursor-pointer hover:shadow-md transition-shadow duration-200"
-                                         onclick="openImageModal('{{ Storage::url($warehouse->img) }}')">
+                                         onclick="openImageModal('{{ asset('storage-file/'.$warehouse->img) }}')">
                                 </div>
                             </div>
                             @else

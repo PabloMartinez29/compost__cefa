@@ -6,8 +6,6 @@
 @vite(['resources/css/waste.css'])
 
 @php
-    use Illuminate\Support\Facades\Storage;
-    
     // Pasar los IDs de notificaciones al JavaScript
     $approvedTrackingIds = $approvedTrackingIds ?? [];
     $pendingTrackingIds = $pendingTrackingIds ?? [];
@@ -201,44 +199,44 @@ function openTrackingModal(compostingId) {
             const totalMissing = allDays.filter(d => d.type === 'missing').length;
             
             modalContent.innerHTML = `
-                <div class="space-y-6">
-                    <!-- Resumen de seguimientos -->
-                    <div class="bg-green-50 rounded-lg p-4 border border-green-200">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-4">
-                                <div class="bg-green-100 p-3 rounded-full">
-                                    <i class="fas fa-chart-line text-green-600 text-xl"></i>
+                <div class="space-y-4 sm:space-y-6">
+                    <!-- Resumen de seguimientos (responsive) -->
+                    <div class="bg-green-50 rounded-lg p-3 sm:p-4 border border-green-200 min-w-0">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
+                            <div class="flex items-center space-x-3 sm:space-x-4 min-w-0">
+                                <div class="bg-green-100 p-2 sm:p-3 rounded-full flex-shrink-0">
+                                    <i class="fas fa-chart-line text-green-600 text-lg sm:text-xl"></i>
                                 </div>
-                                <div>
-                                    <h4 class="text-lg font-semibold text-gray-800">Resumen de Seguimientos</h4>
-                                    <p class="text-sm text-gray-600">${totalTrackings} seguimiento${totalTrackings !== 1 ? 's' : ''} registrado${totalTrackings !== 1 ? 's' : ''} | ${totalMissing} día${totalMissing !== 1 ? 's' : ''} sin registro</p>
+                                <div class="min-w-0">
+                                    <h4 class="text-base sm:text-lg font-semibold text-gray-800 break-words">Resumen de Seguimientos</h4>
+                                    <p class="text-xs sm:text-sm text-gray-600 break-words">${totalTrackings} seguimiento${totalTrackings !== 1 ? 's' : ''} registrado${totalTrackings !== 1 ? 's' : ''} | ${totalMissing} día${totalMissing !== 1 ? 's' : ''} sin registro</p>
                                 </div>
                             </div>
-                            <div class="flex items-center space-x-3">
-                                <div class="text-right mr-3">
-                                    <div class="text-2xl font-bold text-green-600">${daysElapsed}/45</div>
-                                    <div class="text-sm text-gray-500">Días transcurridos</div>
+                            <div class="flex items-center justify-between sm:justify-end gap-2 flex-shrink-0">
+                                <div class="text-left sm:text-right">
+                                    <div class="text-xl sm:text-2xl font-bold text-green-600">${daysElapsed}/45 <span class="text-sm font-normal text-gray-500">Días</span></div>
+                                    <div class="text-xs sm:text-sm text-gray-500">transcurridos</div>
                                 </div>
-                                <a href="/aprendiz/tracking/composting/${data.composting.id}/download/pdf" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition-colors duration-200" title="Descargar PDF de esta Pila">
+                                <a href="/aprendiz/tracking/composting/${data.composting.id}/download/pdf" class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition-colors duration-200 flex-shrink-0" title="Descargar PDF de esta Pila">
                                     <i class="fas fa-file-pdf"></i>
                                 </a>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Tabla de seguimientos -->
-                    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table class="w-full">
+                    <!-- Tabla de seguimientos (scroll horizontal en móvil) -->
+                    <div class="bg-white rounded-lg border border-gray-200 overflow-hidden min-w-0">
+                        <div class="overflow-x-auto -mx-1">
+                            <table class="w-full min-w-[640px]">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Día</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actividad</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Temperaturas</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Humedad</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Recursos</th>
-                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                                        <th class="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Día</th>
+                                        <th class="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Fecha</th>
+                                        <th class="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Actividad</th>
+                                        <th class="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Temp.</th>
+                                        <th class="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Humedad</th>
+                                        <th class="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Recursos</th>
+                                        <th class="px-2 sm:px-4 py-2 sm:py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody class="bg-white divide-y divide-gray-200">
@@ -273,8 +271,15 @@ function openTrackingModal(compostingId) {
                                                             <i class="fas fa-clock"></i>
                                                         </button>
                                                     `;
+                                                } else if (isRejected) {
+                                                    deleteButton = `
+                                                        <button type="button" onclick="showRejectedTrackingAlert()" 
+                                                                class="bg-red-100 text-red-600 p-2 rounded-lg transition-colors duration-200"
+                                                                title="Solicitud rechazada">
+                                                            <i class="fas fa-ban"></i>
+                                                        </button>
+                                                    `;
                                                 } else {
-                                                    // Sin permiso o rechazado: solicitar permiso para eliminar (mismo icono basura que los demás módulos)
                                                     deleteButton = `
                                                         <button type="button" onclick="requestDeletePermission(${tracking.id})" 
                                                                 class="bg-red-100 text-red-600 hover:bg-red-200 p-2 rounded-lg transition-colors duration-200"
@@ -288,63 +293,63 @@ function openTrackingModal(compostingId) {
                                             
                                             return `
                                                 <tr class="hover:bg-gray-50 transition-colors duration-200">
-                                                    <td class="px-4 py-4 whitespace-nowrap">
+                                                    <td class="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap">
                                                         <div class="flex items-center">
                                                             <div class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
                                                                 Día ${tracking.day}
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    <td class="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
                                                         ${new Date(tracking.date).toLocaleDateString('es-ES')}
                                                     </td>
-                                                    <td class="px-4 py-4">
-                                                        <div class="text-sm text-gray-900 max-w-xs truncate" title="${tracking.activity}">
+                                                    <td class="px-2 sm:px-4 py-3 sm:py-4">
+                                                        <div class="text-xs sm:text-sm text-gray-900 max-w-[140px] sm:max-w-xs truncate" title="${tracking.activity}">
                                                             ${tracking.activity}
                                                         </div>
                                                     </td>
-                                                    <td class="px-4 py-4 whitespace-nowrap">
-                                                        <div class="space-y-1">
-                                                            <div class="flex items-center text-sm">
-                                                                <i class="fas fa-thermometer-half text-red-500 mr-1"></i>
+                                                    <td class="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap">
+                                                        <div class="space-y-0.5">
+                                                            <div class="flex items-center text-xs sm:text-sm">
+                                                                <i class="fas fa-thermometer-half text-red-500 mr-1 flex-shrink-0"></i>
                                                                 <span class="text-red-600 font-medium">${tracking.temp_internal}°C</span>
                                                             </div>
-                                                            <div class="flex items-center text-sm text-gray-500">
-                                                                <i class="fas fa-sun text-orange-500 mr-1"></i>
+                                                            <div class="flex items-center text-xs sm:text-sm text-gray-500">
+                                                                <i class="fas fa-sun text-orange-500 mr-1 flex-shrink-0"></i>
                                                                 <span>${tracking.temp_env}°C</span>
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td class="px-4 py-4 whitespace-nowrap">
-                                                        <div class="space-y-1">
-                                                            <div class="flex items-center text-sm">
-                                                                <i class="fas fa-tint text-blue-500 mr-1"></i>
+                                                    <td class="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap">
+                                                        <div class="space-y-0.5">
+                                                            <div class="flex items-center text-xs sm:text-sm">
+                                                                <i class="fas fa-tint text-blue-500 mr-1 flex-shrink-0"></i>
                                                                 <span class="text-blue-600 font-medium">${tracking.hum_pile}%</span>
                                                             </div>
-                                                            <div class="flex items-center text-sm text-gray-500">
-                                                                <i class="fas fa-cloud text-gray-400 mr-1"></i>
+                                                            <div class="flex items-center text-xs sm:text-sm text-gray-500">
+                                                                <i class="fas fa-cloud text-gray-400 mr-1 flex-shrink-0"></i>
                                                                 <span>${tracking.hum_env}%</span>
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td class="px-4 py-4 whitespace-nowrap">
-                                                        <div class="space-y-1">
-                                                            <div class="flex items-center text-sm">
-                                                                <i class="fas fa-flask text-purple-500 mr-1"></i>
+                                                    <td class="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap">
+                                                        <div class="space-y-0.5">
+                                                            <div class="flex items-center text-xs sm:text-sm">
+                                                                <i class="fas fa-flask text-purple-500 mr-1 flex-shrink-0"></i>
                                                                 <span class="text-purple-600 font-medium">pH ${tracking.ph}</span>
                                                             </div>
-                                                            <div class="flex items-center text-sm text-gray-500">
-                                                                <i class="fas fa-tint text-blue-400 mr-1"></i>
+                                                            <div class="flex items-center text-xs sm:text-sm text-gray-500">
+                                                                <i class="fas fa-tint text-blue-400 mr-1 flex-shrink-0"></i>
                                                                 <span>${tracking.water}L</span>
                                                             </div>
-                                                            <div class="flex items-center text-sm text-gray-500">
-                                                                <i class="fas fa-mountain text-gray-400 mr-1"></i>
+                                                            <div class="flex items-center text-xs sm:text-sm text-gray-500">
+                                                                <i class="fas fa-mountain text-gray-400 mr-1 flex-shrink-0"></i>
                                                                 <span>${tracking.lime}Kg</span>
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
-                                                        <div class="flex space-x-2">
+                                                    <td class="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-sm font-medium">
+                                                        <div class="flex flex-wrap gap-1 sm:space-x-2">
                                                             <button type="button" 
                                                                     onclick="openViewTrackingModal(${tracking.id})" 
                                                                     class="bg-blue-100 text-blue-600 hover:bg-blue-200 p-2 rounded-lg transition-colors duration-200 cursor-pointer"
@@ -372,34 +377,34 @@ function openTrackingModal(compostingId) {
                                             const dateFormatted = missingDay.date || missingDay.date_formatted || new Date(missingDay.date_raw || missingDay.date).toLocaleDateString('es-ES');
                                             return `
                                                 <tr class="hover:bg-yellow-50 transition-colors duration-200 bg-yellow-50">
-                                                    <td class="px-4 py-4 whitespace-nowrap">
+                                                    <td class="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap">
                                                         <div class="flex items-center">
                                                             <div class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
                                                                 Día ${missingDay.day}
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                                                    <td class="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-900">
                                                         ${dateFormatted}
                                                     </td>
-                                                    <td class="px-4 py-4">
-                                                        <div class="text-sm text-yellow-700 italic">
+                                                    <td class="px-2 sm:px-4 py-3 sm:py-4">
+                                                        <div class="text-xs sm:text-sm text-yellow-700 italic">
                                                             <i class="fas fa-exclamation-triangle mr-1"></i>
                                                             No se realizó seguimiento
                                                         </div>
                                                     </td>
-                                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-400">
+                                                    <td class="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-400">
                                                         <span class="italic">-</span>
                                                     </td>
-                                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-400">
+                                                    <td class="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-400">
                                                         <span class="italic">-</span>
                                                     </td>
-                                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-400">
+                                                    <td class="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-xs sm:text-sm text-gray-400">
                                                         <span class="italic">-</span>
                                                     </td>
-                                                    <td class="px-4 py-4 whitespace-nowrap text-sm font-medium">
+                                                    <td class="px-2 sm:px-4 py-3 sm:py-4 whitespace-nowrap text-sm font-medium">
                                                         <a href="/aprendiz/tracking/create?composting_id=${data.composting.id}&day=${missingDay.day}" 
-                                                           class="bg-green-100 text-green-600 hover:bg-green-200 p-2 rounded-lg transition-colors duration-200"
+                                                           class="bg-green-100 text-green-600 hover:bg-green-200 p-2 rounded-lg transition-colors duration-200 inline-flex"
                                                            title="Registrar Seguimiento">
                                                             <i class="fas fa-plus"></i>
                                                         </a>
@@ -501,6 +506,15 @@ function requestDeletePermission(trackingId) {
             document.body.appendChild(form);
             form.submit();
         }
+    });
+}
+
+function showRejectedTrackingAlert() {
+    Swal.fire({
+        title: 'Solicitud rechazada',
+        text: 'Esta solicitud de eliminación fue rechazada por el administrador. No puede eliminar este seguimiento.',
+        icon: 'error',
+        confirmButtonColor: '#ef4444'
     });
 }
 </script>
@@ -637,10 +651,10 @@ function requestDeletePermission(trackingId) {
                                 <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:space-x-4">
                                     <div class="flex-shrink-0">
                                         @if($composting->image)
-                                            <img src="{{ Storage::url($composting->image) }}" 
+                                            <img src="{{ asset('storage-file/'.$composting->image) }}" 
                                                  alt="{{ $composting->formatted_pile_num }}" 
                                                  class="w-16 h-16 object-cover rounded-lg border-2 border-green-200 shadow-sm cursor-pointer hover:opacity-80 transition-opacity"
-                                                 onclick="openImageModal('{{ Storage::url($composting->image) }}')"
+                                                 onclick="openImageModal('{{ asset('storage-file/'.$composting->image) }}')"
                                                  onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                             <div class="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center border-2 border-green-200" style="display: none;">
                                                 <i class="fas fa-layer-group text-green-600 text-lg"></i>
@@ -745,31 +759,31 @@ function requestDeletePermission(trackingId) {
     </div>
 </div>
 
-<!-- Modal para ver seguimientos -->
-<div id="trackingModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 transition-opacity duration-300" onclick="if(event.target === this) closeTrackingModal();">
-    <div class="flex items-center justify-center min-h-screen p-4" onclick="event.stopPropagation();">
-        <div class="bg-white rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden transform transition-all duration-300 scale-95" id="modalContainer" onclick="event.stopPropagation();">
+<!-- Modal para ver seguimientos (responsive) -->
+<div id="trackingModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 transition-opacity duration-300 overflow-y-auto py-2 sm:py-4" onclick="if(event.target === this) closeTrackingModal();">
+    <div class="flex items-center justify-center min-h-full px-2 sm:p-4" onclick="event.stopPropagation();">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-6xl max-h-[calc(100vh-1rem)] flex flex-col min-w-0 overflow-hidden transform transition-all duration-300 scale-95" id="modalContainer" onclick="event.stopPropagation();">
             <!-- Header del Modal -->
-            <div class="bg-green-100 px-6 py-4 border-b border-green-300">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div class="bg-green-200 p-2 rounded-lg">
-                            <i class="fas fa-chart-line text-green-600 text-xl"></i>
+            <div class="bg-green-100 px-4 sm:px-6 py-3 sm:py-4 border-b border-green-300 flex-shrink-0">
+                <div class="flex items-start sm:items-center justify-between gap-2 min-w-0">
+                    <div class="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                        <div class="bg-green-200 p-1.5 sm:p-2 rounded-lg flex-shrink-0">
+                            <i class="fas fa-chart-line text-green-600 text-lg sm:text-xl"></i>
                         </div>
-                        <div>
-                            <h3 class="text-xl font-bold text-gray-800" id="modalTitle">Seguimientos de la Pila</h3>
-                            <p class="text-gray-600 text-sm">Monitorea el progreso de tu pila de compostaje</p>
+                        <div class="min-w-0">
+                            <h3 class="text-base sm:text-xl font-bold text-gray-800 break-words" id="modalTitle">Seguimientos de la Pila</h3>
+                            <p class="text-gray-600 text-xs sm:text-sm break-words">Monitorea el progreso de tu pila de compostaje</p>
                         </div>
                     </div>
                     <button onclick="closeTrackingModal()" 
-                            class="text-gray-600 hover:bg-green-200 hover:text-gray-800 p-2 rounded-lg transition-colors duration-200">
-                        <i class="fas fa-times text-xl"></i>
+                            class="text-gray-600 hover:bg-green-200 hover:text-gray-800 p-2 rounded-lg transition-colors duration-200 flex-shrink-0">
+                        <i class="fas fa-times text-lg sm:text-xl"></i>
                     </button>
                 </div>
             </div>
             
             <!-- Contenido del Modal -->
-            <div class="p-6 overflow-y-auto max-h-[70vh] bg-gray-50" id="modalContent">
+            <div class="p-3 sm:p-6 overflow-auto flex-1 min-h-0 bg-gray-50 min-w-0" id="modalContent">
                 <!-- Contenido se carga dinámicamente -->
             </div>
         </div>

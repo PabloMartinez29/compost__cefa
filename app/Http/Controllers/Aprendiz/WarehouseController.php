@@ -1,16 +1,16 @@
 <?php
 
+// Controlador Aprendiz WarehouseController — Bodega (vista aprendiz)
 namespace App\Http\Controllers\Aprendiz;
 
 use App\Http\Controllers\Controller;
 use App\Models\WarehouseClassification;
 use Illuminate\Http\Request;
 
+// Bodega - Aprendiz (solo lectura)
 class WarehouseController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Dashboard: inventario por tipo y últimos 10 movimientos.
     public function index()
     {
         $inventory = WarehouseClassification::getInventoryByType();
@@ -18,12 +18,11 @@ class WarehouseController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
+        // Mostrar vista
         return view('aprendiz.warehouse.index', compact('inventory', 'recentMovements'));
     }
 
-    /**
-     * Show inventory by type
-     */
+    // Inventario filtrado por tipo de residuo con movimientos paginados.
     public function inventory($type)
     {
         $inventory = WarehouseClassification::getCurrentInventory($type);
@@ -41,14 +40,14 @@ class WarehouseController extends Controller
             'Other' => 'Otros'
         ];
 
+        // Mostrar vista
         return view('aprendiz.warehouse.inventory', compact('inventory', 'movements', 'type', 'typeInSpanish'));
     }
 
-    /**
-     * Show the specified resource.
-     */
+    // Detalle de un movimiento individual.
     public function show(WarehouseClassification $warehouse)
     {
+        // Mostrar vista
         return view('aprendiz.warehouse.show', compact('warehouse'));
     }
 }

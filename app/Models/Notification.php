@@ -1,5 +1,7 @@
 <?php
 
+// Modelo Notification — Notificaciones del sistema (solicitudes, recordatorios de mantenimiento)
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;

@@ -1,5 +1,6 @@
 <?php
 
+// Controlador Aprendiz MachineryController — Vista de maquinaria (aprendiz)
 namespace App\Http\Controllers\Aprendiz;
 
 use App\Http\Controllers\Controller;
@@ -11,9 +12,7 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class MachineryController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Listar todos los registros
     public function index()
     {
         $machineries = Machinery::latest()->get();
@@ -53,6 +52,7 @@ class MachineryController extends Controller
         
         $rejectedMachineryIds = array_unique(array_merge($rejectedMachineryIds, $rejectedFromPending));
 
+        // Mostrar vista
         return view('aprendiz.machinery.machineries.index', compact(
             'machineries',
             'approvedMachineryIds',
@@ -61,17 +61,14 @@ class MachineryController extends Controller
         ));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    // Mostrar formulario de creación
     public function create()
     {
+        // Mostrar vista
         return view('aprendiz.machinery.machineries.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Guardar nuevo registro
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -106,6 +103,7 @@ class MachineryController extends Controller
         ]);
 
         if ($validator->fails()) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
@@ -113,44 +111,49 @@ class MachineryController extends Controller
 
         try {
             $data = $request->all();
-            
-            if ($request->hasFile('image')) {
-                $file = $request->file('image');
-                $name = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
-                $data['image'] = $file->storeAs('machineries', $name, 'public');
+            $data['created_by'] = auth()->id();
+
+            // Procesar archivo
+        if ($request->hasFile('image')) {
+                $archivo = $request->file('image');
+                $nombre = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $archivo->getClientOriginalName());
+                $dir = upload_base_path('storage/machineries');
+                if (!is_dir($dir)) {
+                    mkdir($dir, 0755, true);
+                }
+                $archivo->move($dir, $nombre);
+                $data['image'] = 'machineries/' . $nombre;
             }
             
             $machinery = Machinery::create($data);
             $machinery->scheduleNextMaintenanceDue();
             
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.machinery.index')
                 ->with('success', 'Maquinaria registrada exitosamente.');
         } catch (\Exception $e) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Error al registrar la maquinaria: ' . $e->getMessage())
                 ->withInput();
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
+    // Mostrar detalle del registro
     public function show(Machinery $machinery)
     {
+        // Mostrar vista
         return view('aprendiz.machinery.machineries.show', compact('machinery'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    // Mostrar formulario de edición
     public function edit(Machinery $machinery)
     {
+        // Mostrar vista
         return view('aprendiz.machinery.machineries.edit', compact('machinery'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    // Actualizar registro existente
     public function update(Request $request, Machinery $machinery)
     {
         $validator = Validator::make($request->all(), [
@@ -184,42 +187,58 @@ class MachineryController extends Controller
         ]);
 
         if ($validator->fails()) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
         }
 
         try {
-            $data = $request->all();
+            $data = $request->except(['image']);
             
-            if ($request->hasFile('image')) {
-                if ($machinery->image && Storage::disk('public')->exists($machinery->image)) {
-                    Storage::disk('public')->delete($machinery->image);
+            // Procesar archivo
+        if ($request->hasFile('image')) {
+                if ($machinery->image && file_exists(upload_base_path('storage/' . $machinery->image))) {
+                    unlink(upload_base_path('storage/' . $machinery->image));
                 }
-                $file = $request->file('image');
-                $name = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $file->getClientOriginalName());
-                $data['image'] = $file->storeAs('machineries', $name, 'public');
+                $archivo = $request->file('image');
+                $nombre = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $archivo->getClientOriginalName());
+                $dir = upload_base_path('storage/machineries');
+                if (!is_dir($dir)) {
+                    mkdir($dir, 0755, true);
+                }
+                $archivo->move($dir, $nombre);
+                $data['image'] = 'machineries/' . $nombre;
+            } else {
+                $data['image'] = $machinery->image;
             }
             
             $machinery->update($data);
             // Al editar (p. ej. cambiar frecuencia) se reinicia el cronómetro con la nueva frecuencia
             $machinery->scheduleNextMaintenanceDue();
             
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.machinery.index')
                 ->with('success', 'Maquinaria actualizada exitosamente.');
         } catch (\Exception $e) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Error al actualizar la maquinaria: ' . $e->getMessage())
                 ->withInput();
         }
     }
 
-    /**
-     * Request permission to delete machinery
-     */
+    // Request permission to delete machinery
     public function requestDeletePermission(Machinery $machinery)
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
+
+        // Un aprendiz no puede solicitar eliminar registros de otro aprendiz
+        if ($machinery->created_by !== null && $machinery->created_by !== $currentUserId) {
+            // Redirigir con mensaje
+            return redirect()->route('aprendiz.machinery.index')
+                ->with('error', 'No puede solicitar permisos para eliminar registros que no le pertenecen.');
+        }
 
         // Evitar solicitudes duplicadas si ya hay una pendiente o aprobada
         $existing = \App\Models\Notification::where('from_user_id', $currentUserId)
@@ -229,11 +248,13 @@ class MachineryController extends Controller
             ->first();
         
         if ($existing && $existing->status === 'pending') {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.machinery.index')
                 ->with('permission_required', 'Su solicitud de eliminación ya está pendiente de aprobación del administrador.');
         }
         
         if ($existing && $existing->status === 'approved') {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.machinery.index')
                 ->with('success', 'Su solicitud ya fue aprobada. Ahora puede eliminar el registro.');
         }
@@ -267,13 +288,12 @@ class MachineryController extends Controller
             \Log::warning('No admin users found to send notification to');
         }
 
-        return redirect()->route('aprendiz.machinery.index')
-            ->with('success', 'Solicitud de eliminación enviada al administrador. Recibirá una notificación cuando sea aprobada.');
+        // Redirigir con mensaje
+            return redirect()->route('aprendiz.machinery.index')
+            ->with('success', 'Solicitud de eliminación enviada al administrador.');
     }
 
-    /**
-     * Check delete permission status
-     */
+    // Check delete permission status
     public function checkDeletePermissionStatus(Machinery $machinery)
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
@@ -316,12 +336,17 @@ class MachineryController extends Controller
         ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    // Eliminar registro del sistema
     public function destroy(Machinery $machinery)
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
+
+        // Un aprendiz no puede eliminar registros de otro aprendiz
+        if ($machinery->created_by !== null && $machinery->created_by !== $currentUserId) {
+            // Redirigir con mensaje
+            return redirect()->back()
+                ->with('error', 'No tiene permisos para eliminar este registro. Solo puede eliminar sus propios registros.');
+        }
 
         // Verificar si hay una notificación de aprobación para este registro
         $approvedNotification = \App\Models\Notification::where('user_id', $currentUserId)
@@ -331,13 +356,14 @@ class MachineryController extends Controller
             ->first();
 
         if (!$approvedNotification) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'No tiene permiso para eliminar esta maquinaria. La solicitud de eliminación no ha sido aprobada por el administrador.');
         }
 
         try {
-            if ($machinery->image && Storage::disk('public')->exists($machinery->image)) {
-                Storage::disk('public')->delete($machinery->image);
+            if ($machinery->image && file_exists(upload_base_path('storage/' . $machinery->image))) {
+                unlink(upload_base_path('storage/' . $machinery->image));
             }
             
             $machinery->delete();
@@ -345,18 +371,18 @@ class MachineryController extends Controller
             // Eliminar la notificación de aprobación después de la eliminación exitosa
             $approvedNotification->delete();
             
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.machinery.index')
                 ->with('success', 'Maquinaria eliminada exitosamente.');
         } catch (\Exception $e) {
             \Log::error('Error deleting machinery: ' . $e->getMessage());
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Error al eliminar la maquinaria. Por favor, intente nuevamente.');
         }
     }
 
-    /**
-     * Generate PDF for all machineries (o solo los filtrados si se pasan ids)
-     */
+    // Generate PDF for all machineries (o solo
     public function downloadAllMachineriesPDF(Request $request)
     {
         $query = Machinery::latest();
@@ -382,15 +408,13 @@ class MachineryController extends Controller
         return $pdf->download('todas_las_maquinarias_' . date('Y-m-d') . '.pdf');
     }
 
-    /**
-     * Generate PDF for individual machinery
-     */
+    // Generate PDF for individual machinery
     public function downloadMachineryPDF(Machinery $machinery)
     {
         // Convertir imagen a base64 si existe
         $imageBase64 = null;
-        if ($machinery->image && Storage::disk('public')->exists($machinery->image)) {
-            $imagePath = Storage::disk('public')->path($machinery->image);
+        if ($machinery->image && file_exists(upload_base_path('storage/' . $machinery->image))) {
+            $imagePath = upload_base_path('storage/' . $machinery->image);
             $imageData = file_get_contents($imagePath);
             $imageInfo = getimagesize($imagePath);
             $mimeType = $imageInfo['mime'];

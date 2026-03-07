@@ -1,5 +1,7 @@
 <?php
 
+// Modelo Fertilizer — Registro de entregas de abono (sólido/líquido)
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -17,7 +19,8 @@ class Fertilizer extends Model
         'delivered_by',
         'type',
         'amount',
-        'notes'
+        'notes',
+        'created_by'
     ];
 
     protected $casts = [
@@ -29,6 +32,12 @@ class Fertilizer extends Model
     public function composting(): BelongsTo
     {
         return $this->belongsTo(\App\Models\Composting::class);
+    }
+
+    // Relación con el creador
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\User::class, 'created_by');
     }
 
     public function getFormattedDateAttribute(): string
