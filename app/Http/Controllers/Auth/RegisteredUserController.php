@@ -1,5 +1,6 @@
 <?php
 
+// Controlador Auth — Registro de usuarios
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -14,21 +15,17 @@ use Illuminate\View\View;
 
 class RegisteredUserController extends Controller
 {
-    /**
-     * Display the registration view.
-     */
+    // Display the registration view
     public function create(): View
     {
+        // Mostrar vista
         return view('auth.register');
     }
 
-    /**
-     * Handle an incoming registration request.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
+    // Handle an incoming registration request
     public function store(Request $request): RedirectResponse
     {
+        // Validar datos recibidos
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:'.User::class, function ($attribute, $value, $fail) {
@@ -53,6 +50,7 @@ class RegisteredUserController extends Controller
         event(new Registered($user));
 
         // No auto-login, redirect to login with success message
-        return redirect()->route('login')->with('success', 'Registro exitoso. Ya puedes iniciar sesión.');
+        // Redirigir con mensaje
+            return redirect()->route('login')->with('success', 'Registro exitoso. Ya puedes iniciar sesión.');
     }
 }

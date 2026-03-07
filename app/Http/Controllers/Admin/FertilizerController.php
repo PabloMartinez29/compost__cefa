@@ -1,5 +1,6 @@
 <?php
 
+// Controlador Admin FertilizerController — CRUD de entregas de abono
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -10,9 +11,7 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class FertilizerController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Listar todos los registros
     public function index()
     {
         $fertilizers = Fertilizer::with('composting')->orderBy('date', 'desc')->orderBy('time', 'desc')->get();
@@ -23,13 +22,11 @@ class FertilizerController extends Controller
         $todayRecords = Fertilizer::whereDate('date', today())->count();
         $todayAmount = Fertilizer::whereDate('date', today())->sum('amount');
         
+        // Mostrar vista
         return view('admin.fertilizer.index', compact('fertilizers', 'totalAmount', 'totalRecords', 'todayRecords', 'todayAmount'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     * Pilas completadas con kg disponibles (total_kg = saldo restante); se permiten varias ventas por pila.
-     */
+    // Mostrar formulario de creación
     public function create()
     {
         $completedCompostings = Composting::with(['creator', 'trackings'])
@@ -42,14 +39,14 @@ class FertilizerController extends Controller
             })
             ->values();
 
+        // Mostrar vista
         return view('admin.fertilizer.create', compact('completedCompostings'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Guardar nuevo registro
     public function store(Request $request)
     {
+        // Validar datos recibidos
         $request->validate([
             'composting_id' => 'required|exists:compostings,id',
             'date' => 'required|date',
@@ -68,6 +65,7 @@ class FertilizerController extends Controller
         
         // Usar el accessor status para mantener la misma lógica que en create()
         if ($composting->status !== 'Completada') {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'La pila seleccionada no está completada. Solo se pueden registrar abonos de pilas completadas.');
@@ -76,24 +74,26 @@ class FertilizerController extends Controller
         // total_kg en la pila es el saldo restante; se actualiza en cada venta
         $availableKg = $composting->total_kg ?? 0;
         if ($request->amount > $availableKg) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withInput()
                 ->with('error', "La cantidad solicitada ({$request->amount} " . ($request->type === 'Liquid' ? 'L' : 'Kg') . ") excede los kilogramos beneficiados disponibles ({$availableKg} Kg) de la pila.");
         }
 
-        // Crear el registro de abono
-        Fertilizer::create($request->all());
+        // Crear el registro de abono con el usuario autenticado
+        Fertilizer::create(array_merge($request->all(), [
+            'created_by' => auth()->id(),
+        ]));
 
         // Restar la cantidad de los kilogramos beneficiados de la pila
         $newTotalKg = max(0, $availableKg - $request->amount);
         $composting->update(['total_kg' => $newTotalKg]);
 
-        return redirect()->route('admin.fertilizer.index')->with('success', '¡Registro de abono creado exitosamente!');
+        // Redirigir con mensaje
+            return redirect()->route('admin.fertilizer.index')->with('success', '¡Registro de abono creado exitosamente!');
     }
 
-    /**
-     * Display the specified resource.
-     */
+    // Mostrar detalle del registro
     public function show(Fertilizer $fertilizer)
     {
         $fertilizer->load('composting.creator');
@@ -119,12 +119,11 @@ class FertilizerController extends Controller
             ]);
         }
         
+        // Mostrar vista
         return view('admin.fertilizer.show', compact('fertilizer'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    // Mostrar formulario de edición
     public function edit(Fertilizer $fertilizer)
     {
         $fertilizer->load('composting');
@@ -152,14 +151,14 @@ class FertilizerController extends Controller
             ]);
         }
         
+        // Mostrar vista
         return view('admin.fertilizer.edit', compact('fertilizer'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    // Actualizar registro existente
     public function update(Request $request, Fertilizer $fertilizer)
     {
+        // Validar datos recibidos
         $request->validate([
             'date' => 'required|date',
             'time' => 'required',
@@ -185,7 +184,8 @@ class FertilizerController extends Controller
             if ($amountDifference > 0) {
                 $availableKg = $currentTotalKg;
                 if ($amountDifference > $availableKg) {
-                    return redirect()->back()
+                    // Redirigir con mensaje
+            return redirect()->back()
                         ->withInput()
                         ->with('error', "No se puede aumentar la cantidad. Solo hay {$availableKg} Kg disponibles en la pila.");
                 }
@@ -200,12 +200,11 @@ class FertilizerController extends Controller
 
         $fertilizer->update($request->all());
 
-        return redirect()->route('admin.fertilizer.index')->with('success', '¡Registro de abono actualizado exitosamente!');
+        // Redirigir con mensaje
+            return redirect()->route('admin.fertilizer.index')->with('success', '¡Registro de abono actualizado exitosamente!');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    // Eliminar registro del sistema
     public function destroy(Fertilizer $fertilizer)
     {
         // Importante: al eliminar un registro de abono NO se deben
@@ -213,12 +212,11 @@ class FertilizerController extends Controller
         // que se altere el historial real de salida de abono.
         $fertilizer->delete();
 
-        return redirect()->route('admin.fertilizer.index')->with('success', '¡Registro de abono eliminado exitosamente!');
+        // Redirigir con mensaje
+            return redirect()->route('admin.fertilizer.index')->with('success', '¡Registro de abono eliminado exitosamente!');
     }
 
-    /**
-     * Generate PDF for all fertilizers (o solo los filtrados si se pasan ids)
-     */
+    // Generate PDF for all fertilizers (o solo
     public function downloadAllFertilizersPDF(Request $request)
     {
         $query = Fertilizer::with('composting')->orderBy('date', 'desc')->orderBy('time', 'desc');
@@ -244,9 +242,7 @@ class FertilizerController extends Controller
         return $pdf->download('todos_los_abonos_' . date('Y-m-d') . '.pdf');
     }
 
-    /**
-     * Generate PDF for individual fertilizer
-     */
+    // Generate PDF for individual fertilizer
     public function downloadFertilizerPDF(Fertilizer $fertilizer)
     {
         $fertilizer->load('composting.creator');

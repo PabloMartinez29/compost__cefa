@@ -1,5 +1,7 @@
 <?php
 
+// Modelo Maintenance — Registros de mantenimiento y operación de maquinaria
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;

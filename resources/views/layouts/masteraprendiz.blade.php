@@ -2,13 +2,16 @@
 <html lang="es">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="theme-color" content="#16a34a">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Sistema de Compostaje - Aprendiz</title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/webp" href="{{ asset('img/logo-compost-cefa.webp') }}">
-    <link rel="shortcut icon" type="image/webp" href="{{ asset('img/logo-compost-cefa.webp') }}">
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('favicon.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('img/logo-compost-cefa.webp') }}">
     
     <!-- Fonts -->
@@ -91,6 +94,12 @@
         
         nav::-webkit-scrollbar-thumb:hover {
             background-color: #9ca3af;
+        }
+
+        /* Firefox scrollbar */
+        nav {
+            scrollbar-width: thin;
+            scrollbar-color: #d1d5db transparent;
         }
 
         [x-cloak] { display: none !important; }
@@ -372,7 +381,6 @@
                             $showMaintenanceReminderAlert = \App\Models\Notification::where('user_id', auth()->id())
                                 ->where('type', 'maintenance_reminder')
                                 ->whereNull('read_at')
-                                ->where('created_at', '<=', now()->subMinute())
                                 ->exists();
                             $pendingResponses = \App\Models\Notification::where('from_user_id', auth()->id())
                                 ->where('type', 'delete_request')
@@ -533,6 +541,35 @@
                             @endforelse
                         </div>
                     </div>
+
+                    <!-- Help Button -->
+                    <div class="relative" x-data="{ helpOpen: false }">
+                        <button @click="helpOpen = !helpOpen" 
+                            class="relative p-1.5 sm:p-2 text-soft-gray-600 hover:text-soft-green-600 hover:bg-soft-gray-100 rounded-lg transition-all duration-200">
+                            <i class="fas fa-question-circle text-base sm:text-lg"></i>
+                        </button>
+                        
+                        <div x-show="helpOpen" 
+                             @click.away="helpOpen = false"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-150"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-soft-gray-200 py-2 z-50">
+                            <div class="px-4 py-2 border-b border-soft-gray-100">
+                                <h3 class="text-sm font-semibold text-soft-gray-800"><i class="fas fa-book mr-1"></i> Manual</h3>
+                            </div>
+                            <div class="py-1">
+                                <a href="{{ route('manual.view', 'aprendiz') }}" target="_blank" rel="noopener"
+                                   class="flex items-center px-4 py-2.5 text-sm text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 transition-colors duration-200">
+                                    <i class="fas fa-file-pdf text-red-500 w-5 mr-3"></i>
+                                    Manual de Aprendiz
+                                </a>
+                            </div>
+                        </div>
+                    </div>
                     
                     <div class="relative" x-data="{ open: false }">
                         <button @click="open = !open" class="flex items-center space-x-3 hover:bg-soft-gray-100 rounded-lg px-3 py-2 transition-all duration-200">
@@ -647,14 +684,36 @@
 
         @if(!empty($showMaintenanceReminderAlert))
         document.addEventListener('DOMContentLoaded', function() {
+            function showMaintenanceReminder() {
+                Swal.fire({
+                    title: 'Recordatorio de Mantenimiento',
+                    text: 'Tiene recordatorios de mantenimiento sin leer. Revise sus notificaciones.',
+                    icon: 'warning',
+                    timer: 15000,
+                    timerProgressBar: true,
+                    showConfirmButton: true,
+                    confirmButtonText: '<i class="fas fa-bell mr-1"></i> Ver Notificaciones',
+                    confirmButtonColor: '#f59e0b'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        const bellButton = document.querySelector('[\\@click="notificationsOpen = !notificationsOpen"]');
+                        if (bellButton) bellButton.click();
+                    }
+                });
+            }
+            showMaintenanceReminder();
+            setInterval(showMaintenanceReminder, 15000);
+        });
+        @endif
+
+        @if(session('unauthorized_access'))
+        document.addEventListener('DOMContentLoaded', function() {
             Swal.fire({
-                title: 'Recordatorio de Mantenimiento',
-                text: 'Tiene recordatorios de mantenimiento sin leer. La información se encuentra en Notificaciones.',
-                icon: 'warning',
-                timer: 15000,
-                timerProgressBar: true,
-                showConfirmButton: true,
-                confirmButtonText: 'Entendido'
+                title: '¡Acceso No Autorizado!',
+                text: 'No tienes permisos para acceder a esa sección.',
+                icon: 'error',
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#ef4444'
             });
         });
         @endif

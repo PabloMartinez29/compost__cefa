@@ -1,5 +1,6 @@
 <?php
 
+// Controlador Admin UsageControlController — CRUD de control de actividades
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -13,9 +14,7 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class UsageControlController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Listar todos los registros
     public function index()
     {
         $usageControls = UsageControl::with('machinery')
@@ -30,6 +29,7 @@ class UsageControlController extends Controller
                                               ->count();
         $totalHours = UsageControl::sum('hours');
         
+        // Mostrar vista
         return view('admin.machinery.usage-controls.index', compact(
             'usageControls', 
             'totalUsageControls', 
@@ -39,9 +39,7 @@ class UsageControlController extends Controller
         ));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    // Mostrar formulario de creación
     public function create()
     {
         // Mostrar solo maquinarias que:
@@ -64,12 +62,11 @@ class UsageControlController extends Controller
         ->orderBy('name')
         ->get();
         
+        // Mostrar vista
         return view('admin.machinery.usage-controls.create', compact('machineries'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Guardar nuevo registro
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -94,6 +91,7 @@ class UsageControlController extends Controller
         ]);
 
         if ($validator->fails()) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
@@ -124,18 +122,18 @@ class UsageControlController extends Controller
             
             UsageControl::create($data);
             
+            // Redirigir con mensaje
             return redirect()->route('admin.machinery.usage-control.index')
                 ->with('success', 'Registro de uso del equipo creado exitosamente.');
         } catch (\Exception $e) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Error al crear el registro: ' . $e->getMessage())
                 ->withInput();
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
+    // Mostrar detalle del registro
     public function show(UsageControl $usageControl)
     {
         $usageControl->load('machinery');
@@ -164,12 +162,11 @@ class UsageControlController extends Controller
             ]);
         }
         
+        // Mostrar vista
         return view('admin.machinery.usage-controls.show', compact('usageControl'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    // Mostrar formulario de edición
     public function edit(UsageControl $usageControl)
     {
         // En edición, mostrar maquinarias que NO están en mantenimiento
@@ -218,12 +215,11 @@ class UsageControlController extends Controller
             ]);
         }
         
+        // Mostrar vista
         return view('admin.machinery.usage-controls.edit', compact('usageControl', 'machineries'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    // Actualizar registro existente
     public function update(Request $request, UsageControl $usageControl)
     {
         $validator = Validator::make($request->all(), [
@@ -248,6 +244,7 @@ class UsageControlController extends Controller
         ]);
 
         if ($validator->fails()) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
@@ -279,34 +276,34 @@ class UsageControlController extends Controller
             
             $usageControl->update($data);
             
+            // Redirigir con mensaje
             return redirect()->route('admin.machinery.usage-control.index')
                 ->with('success', 'Registro de uso del equipo actualizado exitosamente.');
         } catch (\Exception $e) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Error al actualizar el registro: ' . $e->getMessage())
                 ->withInput();
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    // Eliminar registro del sistema
     public function destroy(UsageControl $usageControl)
     {
         try {
             $usageControl->delete();
             
+            // Redirigir con mensaje
             return redirect()->route('admin.machinery.usage-control.index')
                 ->with('success', 'Registro de uso del equipo eliminado exitosamente.');
         } catch (\Exception $e) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Error al eliminar el registro: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Generate PDF for all usage controls (o solo los filtrados si se pasan ids)
-     */
+    // Generate PDF for all usage controls (o
     public function downloadAllUsageControlsPDF(Request $request)
     {
         $query = UsageControl::with('machinery')->orderBy('date', 'desc');
@@ -332,9 +329,7 @@ class UsageControlController extends Controller
         return $pdf->download('todos_los_controles_de_uso_' . date('Y-m-d') . '.pdf');
     }
 
-    /**
-     * Generate PDF for individual usage control
-     */
+    // Generate PDF for individual usage control
     public function downloadUsageControlPDF(UsageControl $usageControl)
     {
         $usageControl->load('machinery');

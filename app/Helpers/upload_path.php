@@ -1,10 +1,6 @@
 <?php
 
-/**
- * Ruta base donde se guardan las imágenes (residuos, pilas, maquinaria).
- * Si en .env está UPLOAD_PUBLIC_PATH apuntando a public_html, las imágenes
- * se guardan ahí y no hace falta copiarlas manualmente.
- */
+// Ruta base donde se guardan las imágenes
 if (!function_exists('upload_base_path')) {
     function upload_base_path(string $path = ''): string
     {
@@ -19,9 +15,7 @@ if (!function_exists('upload_base_path')) {
     }
 }
 
-/**
- * URL para archivos en storage (usa /storage-file/ para evitar 403 en Laragon/Windows).
- */
+// URL para archivos en storage (usa /storage-file/
 if (!function_exists('storage_asset')) {
     function storage_asset(string $path): string
     {

@@ -1,5 +1,6 @@
 <?php
 
+// Controlador Aprendiz SupplierController — Proveedores (vista aprendiz)
 namespace App\Http\Controllers\Aprendiz;
 
 use App\Http\Controllers\Controller;
@@ -12,9 +13,7 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class SupplierController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Listar todos los registros
     public function index()
     {
         // Cargar la relación con maquinaria para mostrar la imagen
@@ -65,6 +64,7 @@ class SupplierController extends Controller
         // Combinar ambos arrays y eliminar duplicados
         $rejectedSupplierIds = array_unique(array_merge($rejectedAsUser, $rejectedAsFromUser));
 
+        // Mostrar vista
         return view('aprendiz.machinery.suppliers.index', compact(
             'suppliers', 
             'totalSuppliers', 
@@ -77,19 +77,16 @@ class SupplierController extends Controller
         ));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    // Mostrar formulario de creación
     public function create()
     {
         // Solo mostrar maquinarias que NO tienen proveedor registrado
         $machineries = Machinery::whereDoesntHave('supplier')->orderBy('name')->get();
+        // Mostrar vista
         return view('aprendiz.machinery.suppliers.create', compact('machineries'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Guardar nuevo registro
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -120,6 +117,7 @@ class SupplierController extends Controller
         ]);
 
         if ($validator->fails()) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
@@ -130,18 +128,18 @@ class SupplierController extends Controller
             $data['created_by'] = auth()->id();
             Supplier::create($data);
 
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.machinery.supplier.index')
                 ->with('success', 'Proveedor registrado exitosamente.');
         } catch (\Exception $e) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Error al registrar el proveedor: ' . $e->getMessage())
                 ->withInput();
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
+    // Mostrar detalle del registro
     public function show(Supplier $supplier)
     {
         $supplier->load('machinery');
@@ -167,12 +165,11 @@ class SupplierController extends Controller
             ]);
         }
         
+        // Mostrar vista
         return view('aprendiz.machinery.suppliers.show', compact('supplier'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    // Mostrar formulario de edición
     public function edit(Supplier $supplier)
     {
         // Mostrar todas las maquinarias, incluyendo la que ya tiene este proveedor
@@ -203,12 +200,11 @@ class SupplierController extends Controller
             ]);
         }
         
+        // Mostrar vista
         return view('aprendiz.machinery.suppliers.edit', compact('supplier', 'machineries'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    // Actualizar registro existente
     public function update(Request $request, Supplier $supplier)
     {
         $validator = Validator::make($request->all(), [
@@ -239,6 +235,7 @@ class SupplierController extends Controller
         ]);
 
         if ($validator->fails()) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
@@ -247,27 +244,26 @@ class SupplierController extends Controller
         try {
             $supplier->update($request->all());
             
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.machinery.supplier.index')
                 ->with('success', 'Proveedor actualizado exitosamente.');
         } catch (\Exception $e) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Error al actualizar el proveedor: ' . $e->getMessage())
                 ->withInput();
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    /**
-     * Request permission to delete supplier
-     */
+    // Eliminar registro del sistema
+    // Request permission to delete supplier
     public function requestDeletePermission(Supplier $supplier)
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
 
         // Un aprendiz no puede solicitar eliminar registros de otro aprendiz
         if ($supplier->created_by !== null && $supplier->created_by !== $currentUserId) {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.machinery.supplier.index')
                 ->with('error', 'No puede solicitar permisos para eliminar registros que no le pertenecen.');
         }
@@ -279,11 +275,13 @@ class SupplierController extends Controller
             ->first();
         
         if ($existing && $existing->status === 'pending') {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.machinery.supplier.index')
                 ->with('permission_required', 'Su solicitud de eliminación ya está pendiente de aprobación del administrador.');
         }
         
         if ($existing && $existing->status === 'approved') {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.machinery.supplier.index')
                 ->with('success', 'Su solicitud ya fue aprobada. Ahora puede eliminar el registro.');
         }
@@ -313,13 +311,12 @@ class SupplierController extends Controller
             }
         }
 
-        return redirect()->route('aprendiz.machinery.supplier.index')
+        // Redirigir con mensaje
+            return redirect()->route('aprendiz.machinery.supplier.index')
             ->with('success', 'Solicitud de eliminación enviada al administrador.');
     }
 
-    /**
-     * Check delete permission status
-     */
+    // Check delete permission status
     public function checkDeletePermissionStatus(Supplier $supplier)
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
@@ -366,6 +363,7 @@ class SupplierController extends Controller
 
         // Un aprendiz no puede eliminar registros de otro aprendiz
         if ($supplier->created_by !== null && $supplier->created_by !== $currentUserId) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'No tiene permisos para eliminar este registro. Solo puede eliminar sus propios registros.');
         }
@@ -377,6 +375,7 @@ class SupplierController extends Controller
             ->first();
 
         if (!$approvedNotification) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'No tiene permiso para eliminar este registro. La solicitud de eliminación no ha sido aprobada por el administrador.');
         }
@@ -386,17 +385,17 @@ class SupplierController extends Controller
             
             $approvedNotification->delete();
             
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.machinery.supplier.index')
                 ->with('success', 'Proveedor eliminado exitosamente.');
         } catch (\Exception $e) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Error al eliminar el proveedor: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Generate PDF for all suppliers (o solo los filtrados si se pasan ids)
-     */
+    // Generate PDF for all suppliers (o solo
     public function downloadAllSuppliersPDF(Request $request)
     {
         $query = Supplier::with('machinery')->latest();
@@ -422,9 +421,7 @@ class SupplierController extends Controller
         return $pdf->download('todos_los_proveedores_' . date('Y-m-d') . '.pdf');
     }
 
-    /**
-     * Generate PDF for individual supplier
-     */
+    // Generate PDF for individual supplier
     public function downloadSupplierPDF(Supplier $supplier)
     {
         $supplier->load('machinery');

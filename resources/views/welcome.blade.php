@@ -3,13 +3,16 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="format-detection" content="telephone=no">
+        <meta name="theme-color" content="#16a34a">
         
         <!-- Favicon -->
-        <link rel="icon" type="image/webp" href="{{ asset('img/logo-compost-cefa.webp') }}">
-        <link rel="shortcut icon" type="image/webp" href="{{ asset('img/logo-compost-cefa.webp') }}">
+        <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+        <link rel="shortcut icon" type="image/png" href="{{ asset('favicon.png') }}">
         <link rel="apple-touch-icon" href="{{ asset('img/logo-compost-cefa.webp') }}">
         
-        <title>COMPOST CEFA - Sistema de Registro</title>
+        <title>COMPOST CEFA</title>
 
         <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -166,7 +169,7 @@
                     <a href="#about" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Acerca de</a>
                     <a href="#modules" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Módulos</a>
                     <a href="#features" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Características</a>
-                    <a href="{{ route('soporte') }}" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Soporte</a>
+                    <a href="{{ route('soporte') }}" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105"><i class="fas fa-question-circle mr-1"></i>Ayuda</a>
                     <a href="{{ route('developers') }}" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Desarrolladores</a>
             @if (Route::has('login'))
                     @auth
@@ -251,7 +254,7 @@
                         <a href="#about" @click="mobileMenuOpen = false" class="block px-4 py-2 text-compost-700 hover:bg-compost-50 rounded-lg font-semibold transition-colors duration-200">Acerca de</a>
                         <a href="#modules" @click="mobileMenuOpen = false" class="block px-4 py-2 text-compost-700 hover:bg-compost-50 rounded-lg font-semibold transition-colors duration-200">Módulos</a>
                         <a href="#features" @click="mobileMenuOpen = false" class="block px-4 py-2 text-compost-700 hover:bg-compost-50 rounded-lg font-semibold transition-colors duration-200">Características</a>
-                        <a href="{{ route('soporte') }}" @click="mobileMenuOpen = false" class="block px-4 py-2 text-compost-700 hover:bg-compost-50 rounded-lg font-semibold transition-colors duration-200">Soporte</a>
+                        <a href="{{ route('soporte') }}" @click="mobileMenuOpen = false" class="block px-4 py-2 text-compost-700 hover:bg-compost-50 rounded-lg font-semibold transition-colors duration-200"><i class="fas fa-question-circle mr-1"></i>Ayuda</a>
                         <a href="{{ route('developers') }}" @click="mobileMenuOpen = false" class="block px-4 py-2 text-compost-700 hover:bg-compost-50 rounded-lg font-semibold transition-colors duration-200">Desarrolladores</a>
                         @if (Route::has('login'))
                             @auth
@@ -280,7 +283,7 @@
     <!-- Hero Section -->
     <section id="hero-section" class="w-full min-w-full pt-24 md:pt-32 pb-20 relative overflow-hidden min-h-screen flex items-center" style="min-height: 100vh;">
         <!-- Video Background -->
-        <video id="hero-video" autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover z-0" style="transform-origin: center center;">
+        <video id="hero-video" autoplay muted loop playsinline webkit-playsinline class="absolute inset-0 w-full h-full object-cover z-0" style="transform-origin: center center;">
             <source src="{{ asset('videos/hero-background.mp4') }}" type="video/mp4">
         </video>
         
@@ -303,7 +306,7 @@
                 <!-- Subtitle with Definition -->
                 <div class="max-w-4xl mx-auto mb-8 md:mb-12 px-4">
                     <p class="text-lg sm:text-xl md:text-2xl lg:text-3xl text-white font-medium leading-relaxed drop-shadow-md" id="typewriter-description">
-                        Sistema de Registro de Creación de Pilas de Compostaje y Manipulación de Maquinaria
+                        Sistema de Gestión Integral del Proceso de Compostaje y Control de Maquinaria
                     </p>
                 </div>
 
@@ -598,9 +601,10 @@
                 <!-- Map -->
                 <div class="col-span-1 md:col-span-2">
                     <h3 class="text-lg font-bold text-white mb-4">Ubicación</h3>
+                    <!-- Iframe de Google Maps público: q=coordenadas | z=zoom | t=k indica vista satélite -->
                     <div class="rounded-lg overflow-hidden shadow-lg" style="height: 300px;">
                         <iframe 
-                            src="https://www.google.com/maps?q=2.61361,-75.36111&hl=es&z=15&output=embed" 
+                            src="https://www.google.com/maps?q=2.61361,-75.36111&hl=es&z=15&t=k&output=embed"
                             width="100%" 
                             height="100%" 
                             style="border:0;" 
@@ -618,7 +622,7 @@
                         <li><a href="#about" class="text-compost-200 hover:text-white transition-colors duration-300">Acerca de</a></li>
                         <li><a href="#modules" class="text-compost-200 hover:text-white transition-colors duration-300">Módulos</a></li>
                         <li><a href="#features" class="text-compost-200 hover:text-white transition-colors duration-300">Características</a></li>
-                        <li><a href="{{ route('soporte') }}" class="text-compost-200 hover:text-white transition-colors duration-300">Soporte</a></li>
+                        <li><a href="{{ route('soporte') }}" class="text-compost-200 hover:text-white transition-colors duration-300"><i class="fas fa-question-circle mr-1"></i>Ayuda</a></li>
                         <li><a href="{{ route('developers') }}" class="text-compost-200 hover:text-white transition-colors duration-300">Desarrolladores</a></li>
                         @if (Route::has('login'))
                             <li><a href="{{ route('login') }}" class="text-compost-200 hover:text-white transition-colors duration-300">Iniciar Sesión</a></li>
@@ -708,7 +712,7 @@
             
             if (descriptionElement) {
                 setTimeout(() => {
-                    typeWriter(descriptionElement, 'Sistema de Registro de Creación de Pilas de Compostaje y Manipulación de Maquinaria', 50);
+                    typeWriter(descriptionElement, 'Sistema de Gestión Integral del Proceso de Compostaje y Control de Maquinaria', 50);
                 }, 3500);
             }
         });

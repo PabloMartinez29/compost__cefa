@@ -1,5 +1,6 @@
 <?php
 
+// Controlador Admin SupplierController — CRUD de proveedores
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -12,9 +13,7 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class SupplierController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Listar todos los registros
     public function index()
     {
         // Cargar la relación con maquinaria para mostrar la imagen
@@ -33,19 +32,16 @@ class SupplierController extends Controller
         return $response;
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    // Mostrar formulario de creación
     public function create()
     {
         // Solo mostrar maquinarias que NO tienen proveedor registrado
         $machineries = Machinery::whereDoesntHave('supplier')->orderBy('name')->get();
+        // Mostrar vista
         return view('admin.machinery.suppliers.create', compact('machineries'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Guardar nuevo registro
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -76,6 +72,7 @@ class SupplierController extends Controller
         ]);
 
         if ($validator->fails()) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
@@ -84,18 +81,18 @@ class SupplierController extends Controller
         try {
             Supplier::create($request->all());
             
+            // Redirigir con mensaje
             return redirect()->route('admin.machinery.supplier.index')
                 ->with('success', 'Proveedor registrado exitosamente.');
         } catch (\Exception $e) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Error al registrar el proveedor: ' . $e->getMessage())
                 ->withInput();
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
+    // Mostrar detalle del registro
     public function show(Supplier $supplier)
     {
         $supplier->load('machinery');
@@ -121,12 +118,11 @@ class SupplierController extends Controller
             ]);
         }
         
+        // Mostrar vista
         return view('admin.machinery.suppliers.show', compact('supplier'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    // Mostrar formulario de edición
     public function edit(Supplier $supplier)
     {
         // Mostrar todas las maquinarias, incluyendo la que ya tiene este proveedor
@@ -157,12 +153,11 @@ class SupplierController extends Controller
             ]);
         }
         
+        // Mostrar vista
         return view('admin.machinery.suppliers.edit', compact('supplier', 'machineries'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    // Actualizar registro existente
     public function update(Request $request, Supplier $supplier)
     {
         $validator = Validator::make($request->all(), [
@@ -193,6 +188,7 @@ class SupplierController extends Controller
         ]);
 
         if ($validator->fails()) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
@@ -201,34 +197,34 @@ class SupplierController extends Controller
         try {
             $supplier->update($request->all());
             
+            // Redirigir con mensaje
             return redirect()->route('admin.machinery.supplier.index')
                 ->with('success', 'Proveedor actualizado exitosamente.');
         } catch (\Exception $e) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Error al actualizar el proveedor: ' . $e->getMessage())
                 ->withInput();
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    // Eliminar registro del sistema
     public function destroy(Supplier $supplier)
     {
         try {
             $supplier->delete();
             
+            // Redirigir con mensaje
             return redirect()->route('admin.machinery.supplier.index')
                 ->with('success', 'Proveedor eliminado exitosamente.');
         } catch (\Exception $e) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Error al eliminar el proveedor: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Generate PDF for all suppliers (o solo los filtrados si se pasan ids)
-     */
+    // Generate PDF for all suppliers (o solo
     public function downloadAllSuppliersPDF(Request $request)
     {
         $query = Supplier::with('machinery')->latest();
@@ -254,9 +250,7 @@ class SupplierController extends Controller
         return $pdf->download('todos_los_proveedores_' . date('Y-m-d') . '.pdf');
     }
 
-    /**
-     * Generate PDF for individual supplier
-     */
+    // Generate PDF for individual supplier
     public function downloadSupplierPDF(Supplier $supplier)
     {
         $supplier->load('machinery');

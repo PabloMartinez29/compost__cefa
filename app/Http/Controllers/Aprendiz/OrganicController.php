@@ -1,5 +1,6 @@
 <?php
 
+// Controlador Aprendiz OrganicController — Residuos orgánicos (vista aprendiz)
 namespace App\Http\Controllers\Aprendiz;
 
 use App\Http\Controllers\Controller;
@@ -12,9 +13,7 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class OrganicController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Listar todos los registros
     public function index()
     {
         $organics = Organic::with('creator')->orderBy('date', 'desc')->get();
@@ -72,6 +71,7 @@ class OrganicController extends Controller
         
         $rejectedOrganicIds = array_unique(array_merge($rejectedOrganicIds, $rejectedFromPending));
         
+        // Mostrar vista
         return view('aprendiz.organic.index', compact(
             'organics',
             'totalWeight',
@@ -85,19 +85,17 @@ class OrganicController extends Controller
         ));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    // Mostrar formulario de creación
     public function create()
     {
+        // Mostrar vista
         return view('aprendiz.organic.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Guardar nuevo registro
     public function store(Request $request)
     {
+        // Validar datos recibidos
         $request->validate([
             'date' => 'required|date',
             'type' => 'required|in:Kitchen,Beds,Leaves,CowDung,ChickenManure,PigManure,Other',
@@ -113,6 +111,7 @@ class OrganicController extends Controller
         $data = $request->all();
         
         // Handle image upload (public/storage/organics para que en el servidor no afecte)
+        // Procesar archivo
         if ($request->hasFile('img')) {
             $archivo = $request->file('img');
             $nombre = time() . '_' . $archivo->getClientOriginalName();
@@ -141,12 +140,11 @@ class OrganicController extends Controller
             'img' => $data['img'] // Misma imagen si existe
         ]);
 
-        return redirect()->route('aprendiz.organic.index')->with('success', 'Residuo orgánico registrado y clasificado exitosamente!');
+        // Redirigir con mensaje
+            return redirect()->route('aprendiz.organic.index')->with('success', 'Residuo orgánico registrado y clasificado exitosamente!');
     }
 
-    /**
-     * Display the specified resource.
-     */
+    // Mostrar detalle del registro
     public function show(Organic $organic)
     {
         // Si es una petición AJAX, devolver JSON
@@ -188,22 +186,21 @@ class OrganicController extends Controller
             }
         }
         
+        // Mostrar vista
         return view('aprendiz.organic.show', compact('organic'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    // Mostrar formulario de edición
     public function edit(Organic $organic)
     {
+        // Mostrar vista
         return view('aprendiz.organic.edit', compact('organic'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    // Actualizar registro existente
     public function update(Request $request, Organic $organic)
     {
+        // Validar datos recibidos
         $request->validate([
             'date' => 'required|date',
             'type' => 'required|in:Kitchen,Beds,Leaves,CowDung,ChickenManure,PigManure,Other',
@@ -222,6 +219,7 @@ class OrganicController extends Controller
         $oldType = $organic->type;
 
         // Imagen: solo actualizar si se sube una nueva; si no, conservar la actual
+        // Procesar archivo
         if ($request->hasFile('img')) {
             if ($organic->img && file_exists(upload_base_path('storage/' . $organic->img))) {
                 unlink(upload_base_path('storage/' . $organic->img));
@@ -266,18 +264,18 @@ class OrganicController extends Controller
             ]);
         }
 
-        return redirect()->route('aprendiz.organic.index')->with('success', 'Residuo orgánico actualizado exitosamente! El inventario de bodega se ha actualizado.');
+        // Redirigir con mensaje
+            return redirect()->route('aprendiz.organic.index')->with('success', 'Residuo orgánico actualizado exitosamente! El inventario de bodega se ha actualizado.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    // Eliminar registro del sistema
     public function destroy(Organic $organic)
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
         
         // Verificar que el registro pertenece al usuario
         if ($organic->created_by !== $currentUserId) {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.organic.index')
                 ->with('permission_required', 'No tiene permisos para eliminar este registro.');
         }
@@ -291,6 +289,7 @@ class OrganicController extends Controller
             ->first();
         
         if (!$approvedNotification) {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.organic.index')
                 ->with('permission_required', 'No tiene permiso para eliminar este registro. Debe solicitar permiso primero y esperar la aprobación del administrador.');
         }
@@ -298,6 +297,7 @@ class OrganicController extends Controller
         // Validar que hay suficiente inventario disponible antes de eliminar
         $availableInventory = WarehouseClassification::getAvailableInventory($organic->type);
         if ($organic->weight > $availableInventory) {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.organic.index')
                 ->with('error', "No se puede eliminar este registro. El peso ({$organic->weight} kg) excede el inventario disponible (" . number_format($availableInventory, 2) . " kg) para este tipo de residuo.");
         }
@@ -322,35 +322,35 @@ class OrganicController extends Controller
 
         $organic->delete();
 
-        return redirect()->route('aprendiz.organic.index')->with('success', 'Residuo orgánico eliminado exitosamente! Las cantidades han sido restadas del inventario.');
+        // Redirigir con mensaje
+            return redirect()->route('aprendiz.organic.index')->with('success', 'Residuo orgánico eliminado exitosamente! Las cantidades han sido restadas del inventario.');
     }
 
-    /**
-     * Solicitar permiso para editar un registro
-     */
+    // Solicitar permiso para editar un registro
     public function requestEditPermission(Organic $organic)
     {
         // Verificar que el registro pertenece al usuario
         $currentUserId = auth()->check() ? auth()->id() : null;
         if ($organic->created_by !== $currentUserId) {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.organic.index')
                 ->with('permission_required', 'No puede solicitar permisos para registros que no le pertenecen.');
         }
 
         // Aquí se implementaría la lógica para enviar notificación al administrador
         // Por ahora, solo mostramos un mensaje
-        return redirect()->route('aprendiz.organic.index')
+        // Redirigir con mensaje
+            return redirect()->route('aprendiz.organic.index')
             ->with('success', 'Solicitud de edición enviada al administrador. Recibirá una notificación cuando sea aprobada.');
     }
 
-    /**
-     * Solicitar permiso para eliminar un registro
-     */
+    // Solicitar permiso para eliminar un registro
     public function requestDeletePermission(Organic $organic)
     {
         // Verificar que el registro pertenece al usuario
         $currentUserId = auth()->check() ? auth()->id() : null;
         if ($organic->created_by !== $currentUserId) {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.organic.index')
                 ->with('permission_required', 'No puede solicitar permisos para registros que no le pertenecen.');
         }
@@ -364,11 +364,13 @@ class OrganicController extends Controller
             ->first();
         
         if ($existing && $existing->status === 'pending') {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.organic.index')
                 ->with('permission_required', 'Su solicitud de eliminación ya está pendiente de aprobación del administrador.');
         }
         
         if ($existing && $existing->status === 'approved') {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.organic.index')
                 ->with('success', 'Su solicitud ya fue aprobada. Ahora puede eliminar el registro.');
         }
@@ -403,13 +405,12 @@ class OrganicController extends Controller
             \Log::warning('No se encontraron administradores para enviar notificación de eliminación de residuo orgánico');
         }
 
-        return redirect()->route('aprendiz.organic.index')
+        // Redirigir con mensaje
+            return redirect()->route('aprendiz.organic.index')
             ->with('success', 'Solicitud de eliminación enviada al administrador.');
     }
 
-    /**
-     * Generate PDF for all organics (o solo los filtrados si se pasan ids en la petición)
-     */
+    // Generate PDF for all organics (o solo
     public function downloadAllOrganicsPDF(Request $request)
     {
         $query = Organic::with('creator')->orderBy('date', 'desc');
@@ -435,9 +436,7 @@ class OrganicController extends Controller
         return $pdf->download('todos_los_residuos_' . date('Y-m-d') . '.pdf');
     }
 
-    /**
-     * Generate PDF for individual organic
-     */
+    // Generate PDF for individual organic
     public function downloadOrganicPDF(Organic $organic)
     {
         $organic->load('creator');

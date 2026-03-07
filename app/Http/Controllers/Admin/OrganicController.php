@@ -1,5 +1,6 @@
 <?php
 
+// Controlador Admin OrganicController — CRUD de residuos orgánicos
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -11,9 +12,7 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class OrganicController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Listar todos los registros
     public function index()
     {
         $organics = Organic::with('creator')->orderBy('date', 'desc')->get();
@@ -24,22 +23,21 @@ class OrganicController extends Controller
         $todayRecords = Organic::whereDate('date', today())->count();
         $todayWeight = Organic::whereDate('date', today())->sum('weight');
         
+        // Mostrar vista
         return view('admin.organic.index', compact('organics', 'totalWeight', 'totalRecords', 'todayRecords', 'todayWeight'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    // Mostrar formulario de creación
     public function create()
     {
+        // Mostrar vista
         return view('admin.organic.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Guardar nuevo registro
     public function store(Request $request)
     {
+        // Validar datos recibidos
         $request->validate([
             'date' => 'required|date',
             'type' => 'required|in:Kitchen,Beds,Leaves,CowDung,ChickenManure,PigManure,Other',
@@ -55,6 +53,7 @@ class OrganicController extends Controller
         $data = $request->all();
         
         // Handle image upload (public/storage/organics para que en el servidor no afecte)
+        // Procesar archivo
         if ($request->hasFile('img')) {
             $archivo = $request->file('img');
             $nombre = time() . '_' . $archivo->getClientOriginalName();
@@ -83,12 +82,11 @@ class OrganicController extends Controller
             'img' => $data['img'] // Misma imagen si existe
         ]);
 
-        return redirect()->route('admin.organic.index')->with('success', 'Residuo orgánico registrado y clasificado exitosamente!');
+        // Redirigir con mensaje
+            return redirect()->route('admin.organic.index')->with('success', 'Residuo orgánico registrado y clasificado exitosamente!');
     }
 
-    /**
-     * Display the specified resource.
-     */
+    // Mostrar detalle del registro
     public function show(Organic $organic)
     {
         // Si es una petición AJAX, devolver JSON
@@ -130,22 +128,21 @@ class OrganicController extends Controller
             }
         }
 
+        // Mostrar vista
         return view('admin.organic.show', compact('organic'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    // Mostrar formulario de edición
     public function edit(Organic $organic)
     {
+        // Mostrar vista
         return view('admin.organic.edit', compact('organic'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    // Actualizar registro existente
     public function update(Request $request, Organic $organic)
     {
+        // Validar datos recibidos
         $request->validate([
             'date' => 'required|date',
             'type' => 'required|in:Kitchen,Beds,Leaves,CowDung,ChickenManure,PigManure,Other',
@@ -164,6 +161,7 @@ class OrganicController extends Controller
         $oldType = $organic->type;
 
         // Imagen: solo actualizar si se sube una nueva; si no, conservar la actual
+        // Procesar archivo
         if ($request->hasFile('img')) {
             if ($organic->img && file_exists(upload_base_path('storage/' . $organic->img))) {
                 unlink(upload_base_path('storage/' . $organic->img));
@@ -208,12 +206,11 @@ class OrganicController extends Controller
             ]);
         }
 
-        return redirect()->route('admin.organic.index')->with('success', '¡Registro de residuo orgánico actualizado exitosamente! El inventario de bodega se ha actualizado.');
+        // Redirigir con mensaje
+            return redirect()->route('admin.organic.index')->with('success', '¡Registro de residuo orgánico actualizado exitosamente! El inventario de bodega se ha actualizado.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    // Eliminar registro del sistema
     public function destroy(Organic $organic)
     {
         // Los administradores pueden eliminar sin restricción de inventario
@@ -234,12 +231,11 @@ class OrganicController extends Controller
         
         $organic->delete();
 
-        return redirect()->route('admin.organic.index')->with('success', '¡Registro de residuo orgánico eliminado exitosamente! El inventario de bodega ha sido actualizado.');
+        // Redirigir con mensaje
+            return redirect()->route('admin.organic.index')->with('success', '¡Registro de residuo orgánico eliminado exitosamente! El inventario de bodega ha sido actualizado.');
     }
 
-    /**
-     * Generate PDF for all organics (o solo los filtrados si se pasan ids en la petición)
-     */
+    // Generate PDF for all organics (o solo
     public function downloadAllOrganicsPDF(Request $request)
     {
         $query = Organic::with('creator')->orderBy('date', 'desc');
@@ -265,9 +261,7 @@ class OrganicController extends Controller
         return $pdf->download('todos_los_residuos_' . date('Y-m-d') . '.pdf');
     }
 
-    /**
-     * Generate PDF for individual organic
-     */
+    // Generate PDF for individual organic
     public function downloadOrganicPDF(Organic $organic)
     {
         $organic->load('creator');

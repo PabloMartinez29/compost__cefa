@@ -1,7 +1,7 @@
 /* Auth Pages Styles - Login and Register */
 
 /* Base Font */
-body { 
+body {
     font-family: 'Inter', sans-serif;
     overflow-x: hidden;
     position: relative;
@@ -24,22 +24,34 @@ html {
 }
 
 @keyframes typing {
-    from { width: 0; }
-    to { width: 100%; }
+    from {
+        width: 0;
+    }
+
+    to {
+        width: 100%;
+    }
 }
 
 @keyframes blink-caret {
-    from, to { border-color: transparent; }
-    50% { border-color: #22c55e; }
+
+    from,
+    to {
+        border-color: transparent;
+    }
+
+    50% {
+        border-color: #22c55e;
+    }
 }
 
 /* Hover Effects */
-.hover-lift { 
-    transition: transform 0.2s ease-in-out; 
+.hover-lift {
+    transition: transform 0.2s ease-in-out;
 }
 
-.hover-lift:hover { 
-    transform: translateY(-2px); 
+.hover-lift:hover {
+    transform: translateY(-2px);
 }
 
 /* Fade In Up Animation */
@@ -52,6 +64,7 @@ html {
         opacity: 0;
         transform: translateY(30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -68,6 +81,7 @@ html {
         opacity: 0;
         transform: translateX(30px);
     }
+
     to {
         opacity: 1;
         transform: translateX(0);
@@ -83,6 +97,7 @@ html {
     from {
         box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
     }
+
     to {
         box-shadow: 0 0 30px rgba(34, 197, 94, 0.6);
     }
@@ -98,13 +113,16 @@ html {
         opacity: 0;
         transform: scale(0.3);
     }
+
     50% {
         opacity: 1;
         transform: scale(1.05);
     }
+
     70% {
         transform: scale(0.9);
     }
+
     100% {
         opacity: 1;
         transform: scale(1);
@@ -123,7 +141,7 @@ html {
     --soft-green-700: #15803d;
     --soft-green-800: #166534;
     --soft-green-900: #14532d;
-    
+
     --soft-gray-50: #f9fafb;
     --soft-gray-100: #f3f4f6;
     --soft-gray-200: #e5e7eb;
@@ -149,7 +167,11 @@ html {
     background-color: white;
     transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     box-sizing: border-box;
-    font-size: 14px !important;
+    font-size: 16px !important;
+    /* Prevent iOS zoom on focus */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
     line-height: 1.5;
     transform: scale(1);
     transform-origin: center;
@@ -163,6 +185,8 @@ html {
 
 /* Select Styles */
 select.auth-input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
     background-position: right 0.75rem center;
@@ -224,12 +248,14 @@ select.auth-input option:first-child {
     width: 3rem;
     height: 3rem;
     background-color: rgba(255, 255, 255, 0.8);
+    -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
     color: #4b5563;
     border-radius: 50%;
     transition: all 0.3s ease-in-out;
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     border: 1px solid #e5e7eb;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .back-button:hover {
@@ -240,11 +266,13 @@ select.auth-input option:first-child {
 /* Container Styles */
 .auth-container {
     background-color: rgba(255, 255, 255, 0.9);
+    -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
     border-radius: 1rem;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
     border: 1px solid rgba(255, 255, 255, 0.5);
     overflow: hidden;
+    -webkit-animation: slideInRight 0.8s ease-out;
     animation: slideInRight 0.8s ease-out;
     position: relative;
     width: 100%;
@@ -258,7 +286,7 @@ select.auth-input option:first-child {
     }
 }
 
-.auth-container > .flex {
+.auth-container>.flex {
     display: flex;
     width: 100%;
     position: relative;
@@ -266,7 +294,7 @@ select.auth-input option:first-child {
 }
 
 @media (min-width: 1024px) {
-    .auth-container > .flex {
+    .auth-container>.flex {
         flex-direction: row;
     }
 }
@@ -398,17 +426,17 @@ select.auth-input option:first-child {
         border-radius: 1rem;
         max-height: calc(100vh - 1rem);
     }
-    
+
     .auth-form-panel {
         padding: 1rem;
         max-height: calc(100vh - 2rem);
     }
-    
+
     .auth-logo {
         width: 3rem;
         height: 3rem;
     }
-    
+
     .back-button {
         width: 2.5rem;
         height: 2.5rem;
@@ -422,17 +450,39 @@ select.auth-input option:first-child {
         margin: 1rem;
         max-height: calc(100vh - 2rem);
     }
-    
+
     .auth-form-panel {
         max-height: calc(100vh - 2rem);
     }
 }
 
 /* Compact form spacing */
-.auth-form-panel .space-y-4 > * + * {
+.auth-form-panel .space-y-4>*+* {
     margin-top: 1rem;
 }
 
-.auth-form-panel .space-y-6 > * + * {
+.auth-form-panel .space-y-6>*+* {
     margin-top: 1rem;
+}
+
+/* iOS safe area for notch devices */
+@supports (padding: env(safe-area-inset-bottom)) {
+    .auth-container {
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+}
+
+/* Prevent tap highlight on mobile */
+a,
+button,
+input,
+select,
+textarea {
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Fix for older Safari flexbox */
+.auth-container>.flex {
+    display: -webkit-flex;
+    display: flex;
 }

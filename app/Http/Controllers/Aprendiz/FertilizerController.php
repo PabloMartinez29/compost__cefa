@@ -1,5 +1,6 @@
 <?php
 
+// Controlador Aprendiz FertilizerController — CRUD de abono (vista aprendiz)
 namespace App\Http\Controllers\Aprendiz;
 
 use App\Http\Controllers\Controller;
@@ -9,95 +10,68 @@ use App\Models\Notification;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
+// Abono Terminado - Aprendiz
 class FertilizerController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Listar abonos con estadísticas y estados de solicitudes de eliminación.
     public function index()
     {
         $fertilizers = Fertilizer::with('composting.creator')->orderBy('date', 'desc')->orderBy('time', 'desc')->get();
         
-        // Statistics
         $totalAmount = Fertilizer::sum('amount');
         $totalRecords = Fertilizer::count();
         $todayRecords = Fertilizer::whereDate('date', today())->count();
         $todayAmount = Fertilizer::whereDate('date', today())->sum('amount');
 
-        // Verificar notificaciones recientes
         $userId = auth()->check() ? auth()->id() : null;
+
+        // Marcar notificaciones recientes como leídas
         $recentNotifications = Notification::where('from_user_id', $userId)
             ->whereIn('status', ['approved', 'rejected'])
             ->whereNull('read_at')
             ->orderBy('created_at', 'desc')
             ->get();
-
-        // Marcar las no leídas como leídas al mostrarlas
         foreach ($recentNotifications as $notification) {
             $notification->update(['read_at' => now()]);
         }
 
-        // IDs de abonos con aprobación vigente para eliminar
+        // IDs agrupados por estado para mostrar iconos en la vista
         $approvedFertilizerIds = Notification::where('from_user_id', $userId)
-            ->where('type', 'delete_request')
-            ->where('status', 'approved')
-            ->whereNotNull('fertilizer_id')
-            ->pluck('fertilizer_id')
-            ->toArray();
+            ->where('type', 'delete_request')->where('status', 'approved')
+            ->whereNotNull('fertilizer_id')->pluck('fertilizer_id')->toArray();
 
-        // IDs de abonos con solicitud pendiente
         $pendingFertilizerIds = Notification::where('from_user_id', $userId)
-            ->where('type', 'delete_request')
-            ->where('status', 'pending')
-            ->whereNotNull('fertilizer_id')
-            ->pluck('fertilizer_id')
-            ->toArray();
+            ->where('type', 'delete_request')->where('status', 'pending')
+            ->whereNotNull('fertilizer_id')->pluck('fertilizer_id')->toArray();
 
-        // IDs de abonos con solicitud rechazada
         $rejectedFertilizerIds = Notification::where('from_user_id', $userId)
-            ->where('type', 'delete_request')
-            ->where('status', 'rejected')
-            ->whereNotNull('fertilizer_id')
-            ->pluck('fertilizer_id')
-            ->toArray();
+            ->where('type', 'delete_request')->where('status', 'rejected')
+            ->whereNotNull('fertilizer_id')->pluck('fertilizer_id')->toArray();
         
+        // Mostrar vista
         return view('aprendiz.fertilizer.index', compact(
-            'fertilizers',
-            'totalAmount',
-            'totalRecords',
-            'todayRecords',
-            'todayAmount',
-            'recentNotifications',
-            'approvedFertilizerIds',
-            'pendingFertilizerIds',
-            'rejectedFertilizerIds'
+            'fertilizers', 'totalAmount', 'totalRecords', 'todayRecords', 'todayAmount',
+            'recentNotifications', 'approvedFertilizerIds', 'pendingFertilizerIds', 'rejectedFertilizerIds'
         ));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     * Pilas completadas con kg disponibles (total_kg = saldo restante); se permiten varias ventas por pila.
-     */
+    // Formulario de creación. Filtra solo pilas completadas con kg disponibles.
     public function create()
     {
         $completedCompostings = Composting::with(['creator', 'trackings'])
             ->get()
-            ->filter(function($composting) {
-                return $composting->status === 'Completada' && ($composting->total_kg ?? 0) > 0;
-            })
-            ->sortByDesc(function($composting) {
-                return $composting->end_date ? $composting->end_date->timestamp : $composting->created_at->timestamp;
-            })
+            ->filter(fn($c) => $c->status === 'Completada' && ($c->total_kg ?? 0) > 0)
+            ->sortByDesc(fn($c) => $c->end_date ? $c->end_date->timestamp : $c->created_at->timestamp)
             ->values();
 
+        // Mostrar vista
         return view('aprendiz.fertilizer.create', compact('completedCompostings'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Crear registro. Valida pila completada y kg disponibles, resta del total_kg.
     public function store(Request $request)
     {
+        // Validar datos recibidos
         $request->validate([
             'composting_id' => 'required|exists:compostings,id',
             'date' => 'required|date',
@@ -111,37 +85,30 @@ class FertilizerController extends Controller
             'notes' => 'nullable|string'
         ]);
 
-        // Verificar que la pila esté completada
         $composting = Composting::with('trackings')->findOrFail($request->composting_id);
         
-        // Usar el accessor status para mantener la misma lógica que en create()
         if ($composting->status !== 'Completada') {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'La pila seleccionada no está completada. Solo se pueden registrar abonos de pilas completadas.');
+            // Redirigir con mensaje
+            return redirect()->back()->withInput()
+                ->with('error', 'La pila seleccionada no está completada.');
         }
 
-        // total_kg en la pila es el saldo restante; se actualiza en cada venta
         $availableKg = $composting->total_kg ?? 0;
         if ($request->amount > $availableKg) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', "La cantidad solicitada ({$request->amount} " . ($request->type === 'Liquid' ? 'L' : 'Kg') . ") excede los kilogramos beneficiados disponibles ({$availableKg} Kg) de la pila.");
+            // Redirigir con mensaje
+            return redirect()->back()->withInput()
+                ->with('error', "La cantidad ({$request->amount}) excede los kg disponibles ({$availableKg} Kg).");
         }
 
-        // Crear el registro de abono
-        Fertilizer::create($request->all());
+        Fertilizer::create(array_merge($request->all(), ['created_by' => auth()->id()]));
 
-        // Restar la cantidad de los kilogramos beneficiados de la pila
-        $newTotalKg = max(0, $availableKg - $request->amount);
-        $composting->update(['total_kg' => $newTotalKg]);
+        $composting->update(['total_kg' => max(0, $availableKg - $request->amount)]);
 
-        return redirect()->route('aprendiz.fertilizer.index')->with('success', '¡Registro de abono creado exitosamente!');
+        // Redirigir con mensaje
+            return redirect()->route('aprendiz.fertilizer.index')->with('success', '¡Registro de abono creado exitosamente!');
     }
 
-    /**
-     * Display the specified resource.
-     */
+    // Ver detalle. Retorna JSON si es AJAX, vista si no.
     public function show(Fertilizer $fertilizer)
     {
         $fertilizer->load('composting.creator');
@@ -167,17 +134,15 @@ class FertilizerController extends Controller
             ]);
         }
         
+        // Mostrar vista
         return view('aprendiz.fertilizer.show', compact('fertilizer'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    // Formulario de edición. Retorna JSON si es AJAX.
     public function edit(Fertilizer $fertilizer)
     {
         $fertilizer->load('composting');
         
-        // Si es una petición AJAX, devolver JSON
         if (request()->ajax() || request()->wantsJson()) {
             return response()->json([
                 'fertilizer' => [
@@ -200,14 +165,14 @@ class FertilizerController extends Controller
             ]);
         }
         
+        // Mostrar vista
         return view('aprendiz.fertilizer.edit', compact('fertilizer'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    // Actualizar registro. Ajusta total_kg de la pila si la cantidad cambió.
     public function update(Request $request, Fertilizer $fertilizer)
     {
+        // Validar datos recibidos
         $request->validate([
             'date' => 'required|date',
             'time' => 'required',
@@ -221,51 +186,37 @@ class FertilizerController extends Controller
         ]);
 
         $composting = $fertilizer->composting;
-        $oldAmount = $fertilizer->amount;
-        $newAmount = $request->amount;
-        $amountDifference = $newAmount - $oldAmount;
+        $amountDifference = $request->amount - $fertilizer->amount;
 
-        // Si la cantidad cambió, actualizar los kilogramos beneficiados de la pila
         if ($amountDifference != 0) {
             $currentTotalKg = $composting->total_kg ?? 0;
             
-            // Si se aumenta la cantidad, validar que no exceda lo disponible
-            if ($amountDifference > 0) {
-                $availableKg = $currentTotalKg;
-                if ($amountDifference > $availableKg) {
-                    return redirect()->back()
-                        ->withInput()
-                        ->with('error', "No se puede aumentar la cantidad. Solo hay {$availableKg} Kg disponibles en la pila.");
-                }
+            if ($amountDifference > 0 && $amountDifference > $currentTotalKg) {
+                // Redirigir con mensaje
+            return redirect()->back()->withInput()
+                    ->with('error', "Solo hay {$currentTotalKg} Kg disponibles en la pila.");
             }
             
-            // Calcular el nuevo total de kilogramos beneficiados
-            // Si se aumenta: restar la diferencia
-            // Si se disminuye: sumar la diferencia (devolver a la pila)
-            $newTotalKg = max(0, $currentTotalKg - $amountDifference);
-            $composting->update(['total_kg' => $newTotalKg]);
+            $composting->update(['total_kg' => max(0, $currentTotalKg - $amountDifference)]);
         }
 
         $fertilizer->update($request->all());
 
-        return redirect()->route('aprendiz.fertilizer.index')->with('success', '¡Registro de abono actualizado exitosamente!');
+        // Redirigir con mensaje
+            return redirect()->route('aprendiz.fertilizer.index')->with('success', '¡Registro de abono actualizado exitosamente!');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    // Eliminar registro. Requiere: ser el creador + tener solicitud aprobada.
     public function destroy(Fertilizer $fertilizer)
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
         
-        // Verificar que el registro pertenece al usuario (a través del composting)
-        $fertilizer->load('composting');
-        if ($fertilizer->composting && $fertilizer->composting->created_by !== $currentUserId) {
+        if ($fertilizer->created_by !== $currentUserId) {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.fertilizer.index')
                 ->with('permission_required', 'No tiene permisos para eliminar este registro.');
         }
         
-        // Verificar que hay una solicitud aprobada
         $approvedNotification = Notification::where('from_user_id', $currentUserId)
             ->where('fertilizer_id', $fertilizer->id)
             ->where('type', 'delete_request')
@@ -274,37 +225,29 @@ class FertilizerController extends Controller
             ->first();
         
         if (!$approvedNotification) {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.fertilizer.index')
-                ->with('permission_required', 'No tiene permiso para eliminar este registro. Debe solicitar permiso primero y esperar la aprobación del administrador.');
+                ->with('permission_required', 'Debe solicitar permiso primero y esperar aprobación del administrador.');
         }
 
-        // Marcar la notificación como procesada
         $approvedNotification->update(['read_at' => now()]);
-
-        // Importante: al eliminar un registro de abono NO se deben
-        // devolver los kilogramos beneficiados a la pila, para evitar
-        // que se altere el historial real de salida de abono.
-
         $fertilizer->delete();
 
-        return redirect()->route('aprendiz.fertilizer.index')->with('success', '¡Registro de abono eliminado exitosamente!');
+        // Redirigir con mensaje
+            return redirect()->route('aprendiz.fertilizer.index')->with('success', '¡Registro de abono eliminado exitosamente!');
     }
 
-    /**
-     * Solicitar permiso para eliminar un registro
-     */
+    // Solicitar permiso al admin para eliminar. Evita duplicados.
     public function requestDeletePermission(Fertilizer $fertilizer)
     {
-        // Verificar que el registro pertenece al usuario (a través del composting)
         $currentUserId = auth()->check() ? auth()->id() : null;
-        $fertilizer->load('composting');
         
-        if (!$fertilizer->composting || $fertilizer->composting->created_by !== $currentUserId) {
+        if ($fertilizer->created_by !== $currentUserId) {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.fertilizer.index')
                 ->with('permission_required', 'No puede solicitar permisos para registros que no le pertenecen.');
         }
 
-        // Evitar solicitudes duplicadas si ya hay una pendiente o aprobada
         $existing = Notification::where('from_user_id', $currentUserId)
             ->where('fertilizer_id', $fertilizer->id)
             ->where('type', 'delete_request')
@@ -312,92 +255,67 @@ class FertilizerController extends Controller
             ->first();
         
         if ($existing && $existing->status === 'pending') {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.fertilizer.index')
-                ->with('permission_required', 'Su solicitud de eliminación ya está pendiente de aprobación del administrador.');
+                ->with('permission_required', 'Su solicitud ya está pendiente de aprobación.');
         }
-        
         if ($existing && $existing->status === 'approved') {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.fertilizer.index')
                 ->with('success', 'Su solicitud ya fue aprobada. Ahora puede eliminar el registro.');
         }
 
-        // Si hay una solicitud rechazada, eliminarla para permitir nueva solicitud
-        $rejected = Notification::where('from_user_id', $currentUserId)
+        // Eliminar rechazadas anteriores para permitir reintento
+        Notification::where('from_user_id', $currentUserId)
             ->where('fertilizer_id', $fertilizer->id)
             ->where('type', 'delete_request')
             ->where('status', 'rejected')
-            ->first();
-        
-        if ($rejected) {
-            $rejected->delete();
-        }
+            ->delete();
 
-        // Buscar todos los administradores y crear notificaciones para cada uno
+        // Notificar a todos los admins
         $admins = \App\Models\User::where('role', 'admin')->get();
-        
-        if ($admins->count() > 0) {
-            foreach ($admins as $admin) {
-                // Crear notificación para cada administrador
-                Notification::create([
-                    'user_id' => $admin->id,
-                    'from_user_id' => $currentUserId,
-                    'fertilizer_id' => $fertilizer->id,
-                    'type' => 'delete_request',
-                    'status' => 'pending',
-                    'message' => (auth()->check() ? auth()->user()->name : 'Usuario') . ' solicita permiso para eliminar el registro de abono #' . str_pad($fertilizer->id, 3, '0', STR_PAD_LEFT)
-                ]);
-            }
+        foreach ($admins as $admin) {
+            Notification::create([
+                'user_id' => $admin->id,
+                'from_user_id' => $currentUserId,
+                'fertilizer_id' => $fertilizer->id,
+                'type' => 'delete_request',
+                'status' => 'pending',
+                'message' => auth()->user()->name . ' solicita eliminar abono #' . str_pad($fertilizer->id, 3, '0', STR_PAD_LEFT)
+            ]);
         }
 
-        return redirect()->route('aprendiz.fertilizer.index')
+        // Redirigir con mensaje
+            return redirect()->route('aprendiz.fertilizer.index')
             ->with('success', 'Solicitud de eliminación enviada al administrador.');
     }
 
-    /**
-     * Generate PDF for all fertilizers (o solo los filtrados si se pasan ids)
-     */
+    // PDF general. Acepta ?ids=1,2,3 para filtrar desde DataTables.
     public function downloadAllFertilizersPDF(Request $request)
     {
         $query = Fertilizer::with('composting')->orderBy('date', 'desc')->orderBy('time', 'desc');
 
         if ($request->filled('ids')) {
             $ids = array_filter(array_map('intval', explode(',', $request->ids)));
-            if (!empty($ids)) {
-                $query->whereIn('id', $ids);
-            }
+            if (!empty($ids)) $query->whereIn('id', $ids);
         }
 
-        $fertilizers = $query->get();
-
-        $pdf = PDF::loadView('aprendiz.fertilizer.pdf.all-fertilizers', compact('fertilizers'))
+        $pdf = PDF::loadView('aprendiz.fertilizer.pdf.all-fertilizers', ['fertilizers' => $query->get()])
             ->setPaper('a4', 'landscape')
-            ->setOptions([
-                'defaultFont' => 'Arial',
-                'isRemoteEnabled' => false,
-                'isHtml5ParserEnabled' => true,
-                'isPhpEnabled' => false,
-            ]);
+            ->setOptions(['defaultFont' => 'Arial', 'isRemoteEnabled' => false, 'isHtml5ParserEnabled' => true, 'isPhpEnabled' => false]);
         
         return $pdf->download('todos_los_abonos_' . date('Y-m-d') . '.pdf');
     }
 
-    /**
-     * Generate PDF for individual fertilizer
-     */
+    // PDF individual con detalle completo.
     public function downloadFertilizerPDF(Fertilizer $fertilizer)
     {
         $fertilizer->load('composting.creator');
         
         $pdf = PDF::loadView('aprendiz.fertilizer.pdf.fertilizer-details', compact('fertilizer'))
             ->setPaper('a4', 'portrait')
-            ->setOptions([
-                'defaultFont' => 'Arial',
-                'isRemoteEnabled' => false,
-                'isHtml5ParserEnabled' => true,
-                'isPhpEnabled' => false,
-            ]);
+            ->setOptions(['defaultFont' => 'Arial', 'isRemoteEnabled' => false, 'isHtml5ParserEnabled' => true, 'isPhpEnabled' => false]);
         
         return $pdf->download('abono_' . str_pad($fertilizer->id, 3, '0', STR_PAD_LEFT) . '_' . date('Y-m-d') . '.pdf');
     }
 }
-

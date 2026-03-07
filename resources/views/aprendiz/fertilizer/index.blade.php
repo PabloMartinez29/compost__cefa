@@ -138,7 +138,7 @@
                         </div>
                         <div class="waste-mobile-card-actions mt-4 pt-3 border-t border-gray-200">
                             <button type="button" onclick="openViewModal({{ $fertilizer->id }})" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg flex-shrink-0" title="Ver"><i class="fas fa-eye"></i></button>
-                            @if($fertilizer->composting && $fertilizer->composting->created_by == auth()->id())
+                            @if($fertilizer->created_by == auth()->id())
                                 <button type="button" onclick="openEditModal({{ $fertilizer->id }})" class="p-2 text-green-600 hover:bg-green-50 rounded-lg flex-shrink-0" title="Editar"><i class="fas fa-edit"></i></button>
                                 @php
                                     $isApprovedF = isset($approvedFertilizerIds) && in_array($fertilizer->id, $approvedFertilizerIds);
@@ -222,7 +222,7 @@
                                        class="inline-flex items-center text-blue-400 hover:text-blue-500" title="Ver Detalles">
                                         <i class="fas fa-eye"></i>
                                     </button>
-                                    @if($fertilizer->composting && $fertilizer->composting->created_by == auth()->id())
+                                    @if($fertilizer->created_by == auth()->id())
                                         <button onclick="openEditModal({{ $fertilizer->id }})" 
                                            class="inline-flex items-center text-green-500 hover:text-green-700" title="Editar">
                                             <i class="fas fa-edit"></i>
