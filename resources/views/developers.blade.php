@@ -133,8 +133,11 @@
                         <h3 class="text-xl font-bold text-compost-800 text-center mb-1 break-words">
                             Juan Pablo Martinez Lievano
                         </h3>
-                        <p class="text-center mb-6 text-sm font-semibold bg-gradient-to-r from-compost-600 to-compost-800 bg-clip-text text-transparent">
-                            Líder de Equipo & Full Stack
+                        <p class="text-center mb-2 text-sm font-semibold bg-gradient-to-r from-compost-600 to-compost-800 bg-clip-text text-transparent">
+                            Desarrollador de Software
+                        </p>
+                        <p class="text-xs text-gray-500 text-justify mb-6 leading-relaxed px-2">
+                            Encargado del Frontend, diseño y la experiencia de usuario (UI/UX) del sistema.
                         </p>
                         
                         <!-- Social Links -->
@@ -174,8 +177,11 @@
                         <h3 class="text-xl font-bold text-compost-800 text-center mb-1 break-words">
                             Iván Darío Perdomo Pérez
                         </h3>
-                        <p class="text-center mb-6 text-sm font-semibold bg-gradient-to-r from-compost-600 to-compost-800 bg-clip-text text-transparent">
-                            Diseño UI/UX & Frontend
+                        <p class="text-center mb-2 text-sm font-semibold bg-gradient-to-r from-compost-600 to-compost-800 bg-clip-text text-transparent">
+                            Desarrollador de Software
+                        </p>
+                        <p class="text-xs text-gray-500 text-justify mb-6 leading-relaxed px-2">
+                            Encargado del Backend y la construcción de la lógica interna y bases de datos.
                         </p>
                         
                         <!-- Social Links -->
@@ -215,13 +221,16 @@
                         <h3 class="text-xl font-bold text-compost-800 text-center mb-1 break-words">
                             Anggie Lizeth Anaya Perdomo
                         </h3>
-                        <p class="text-center mb-6 text-sm font-semibold bg-gradient-to-r from-compost-600 to-compost-800 bg-clip-text text-transparent">
-                            Analista de Requerimientos
+                        <p class="text-center mb-2 text-sm font-semibold bg-gradient-to-r from-compost-600 to-compost-800 bg-clip-text text-transparent">
+                            Desarrolladora de Software
+                        </p>
+                        <p class="text-xs text-gray-500 text-justify mb-6 leading-relaxed px-2">
+                            Encargada del análisis y levantamiento de requerimientos del sistema.
                         </p>
                         
                         <!-- Social Links -->
                         <div class="flex justify-center space-x-3">
-                            <a href="www.linkedin.com/in/anggie-anaya-00187639a/" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
+                            <a href="https://www.linkedin.com/in/anggie-anaya-00187639a/" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
                                 <i class="fab fa-linkedin-in text-sm"></i>
                             </a>
                             <a href="https://github.com/anggieanaya16" target="_blank" class="w-10 h-10 bg-gray-800 hover:bg-gray-900 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
@@ -256,13 +265,16 @@
                         <h3 class="text-xl font-bold text-compost-800 text-center mb-1 break-words">
                             Juan Andres Almanza Salinas 
                         </h3>
-                        <p class="text-center mb-6 text-sm font-semibold bg-gradient-to-r from-compost-600 to-compost-800 bg-clip-text text-transparent">
-                            Tester
+                        <p class="text-center mb-2 text-sm font-semibold bg-gradient-to-r from-compost-600 to-compost-800 bg-clip-text text-transparent">
+                            Desarrollador de Software
+                        </p>
+                        <p class="text-xs text-gray-500 text-justify mb-6 leading-relaxed px-2">
+                            Encargado de la ejecución de pruebas y validación de calidad de código y funcionalidad.
                         </p>
                         
                         <!-- Social Links -->
                         <div class="flex justify-center space-x-3">
-                            <a href="www.linkedin.com/in/juan-andres-almanza-salinas-80b87639a/" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
+                            <a href="https://www.linkedin.com/in/juan-andres-almanza-salinas-80b87639a/" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
                                 <i class="fab fa-linkedin-in text-sm"></i>
                             </a>
                             <a href="https://github.com/Almanza310" target="_blank" class="w-10 h-10 bg-gray-800 hover:bg-gray-900 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
