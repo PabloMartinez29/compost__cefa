@@ -1,5 +1,6 @@
 <?php
 
+// Controlador Auth — Enlace de restablecimiento
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -10,21 +11,17 @@ use Illuminate\View\View;
 
 class PasswordResetLinkController extends Controller
 {
-    /**
-     * Display the password reset link request view.
-     */
+    // Display the password reset link request view
     public function create(): View
     {
+        // Mostrar vista
         return view('auth.forgot-password');
     }
 
-    /**
-     * Handle an incoming password reset link request.
-     *
-     * @throws \Illuminate\Validation\ValidationException
-     */
+    // Handle an incoming password reset link request
     public function store(Request $request): RedirectResponse
     {
+        // Validar datos recibidos
         $request->validate([
             'email' => ['required', 'email'],
         ]);

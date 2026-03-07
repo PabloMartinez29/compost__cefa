@@ -2,13 +2,16 @@
 <html lang="es">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="theme-color" content="#16a34a">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Sistema de Compostaje</title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/webp" href="{{ asset('img/logo-compost-cefa.webp') }}">
-    <link rel="shortcut icon" type="image/webp" href="{{ asset('img/logo-compost-cefa.webp') }}">
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('favicon.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('img/logo-compost-cefa.webp') }}">
     
     <!-- Fonts -->
@@ -136,6 +139,12 @@
             background-color: #9ca3af;
         }
 
+        /* Firefox scrollbar */
+        nav {
+            scrollbar-width: thin;
+            scrollbar-color: #d1d5db transparent;
+        }
+
         [x-cloak] { display: none !important; }
         
         /* Responsive Tables */
@@ -143,6 +152,7 @@
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             width: 100%;
+            scrollbar-width: thin;
         }
         
         .table-responsive table {
@@ -471,7 +481,6 @@
                             $showMaintenanceReminderAlert = \App\Models\Notification::where('user_id', auth()->id())
                                 ->where('type', 'maintenance_reminder')
                                 ->whereNull('read_at')
-                                ->where('created_at', '<=', now()->subMinute())
                                 ->exists();
                         @endphp
                         <button onclick="toggleNotifications()" 
@@ -581,6 +590,32 @@
                                     <p class="text-sm text-soft-gray-500">No hay notificaciones pendientes</p>
                                 </div>
                             @endforelse
+                        </div>
+                    </div>
+
+                    <!-- Help Button -->
+                    <div class="relative">
+                        <button onclick="toggleHelpMenu()" 
+                            class="relative p-1.5 sm:p-2 text-soft-gray-600 hover:text-soft-green-600 hover:bg-soft-gray-100 rounded-lg transition-all duration-200">
+                            <i class="fas fa-question-circle text-base sm:text-lg"></i>
+                        </button>
+                        
+                        <div id="helpMenu" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-soft-gray-200 py-2 z-50">
+                            <div class="px-4 py-2 border-b border-soft-gray-100">
+                                <h3 class="text-sm font-semibold text-soft-gray-800"><i class="fas fa-book mr-1"></i> Manuales</h3>
+                            </div>
+                            <div class="py-1">
+                                <a href="{{ route('manual.view', 'administrador') }}" target="_blank" rel="noopener"
+                                   class="flex items-center px-4 py-2.5 text-sm text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 transition-colors duration-200">
+                                    <i class="fas fa-file-pdf text-red-500 w-5 mr-3"></i>
+                                    Manual de Administrador
+                                </a>
+                                <a href="{{ route('manual.view.tecnico') }}" target="_blank" rel="noopener"
+                                   class="flex items-center px-4 py-2.5 text-sm text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 transition-colors duration-200">
+                                    <i class="fas fa-file-pdf text-red-500 w-5 mr-3"></i>
+                                    Manual Técnico
+                                </a>
+                            </div>
                         </div>
                     </div>
                     
@@ -756,13 +791,23 @@
         function toggleNotifications() {
             const menu = document.getElementById('notificationsMenu');
             const userMenu = document.getElementById('userMenu');
+            const helpMenu = document.getElementById('helpMenu');
             
-            // Close user menu if open
-            if (!userMenu.classList.contains('hidden')) {
-                userMenu.classList.add('hidden');
-            }
+            if (!userMenu.classList.contains('hidden')) userMenu.classList.add('hidden');
+            if (!helpMenu.classList.contains('hidden')) helpMenu.classList.add('hidden');
             
             menu.classList.toggle('hidden');
+        }
+
+        function toggleHelpMenu() {
+            const helpMenu = document.getElementById('helpMenu');
+            const notificationsMenu = document.getElementById('notificationsMenu');
+            const userMenu = document.getElementById('userMenu');
+            
+            if (!notificationsMenu.classList.contains('hidden')) notificationsMenu.classList.add('hidden');
+            if (!userMenu.classList.contains('hidden')) userMenu.classList.add('hidden');
+            
+            helpMenu.classList.toggle('hidden');
         }
 
         function approveDeleteRequest(notificationId) {
@@ -862,26 +907,52 @@
             });
         }
 
-        // Close notifications when clicking outside
+        // Close dropdowns when clicking outside
         document.addEventListener('click', function(event) {
             const notificationsMenu = document.getElementById('notificationsMenu');
+            const helpMenu = document.getElementById('helpMenu');
             const notificationButton = event.target.closest('[onclick="toggleNotifications()"]');
+            const helpButton = event.target.closest('[onclick="toggleHelpMenu()"]');
             
             if (!notificationButton && !notificationsMenu.contains(event.target)) {
                 notificationsMenu.classList.add('hidden');
+            }
+            if (!helpButton && !helpMenu.contains(event.target)) {
+                helpMenu.classList.add('hidden');
             }
         });
 
         @if(!empty($showMaintenanceReminderAlert))
         document.addEventListener('DOMContentLoaded', function() {
+            function showMaintenanceReminder() {
+                Swal.fire({
+                    title: 'Recordatorio de Mantenimiento',
+                    text: 'Tiene recordatorios de mantenimiento sin leer. Revise sus notificaciones.',
+                    icon: 'warning',
+                    timer: 15000,
+                    timerProgressBar: true,
+                    showConfirmButton: true,
+                    confirmButtonText: '<i class="fas fa-bell mr-1"></i> Ver Notificaciones',
+                    confirmButtonColor: '#f59e0b'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        toggleNotifications();
+                    }
+                });
+            }
+            showMaintenanceReminder();
+            setInterval(showMaintenanceReminder, 15000);
+        });
+        @endif
+
+        @if(session('unauthorized_access'))
+        document.addEventListener('DOMContentLoaded', function() {
             Swal.fire({
-                title: 'Recordatorio de Mantenimiento',
-                text: 'Tiene recordatorios de mantenimiento sin leer. La información se encuentra en Notificaciones.',
-                icon: 'warning',
-                timer: 15000,
-                timerProgressBar: true,
-                showConfirmButton: true,
-                confirmButtonText: 'Entendido'
+                title: '¡Acceso No Autorizado!',
+                text: 'No tienes permisos para acceder a esa sección.',
+                icon: 'error',
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#ef4444'
             });
         });
         @endif

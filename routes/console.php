@@ -1,5 +1,7 @@
 <?php
 
+// Comandos de consola Artisan — Tareas programadas del sistema
+
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 

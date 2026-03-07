@@ -1,5 +1,6 @@
 <?php
 
+// Comando CheckMaintenanceReminders — Verifica recordatorios de mantenimiento
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
@@ -10,23 +11,13 @@ use Carbon\Carbon;
 
 class CheckMaintenanceReminders extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
+    // The name and signature of the console
     protected $signature = 'machinery:check-maintenance';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
+    // The console command description
     protected $description = 'Verificar maquinarias que requieren mantenimiento y crear notificaciones para administradores';
 
-    /**
-     * Execute the console command.
-     */
+    // Execute the console command
     public function handle()
     {
         $this->info('Verificando maquinarias que requieren mantenimiento...');
@@ -148,9 +139,7 @@ class CheckMaintenanceReminders extends Command
         return Command::SUCCESS;
     }
     
-    /**
-     * Verificar si una maquinaria requiere mantenimiento
-     */
+    // Verificar si una maquinaria requiere mantenimiento
     private function checkIfMachineryRequiresMaintenance(Machinery $machinery): bool
     {
         // Verificar si hay un mantenimiento activo (tipo 'M' sin fecha de fin)
@@ -205,9 +194,7 @@ class CheckMaintenanceReminders extends Command
         return $daysSinceLastMaintenance >= $maintenanceFreqDays;
     }
     
-    /**
-     * Convertir frecuencia de mantenimiento a días
-     */
+    // Convertir frecuencia de mantenimiento a días
     private function getMaintenanceFrequencyInDays(?string $freq): int
     {
         if (!$freq) {

@@ -1,5 +1,6 @@
 <?php
 
+// Controlador Admin TrackingController — CRUD de seguimientos diarios
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -13,13 +14,12 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class TrackingController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Listar todos los registros
     public function index()
     {
         // Verificar autenticación
         if (!auth()->check()) {
+            // Redirigir con mensaje
             return redirect()->route('login');
         }
 
@@ -35,12 +35,11 @@ class TrackingController extends Controller
         $activePiles = $compostings->whereNull('end_date')->count();
         $totalTrackings = Tracking::count();
 
+        // Mostrar vista
         return view('admin.tracking.index', compact('compostings', 'totalPiles', 'activePiles', 'totalTrackings'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    // Mostrar formulario de creación
     public function create()
     {
         // Obtener todas las pilas activas (tanto del usuario como del administrador)
@@ -52,21 +51,22 @@ class TrackingController extends Controller
             });
 
         if ($activeCompostings->isEmpty()) {
+            // Redirigir con mensaje
             return redirect()->route('admin.tracking.index')
                 ->with('error', 'No hay pilas activas para registrar seguimiento. Primero debe crear una pila de compostaje.');
         }
 
+        // Mostrar vista
         return view('admin.tracking.create', compact('activeCompostings'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Guardar nuevo registro
     public function store(Request $request)
     {
         \Log::info('=== ADMIN TRACKING STORE METHOD CALLED ===');
         \Log::info('Admin tracking store method called with data: ', $request->all());
         
+        // Validar datos recibidos
         $request->validate([
             'composting_id' => 'required|exists:compostings,id',
             'day' => 'required|integer|min:1|max:45',
@@ -95,6 +95,7 @@ class TrackingController extends Controller
 
         if (!$composting) {
             \Log::error('Composting not found - redirecting back');
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'La pila de compostaje no existe.');
         }
@@ -102,6 +103,7 @@ class TrackingController extends Controller
         // Verificar si la pila ya está completada
         if ($composting->status === 'Completada') {
             \Log::info('Composting pile is already completed');
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Esta pila ya está completada y no se pueden agregar más seguimientos.');
         }
@@ -115,6 +117,7 @@ class TrackingController extends Controller
 
         if ($existingTracking) {
             \Log::info('Existing tracking found for day: ' . $request->day);
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withInput()
                 ->with('error', "Ya existe un seguimiento para el día {$request->day} en esta pila.");
@@ -130,6 +133,7 @@ class TrackingController extends Controller
         
         if ($requestDate->lt($startDate)) {
             \Log::info('Date validation failed - redirecting back');
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'La fecha del seguimiento no puede ser anterior a la fecha de inicio de la pila.');
@@ -173,13 +177,12 @@ class TrackingController extends Controller
         }
 
         \Log::info('Redirecting to index with success message');
-        return redirect()->route('admin.tracking.index')
+        // Redirigir con mensaje
+            return redirect()->route('admin.tracking.index')
             ->with('success', 'Seguimiento registrado exitosamente!');
     }
 
-    /**
-     * Display the specified resource.
-     */
+    // Mostrar detalle del registro
     public function show(Tracking $tracking)
     {
         if (request()->ajax() || request()->wantsJson()) {
@@ -245,12 +248,11 @@ class TrackingController extends Controller
         }
 
         $tracking->load(['composting.ingredients.organic', 'composting']);
+        // Mostrar vista
         return view('admin.tracking.show', compact('tracking'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    // Mostrar formulario de edición
     public function edit(Tracking $tracking)
     {
         // Permitir editar seguimientos de cualquier pila
@@ -288,16 +290,16 @@ class TrackingController extends Controller
             ]);
         }
 
+        // Mostrar vista
         return view('admin.tracking.edit', compact('tracking', 'activeCompostings'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    // Actualizar registro existente
     public function update(Request $request, Tracking $tracking)
     {
         // Permitir editar seguimientos de cualquier pila
 
+        // Validar datos recibidos
         $request->validate([
             'composting_id' => 'required|exists:compostings,id',
             'day' => 'required|integer|min:1|max:45',
@@ -326,6 +328,7 @@ class TrackingController extends Controller
 
         if (!$composting) {
             \Log::error('Composting not found - redirecting back');
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'La pila de compostaje no existe.');
         }
@@ -340,6 +343,7 @@ class TrackingController extends Controller
 
         if ($existingTracking) {
             \Log::info('Existing tracking found for day: ' . $request->day);
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withInput()
                 ->with('error', "Ya existe un seguimiento para el día {$request->day} en esta pila.");
@@ -355,6 +359,7 @@ class TrackingController extends Controller
         
         if ($requestDate->lt($startDate)) {
             \Log::info('Date validation failed - redirecting back');
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'La fecha del seguimiento no puede ser anterior a la fecha de inicio de la pila.');
@@ -362,6 +367,7 @@ class TrackingController extends Controller
 
         \Log::info('Date validation passed, creating tracking...');
 
+        // Iniciar transacción
         DB::beginTransaction();
         try {
             $tracking->update([
@@ -381,47 +387,52 @@ class TrackingController extends Controller
                 'others' => $request->others
             ]);
 
+            // Confirmar cambios
             DB::commit();
 
+            // Redirigir con mensaje
             return redirect()->route('admin.tracking.index')
                 ->with('success', 'Seguimiento actualizado exitosamente!');
 
         } catch (\Exception $e) {
+            // Revertir error
             DB::rollback();
             Log::error('Error al actualizar seguimiento: ' . $e->getMessage());
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Error al actualizar el seguimiento: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    // Eliminar registro del sistema
     public function destroy(Tracking $tracking)
     {
         // Permitir eliminar seguimientos de cualquier pila
 
+        // Iniciar transacción
         DB::beginTransaction();
         try {
             $tracking->delete();
             
+            // Confirmar cambios
             DB::commit();
             
+            // Redirigir con mensaje
             return redirect()->route('admin.tracking.index')
                 ->with('success', 'Seguimiento eliminado exitosamente!');
                 
         } catch (\Exception $e) {
+            // Revertir error
             DB::rollback();
             Log::error('Error al eliminar seguimiento: ' . $e->getMessage());
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Error al eliminar el seguimiento: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Obtener seguimientos de una pila específica (para AJAX)
-     */
+    // Obtener seguimientos de una pila específica (para
     public function getByComposting(Composting $composting)
     {
         try {
@@ -489,9 +500,7 @@ class TrackingController extends Controller
         }
     }
 
-    /**
-     * Generate PDF for all trackings (o solo los filtrados si se pasan ids)
-     */
+    // Generate PDF for all trackings (o solo
     public function downloadAllTrackingsPDF(Request $request)
     {
         $query = Tracking::with('composting')
@@ -518,9 +527,7 @@ class TrackingController extends Controller
         return $pdf->download('todos_los_seguimientos_' . date('Y-m-d') . '.pdf');
     }
 
-    /**
-     * Generate PDF for all trackings of a specific composting pile
-     */
+    // Generate PDF for all trackings of a
     public function downloadCompostingTrackingsPDF(Composting $composting)
     {
         $composting->load('trackings');
@@ -538,9 +545,7 @@ class TrackingController extends Controller
         return $pdf->download('seguimientos_' . str_replace(' ', '_', $composting->formatted_pile_num) . '_' . date('Y-m-d') . '.pdf');
     }
 
-    /**
-     * Generate PDF for individual tracking
-     */
+    // Generate PDF for individual tracking
     public function downloadTrackingPDF(Tracking $tracking)
     {
         $tracking->load('composting');

@@ -1,5 +1,6 @@
 <?php
 
+// Controlador Admin WarehouseController — Gestión de bodega e inventario
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -7,9 +8,10 @@ use App\Models\WarehouseClassification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
+// Bodega - Admin (solo lectura)
 class WarehouseController extends Controller
 {
-   
+    // Dashboard: inventario por tipo y últimos 10 movimientos.
     public function index()
     {
         $inventory = WarehouseClassification::getInventoryByType();
@@ -17,18 +19,18 @@ class WarehouseController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
+        // Mostrar vista
         return view('admin.warehouse.index', compact('inventory', 'recentMovements'));
     }
 
-
-   
-    
+    // Detalle de un movimiento individual.
     public function show(WarehouseClassification $warehouse)
     {
+        // Mostrar vista
         return view('admin.warehouse.show', compact('warehouse'));
     }
 
-   
+    // Inventario filtrado por tipo de residuo con movimientos paginados.
     public function inventory($type)
     {
         $inventory = WarehouseClassification::getCurrentInventory($type);
@@ -46,6 +48,7 @@ class WarehouseController extends Controller
             'Other' => 'Otros'
         ];
 
+        // Mostrar vista
         return view('admin.warehouse.inventory', compact('inventory', 'movements', 'type', 'typeInSpanish'));
     }
 }

@@ -1,10 +1,11 @@
 <?php
 
+// Controlador Admin MachineryController — CRUD de maquinaria
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Machinery;
-use App\Models\Maintenance;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
@@ -12,26 +13,22 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class MachineryController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Listar todos los registros
     public function index()
     {
         $machineries = Machinery::latest()->get();
+        // Mostrar vista
         return view('admin.machinery.machineries.index', compact('machineries'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    // Mostrar formulario de creación
     public function create()
     {
+        // Mostrar vista
         return view('admin.machinery.machineries.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Guardar nuevo registro
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -66,6 +63,7 @@ class MachineryController extends Controller
         ]);
 
         if ($validator->fails()) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
@@ -74,7 +72,8 @@ class MachineryController extends Controller
         try {
             $data = $request->all();
             
-            if ($request->hasFile('image')) {
+            // Procesar archivo
+        if ($request->hasFile('image')) {
                 $archivo = $request->file('image');
                 $nombre = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $archivo->getClientOriginalName());
                 $dir = upload_base_path('storage/machineries');
@@ -88,34 +87,32 @@ class MachineryController extends Controller
             $machinery = Machinery::create($data);
             $machinery->scheduleNextMaintenanceDue();
             
+            // Redirigir con mensaje
             return redirect()->route('admin.machinery.index')
                 ->with('success', 'Maquinaria registrada exitosamente.');
         } catch (\Exception $e) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Error al registrar la maquinaria: ' . $e->getMessage())
                 ->withInput();
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
+    // Mostrar detalle del registro
     public function show(Machinery $machinery)
     {
+        // Mostrar vista
         return view('admin.machinery.machineries.show', compact('machinery'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    // Mostrar formulario de edición
     public function edit(Machinery $machinery)
     {
+        // Mostrar vista
         return view('admin.machinery.machineries.edit', compact('machinery'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    // Actualizar registro existente
     public function update(Request $request, Machinery $machinery)
     {
         $validator = Validator::make($request->all(), [
@@ -149,6 +146,7 @@ class MachineryController extends Controller
         ]);
 
         if ($validator->fails()) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
@@ -157,7 +155,8 @@ class MachineryController extends Controller
         try {
             $data = $request->except(['image']);
             
-            if ($request->hasFile('image')) {
+            // Procesar archivo
+        if ($request->hasFile('image')) {
                 if ($machinery->image && file_exists(upload_base_path('storage/' . $machinery->image))) {
                     unlink(upload_base_path('storage/' . $machinery->image));
                 }
@@ -177,18 +176,18 @@ class MachineryController extends Controller
             // Al editar (p. ej. cambiar frecuencia Semanal → Diario) se reinicia el cronómetro con la nueva frecuencia
             $machinery->scheduleNextMaintenanceDue();
             
+            // Redirigir con mensaje
             return redirect()->route('admin.machinery.index')
                 ->with('success', 'Maquinaria actualizada exitosamente.');
         } catch (\Exception $e) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Error al actualizar la maquinaria: ' . $e->getMessage())
                 ->withInput();
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    // Eliminar registro del sistema
     public function destroy(Machinery $machinery)
     {
         try {
@@ -198,18 +197,18 @@ class MachineryController extends Controller
             
             $machinery->delete();
             
+            // Redirigir con mensaje
             return redirect()->route('admin.machinery.index')
                 ->with('success', 'Maquinaria eliminada exitosamente.');
         } catch (\Exception $e) {
             \Log::error('Error al eliminar maquinaria: ' . $e->getMessage());
+            // Redirigir con mensaje
             return redirect()->route('admin.machinery.index')
                 ->with('error', 'Error al eliminar la maquinaria. Por favor, intente nuevamente.');
         }
     }
 
-    /**
-     * Get machinery statistics for dashboard
-     */
+    // Get machinery statistics for dashboard
     public function getStats()
     {
         $total = Machinery::count();
@@ -225,9 +224,7 @@ class MachineryController extends Controller
         ];
     }
 
-    /**
-     * Generate PDF for all machineries (o solo los filtrados si se pasan ids)
-     */
+    // Generate PDF for all machineries (o solo
     public function downloadAllMachineriesPDF(Request $request)
     {
         $query = Machinery::latest();
@@ -253,9 +250,7 @@ class MachineryController extends Controller
         return $pdf->download('todas_las_maquinarias_' . date('Y-m-d') . '.pdf');
     }
 
-    /**
-     * Generate PDF for individual machinery
-     */
+    // Generate PDF for individual machinery
     public function downloadMachineryPDF(Machinery $machinery)
     {
         // Convertir imagen a base64 si existe
@@ -279,87 +274,4 @@ class MachineryController extends Controller
         
         return $pdf->download('maquinaria_' . str_replace(' ', '_', $machinery->name) . '_' . date('Y-m-d') . '.pdf');
     }
-
-    /**
-     * Show the form for registering machinery maintenance
-     */
-    public function createMaintenance()
-    {
-        $machineries = Machinery::orderBy('name')->get();
-        return view('admin.machinery.maintenances.create', compact('machineries'));
-    }
-
-    /**
-     * Store a newly created maintenance record
-     */
-    public function storeMaintenance(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'machinery_id' => 'required|exists:machineries,id',
-            'date' => 'required|date|before_or_equal:today',
-            'type' => 'required|in:O,M',
-            'description' => 'required|string|max:1000',
-            'responsible' => 'required|string|max:150',
-        ], [
-            'machinery_id.required' => 'Debe seleccionar una maquinaria.',
-            'machinery_id.exists' => 'La maquinaria seleccionada no existe.',
-            'date.required' => 'La fecha es obligatoria.',
-            'date.date' => 'La fecha debe ser válida.',
-            'date.before_or_equal' => 'La fecha no puede ser futura.',
-            'type.required' => 'Debe seleccionar el tipo de registro.',
-            'type.in' => 'El tipo de registro no es válido.',
-            'description.required' => 'La descripción es obligatoria.',
-            'description.max' => 'La descripción no debe exceder 1000 caracteres.',
-            'responsible.required' => 'El responsable es obligatorio.',
-            'responsible.max' => 'El nombre del responsable no debe exceder 150 caracteres.',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->back()
-                ->withErrors($validator)
-                ->withInput();
-        }
-
-        try {
-            Maintenance::create($request->all());
-            
-            return redirect()->route('admin.machinery.maintenance.create')
-                ->with('success', 'Registro de mantenimiento creado exitosamente.');
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Error al crear el registro: ' . $e->getMessage())
-                ->withInput();
-        }
-    }
-
-    /**
-     * Show maintenance history for a specific machinery
-     */
-    public function showMaintenance(Machinery $machinery)
-    {
-        $maintenances = $machinery->maintenances()->orderBy('date', 'desc')->paginate(10);
-        return view('admin.machinery.maintenances.show', compact('machinery', 'maintenances'));
-    }
-
-    /**
-     * Display a listing of all maintenance records
-     */
-    public function indexMaintenance()
-    {
-        $maintenances = Maintenance::with('machinery')
-            ->orderBy('date', 'desc')
-            ->paginate(15);
-        
-        $stats = [
-            'total' => Maintenance::count(),
-            'maintenance' => Maintenance::where('type', 'M')->count(),
-            'operations' => Maintenance::where('type', 'O')->count(),
-            'this_month' => Maintenance::whereMonth('date', now()->month)
-                ->whereYear('date', now()->year)
-                ->count()
-        ];
-
-        return view('admin.machinery.maintenances.index', compact('maintenances', 'stats'));
-    }
 }
-

@@ -1,5 +1,7 @@
 <?php
 
+// Modelo Organic — Residuos orgánicos recolectados (tipos, peso, origen)
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;

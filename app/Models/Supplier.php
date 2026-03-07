@@ -1,5 +1,7 @@
 <?php
 
+// Modelo Supplier — Proveedores de maquinaria (fabricante, origen, contacto)
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -27,9 +29,7 @@ class Supplier extends Model
         'purchase_date' => 'date',
     ];
 
-    /**
-     * Relación con maquinaria
-     */
+    // Relación con maquinaria
     public function machinery(): BelongsTo
     {
         return $this->belongsTo(Machinery::class);

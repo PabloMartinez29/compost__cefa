@@ -1,5 +1,6 @@
 <?php
 
+// Controlador Aprendiz TrackingController — Seguimientos (vista aprendiz)
 namespace App\Http\Controllers\Aprendiz;
 
 use App\Http\Controllers\Controller;
@@ -13,13 +14,12 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class TrackingController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Listar todos los registros
     public function index()
     {
         // Verificar autenticación
         if (!auth()->check()) {
+            // Redirigir con mensaje
             return redirect()->route('login');
         }
 
@@ -77,6 +77,7 @@ class TrackingController extends Controller
         
         $rejectedTrackingIds = array_unique(array_merge($rejectedTrackingIds, $rejectedFromPending));
 
+        // Mostrar vista
         return view('aprendiz.tracking.index', compact(
             'compostings', 
             'totalPiles', 
@@ -88,9 +89,7 @@ class TrackingController extends Controller
         ));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    // Mostrar formulario de creación
     public function create()
     {
         // Obtener todas las pilas activas (tanto del usuario como del administrador)
@@ -102,21 +101,22 @@ class TrackingController extends Controller
             });
 
         if ($activeCompostings->isEmpty()) {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.tracking.index')
                 ->with('error', 'No hay pilas activas para registrar seguimiento. Primero debe crear una pila de compostaje.');
         }
 
+        // Mostrar vista
         return view('aprendiz.tracking.create', compact('activeCompostings'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Guardar nuevo registro
     public function store(Request $request)
     {
         \Log::info('=== TRACKING STORE METHOD CALLED ===');
         \Log::info('Tracking store method called with data: ', $request->all());
         
+        // Validar datos recibidos
         $request->validate([
             'composting_id' => 'required|exists:compostings,id',
             'day' => 'required|integer|min:1|max:45',
@@ -145,6 +145,7 @@ class TrackingController extends Controller
 
         if (!$composting) {
             \Log::error('Composting not found - redirecting back');
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'La pila de compostaje no existe.');
         }
@@ -152,6 +153,7 @@ class TrackingController extends Controller
         // Verificar si la pila ya está completada
         if ($composting->status === 'Completada') {
             \Log::info('Composting pile is already completed');
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Esta pila ya está completada y no se pueden agregar más seguimientos.');
         }
@@ -165,6 +167,7 @@ class TrackingController extends Controller
 
         if ($existingTracking) {
             \Log::info('Existing tracking found for day: ' . $request->day);
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withInput()
                 ->with('error', "Ya existe un seguimiento para el día {$request->day} en esta pila.");
@@ -180,6 +183,7 @@ class TrackingController extends Controller
         
         if ($requestDate->lt($startDate)) {
             \Log::info('Date validation failed - redirecting back');
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'La fecha del seguimiento no puede ser anterior a la fecha de inicio de la pila.');
@@ -223,13 +227,12 @@ class TrackingController extends Controller
         }
 
         \Log::info('Redirecting to index with success message');
-        return redirect()->route('aprendiz.tracking.index')
+        // Redirigir con mensaje
+            return redirect()->route('aprendiz.tracking.index')
             ->with('success', 'Seguimiento registrado exitosamente!');
     }
 
-    /**
-     * Display the specified resource.
-     */
+    // Mostrar detalle del registro
     public function show(Tracking $tracking)
     {
         // Permitir ver seguimientos de cualquier pila
@@ -284,12 +287,11 @@ class TrackingController extends Controller
             ]);
         }
         
+        // Mostrar vista
         return view('aprendiz.tracking.show', compact('tracking'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    // Mostrar formulario de edición
     public function edit(Tracking $tracking)
     {
         // Permitir editar seguimientos de cualquier pila
@@ -327,16 +329,16 @@ class TrackingController extends Controller
             ]);
         }
 
+        // Mostrar vista
         return view('aprendiz.tracking.edit', compact('tracking', 'activeCompostings'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    // Actualizar registro existente
     public function update(Request $request, Tracking $tracking)
     {
         // Permitir editar seguimientos de cualquier pila
 
+        // Validar datos recibidos
         $request->validate([
             'composting_id' => 'required|exists:compostings,id',
             'day' => 'required|integer|min:1|max:45',
@@ -365,6 +367,7 @@ class TrackingController extends Controller
 
         if (!$composting) {
             \Log::error('Composting not found - redirecting back');
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'La pila de compostaje no existe.');
         }
@@ -379,6 +382,7 @@ class TrackingController extends Controller
 
         if ($existingTracking) {
             \Log::info('Existing tracking found for day: ' . $request->day);
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withInput()
                 ->with('error', "Ya existe un seguimiento para el día {$request->day} en esta pila.");
@@ -394,6 +398,7 @@ class TrackingController extends Controller
         
         if ($requestDate->lt($startDate)) {
             \Log::info('Date validation failed - redirecting back');
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'La fecha del seguimiento no puede ser anterior a la fecha de inicio de la pila.');
@@ -401,6 +406,7 @@ class TrackingController extends Controller
 
         \Log::info('Date validation passed, creating tracking...');
 
+        // Iniciar transacción
         DB::beginTransaction();
         try {
             $tracking->update([
@@ -420,23 +426,25 @@ class TrackingController extends Controller
                 'others' => $request->others
             ]);
 
+            // Confirmar cambios
             DB::commit();
 
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.tracking.index')
                 ->with('success', 'Seguimiento actualizado exitosamente!');
 
         } catch (\Exception $e) {
+            // Revertir error
             DB::rollback();
             Log::error('Error al actualizar seguimiento: ' . $e->getMessage());
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Error al actualizar el seguimiento: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    // Eliminar registro del sistema
     public function destroy(Tracking $tracking)
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
@@ -445,6 +453,7 @@ class TrackingController extends Controller
         $isOwner = $tracking->created_by === $currentUserId;
 
         if (!$isOwner) {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.tracking.index')
                 ->with('permission_required', 'No tiene permisos para eliminar este registro.');
         }
@@ -461,32 +470,36 @@ class TrackingController extends Controller
             ->first();
 
         if (!$approvedNotification) {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.tracking.index')
                 ->with('permission_required', 'No tiene permiso para eliminar este seguimiento. Debe solicitar permiso primero y esperar la aprobación del administrador.');
         }
 
         $approvedNotification->update(['read_at' => now()]);
 
+        // Iniciar transacción
         DB::beginTransaction();
         try {
             $tracking->delete();
             
+            // Confirmar cambios
             DB::commit();
             
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.tracking.index')
                 ->with('success', 'Seguimiento eliminado exitosamente!');
                 
         } catch (\Exception $e) {
+            // Revertir error
             DB::rollback();
             Log::error('Error al eliminar seguimiento: ' . $e->getMessage());
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Error al eliminar el seguimiento: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Solicitar permiso para eliminar un seguimiento
-     */
+    // Solicitar permiso para eliminar un seguimiento
     public function requestDeletePermission(Tracking $tracking)
     {
         $currentUserId = auth()->check() ? auth()->id() : null;
@@ -495,6 +508,7 @@ class TrackingController extends Controller
         $isOwner = $tracking->created_by === $currentUserId;
 
         if (!$isOwner) {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.tracking.index')
                 ->with('permission_required', 'No puede solicitar permisos para registros que no le pertenecen.');
         }
@@ -507,11 +521,13 @@ class TrackingController extends Controller
             ->first();
         
         if ($existing && $existing->status === 'pending') {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.tracking.index')
                 ->with('permission_required', 'Su solicitud de eliminación ya está pendiente de aprobación del administrador.');
         }
         
         if ($existing && $existing->status === 'approved') {
+            // Redirigir con mensaje
             return redirect()->route('aprendiz.tracking.index')
                 ->with('success', 'Su solicitud ya fue aprobada. Ahora puede eliminar el registro.');
         }
@@ -543,13 +559,12 @@ class TrackingController extends Controller
             }
         }
 
-        return redirect()->route('aprendiz.tracking.index')
+        // Redirigir con mensaje
+            return redirect()->route('aprendiz.tracking.index')
             ->with('success', 'Solicitud de eliminación enviada al administrador.');
     }
 
-    /**
-     * Obtener seguimientos de una pila específica (para AJAX)
-     */
+    // Obtener seguimientos de una pila específica (para
     public function getByComposting(Composting $composting)
     {
         // Permitir ver seguimientos de cualquier pila (tanto del usuario como del administrador)
@@ -606,9 +621,7 @@ class TrackingController extends Controller
         ]);
     }
 
-    /**
-     * Generate PDF for all trackings (o solo los filtrados si se pasan ids)
-     */
+    // Generate PDF for all trackings (o solo
     public function downloadAllTrackingsPDF(Request $request)
     {
         $query = Tracking::with('composting')
@@ -635,9 +648,7 @@ class TrackingController extends Controller
         return $pdf->download('todos_los_seguimientos_' . date('Y-m-d') . '.pdf');
     }
 
-    /**
-     * Generate PDF for all trackings of a specific composting pile
-     */
+    // Generate PDF for all trackings of a
     public function downloadCompostingTrackingsPDF(Composting $composting)
     {
         $composting->load('trackings');
@@ -655,9 +666,7 @@ class TrackingController extends Controller
         return $pdf->download('seguimientos_' . str_replace(' ', '_', $composting->formatted_pile_num) . '_' . date('Y-m-d') . '.pdf');
     }
 
-    /**
-     * Generate PDF for individual tracking
-     */
+    // Generate PDF for individual tracking
     public function downloadTrackingPDF(Tracking $tracking)
     {
         $tracking->load('composting');

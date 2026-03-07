@@ -1,5 +1,6 @@
 <?php
 
+// Controlador Admin UserController — Gestión de usuarios del sistema
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -12,30 +13,27 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class UserController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Listar todos los registros
     public function index(Request $request)
     {
         // Obtener todos los usuarios sin paginación (DataTables manejará la paginación del lado del cliente)
         $users = User::orderBy('created_at', 'desc')->get();
         
+        // Mostrar vista
         return view('admin.users.index', compact('users'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    // Mostrar formulario de creación
     public function create()
     {
+        // Mostrar vista
         return view('admin.users.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Guardar nuevo registro
     public function store(Request $request)
     {
+        // Validar datos recibidos
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -52,13 +50,12 @@ class UserController extends Controller
             'role' => $request->role,
         ]);
 
-        return redirect()->route('admin.users.index')
+        // Redirigir con mensaje
+            return redirect()->route('admin.users.index')
             ->with('success', 'Usuario creado exitosamente.');
     }
 
-    /**
-     * Display the specified resource.
-     */
+    // Mostrar detalle del registro
     public function show(User $user)
     {
         // Si es una petición AJAX o se solicita JSON, devolver JSON
@@ -77,12 +74,11 @@ class UserController extends Controller
             ]);
         }
         
+        // Mostrar vista
         return view('admin.users.show', compact('user'));
     }
 
-    /**
-     * Get user data in JSON format
-     */
+    // Get user data in JSON format
     public function getUserData(User $user)
     {
         return response()->json([
@@ -99,19 +95,17 @@ class UserController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    // Mostrar formulario de edición
     public function edit(User $user)
     {
+        // Mostrar vista
         return view('admin.users.edit', compact('user'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    // Actualizar registro existente
     public function update(Request $request, User $user)
     {
+        // Validar datos recibidos
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => [
@@ -146,17 +140,17 @@ class UserController extends Controller
 
         $user->update($data);
 
-        return redirect()->route('admin.users.index')
+        // Redirigir con mensaje
+            return redirect()->route('admin.users.index')
             ->with('success', 'Usuario actualizado exitosamente.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    // Eliminar registro del sistema
     public function destroy(User $user)
     {
         // No permitir desactivar al usuario actual
         if ($user->id === Auth::id()) {
+            // Redirigir con mensaje
             return redirect()->route('admin.users.index')
                 ->with('error', 'No puedes desactivar tu propia cuenta.');
         }
@@ -166,26 +160,24 @@ class UserController extends Controller
             'is_active' => false,
         ]);
 
-        return redirect()->route('admin.users.index')
+        // Redirigir con mensaje
+            return redirect()->route('admin.users.index')
             ->with('success', 'Usuario desactivado exitosamente.');
     }
 
-    /**
-     * Reactivate a previously deactivated user.
-     */
+    // Reactivate a previously deactivated user
     public function activate(User $user)
     {
         $user->update([
             'is_active' => true,
         ]);
 
-        return redirect()->route('admin.users.index')
+        // Redirigir con mensaje
+            return redirect()->route('admin.users.index')
             ->with('success', 'Usuario activado exitosamente.');
     }
 
-    /**
-     * Generate PDF for all users (o solo los filtrados si se pasan ids)
-     */
+    // Generate PDF for all users (o solo
     public function downloadAllUsersPDF(Request $request)
     {
         $query = User::orderBy('created_at', 'desc');
@@ -211,9 +203,7 @@ class UserController extends Controller
         return $pdf->download('todos_los_usuarios_' . date('Y-m-d') . '.pdf');
     }
 
-    /**
-     * Generate PDF for individual user
-     */
+    // Generate PDF for individual user
     public function downloadUserPDF(User $user)
     {
         $pdf = PDF::loadView('admin.users.pdf.user-details', compact('user'))

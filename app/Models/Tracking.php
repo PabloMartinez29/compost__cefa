@@ -1,5 +1,7 @@
 <?php
 
+// Modelo Tracking — Seguimiento diario de pilas (temperatura, humedad, pH, actividades)
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -37,105 +39,79 @@ class Tracking extends Model
         'lime' => 'decimal:2'
     ];
 
-    /**
-     * Relación con compostaje
-     */
+    // Relación con compostaje
     public function composting(): BelongsTo
     {
         return $this->belongsTo(Composting::class);
     }
 
-    /**
-     * Accessor para el día formateado
-     */
+    // Día formateado
     public function getFormattedDayAttribute(): string
     {
         return 'Día ' . $this->day;
     }
 
-    /**
-     * Accessor para la fecha formateada
-     */
+    // Fecha formateada
     public function getFormattedDateAttribute(): string
     {
         return $this->date->format('d/m/Y');
     }
 
-    /**
-     * Accessor para la temperatura interna formateada
-     */
+    // Temperatura interna formateada
     public function getFormattedTempInternalAttribute(): string
     {
         return $this->temp_internal . '°C';
     }
 
-    /**
-     * Accessor para la temperatura ambiente formateada
-     */
+    // Temperatura ambiente formateada
     public function getFormattedTempEnvAttribute(): string
     {
         return $this->temp_env . '°C';
     }
 
-    /**
-     * Accessor para la humedad de la pila formateada
-     */
+    // Humedad de pila formateada
     public function getFormattedHumPileAttribute(): string
     {
         return $this->hum_pile . '%';
     }
 
-    /**
-     * Accessor para la humedad ambiente formateada
-     */
+    // Humedad ambiente formateada
     public function getFormattedHumEnvAttribute(): string
     {
         return $this->hum_env . '%';
     }
 
-    /**
-     * Accessor para el pH formateado
-     */
+    // pH formateado
     public function getFormattedPhAttribute(): string
     {
         return $this->ph;
     }
 
-    /**
-     * Accessor para el agua formateada
-     */
+    // Agua formateada
     public function getFormattedWaterAttribute(): string
     {
         return $this->water . 'L';
     }
 
-    /**
-     * Accessor para la cal formateada
-     */
+    // Cal formateada
     public function getFormattedLimeAttribute(): string
     {
         return $this->lime . 'Kg';
     }
 
-    /**
-     * Accessor para el tiempo de temperatura formateado
-     */
+    // Hora de temperatura formateada
     public function getFormattedTempTimeAttribute(): string
     {
         return $this->temp_time ? $this->temp_time->format('H:i') : 'N/A';
     }
 
-    /**
-     * Scope para obtener seguimientos de una pila específica
-     */
+    // Scope por pila específica
     public function scopeForComposting($query, $compostingId)
     {
         return $query->where('composting_id', $compostingId);
     }
 
-    /**
-     * Scope para obtener seguimientos ordenados por día
-     */
+    // Scope ordenado por día
     public function scopeOrderedByDay($query)
     {
         return $query->orderBy('day', 'asc');
