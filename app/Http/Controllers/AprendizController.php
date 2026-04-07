@@ -27,8 +27,8 @@ class AprendizController extends Controller
 
         $compostingStats = [
             'total_piles' => Composting::where('created_by', $userId)->count(),
-            'active_piles' => Composting::where('created_by', $userId)->whereNull('end_date')->count(),
-            'completed_piles' => Composting::where('created_by', $userId)->whereNotNull('end_date')->count(),
+            'active_piles' => Composting::where('created_by', $userId)->get()->filter(function($c) { return $c->status !== 'Completada'; })->count(),
+            'completed_piles' => Composting::where('created_by', $userId)->get()->filter(function($c) { return $c->status === 'Completada'; })->count(),
         ];
 
         $myCompostingIds = Composting::where('created_by', $userId)->pluck('id');

@@ -117,8 +117,8 @@
                         <i class="fas fa-users"></i>
                     </div>
                     <div class="info-text">
-                        <div class="info-title">Gestión de Pasantes</div>
-                        <div class="info-subtitle">Registra y gestiona los pasantes del programa</div>
+                        <div class="info-title">Gestión de Usuarios</div>
+                        <div class="info-subtitle">Registra y gestiona los usuarios del sistema</div>
                     </div>
                 </div>
                 <div class="info-item">
@@ -158,11 +158,11 @@
                 Acciones Rápidas
             </h2>
             <div class="grid grid-cols-1 gap-4">
-                <a href="#" class="action-btn">
+                <a href="{{ route('admin.users.index') }}" class="action-btn">
                     <i class="fas fa-user-plus mr-2"></i>
-                    Registrar Pasante
+                    Registrar Usuarios
                 </a>
-                <a href="#" class="action-btn-secondary">
+                <a href="{{ route('admin.composting.create') }}" class="action-btn-secondary">
                     <i class="fas fa-plus mr-2"></i>
                     Crear Nueva Pila
                 </a>
@@ -170,11 +170,11 @@
                     <i class="fas fa-leaf mr-2"></i>
                     Entrada de Residuos
                 </a>
-                <a href="#" class="action-btn-orange">
+                <a href="{{ route('admin.machinery.index') }}" class="action-btn-orange">
                     <i class="fas fa-cogs mr-2"></i>
                     Gestionar Maquinaria
                 </a>
-                <a href="#" class="action-btn-warning">
+                <a href="{{ route('admin.monitoring.index') }}" class="action-btn-warning">
                     <i class="fas fa-chart-bar mr-2"></i>
                     Ver Reportes
                 </a>

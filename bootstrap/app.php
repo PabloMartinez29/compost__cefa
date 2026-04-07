@@ -7,6 +7,7 @@ use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\NoCacheHeaders;
 use Illuminate\Session\TokenMismatchException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(

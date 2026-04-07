@@ -41,8 +41,8 @@ class MonitoringController extends Controller
             'total_organics' => Organic::count(),
             'total_organics_weight' => Organic::sum('weight'),
             'total_compostings' => Composting::count(),
-            'active_compostings' => Composting::whereNull('end_date')->count(),
-            'completed_compostings' => Composting::whereNotNull('end_date')->count(),
+            'active_compostings' => Composting::get()->filter(function($c) { return $c->status !== 'Completada'; })->count(),
+            'completed_compostings' => Composting::get()->filter(function($c) { return $c->status === 'Completada'; })->count(),
             'total_trackings' => Tracking::count(),
             'total_fertilizers' => Fertilizer::count(),
             'total_fertilizers_amount' => Fertilizer::sum('amount'),
@@ -242,8 +242,8 @@ class MonitoringController extends Controller
         
         // Por estado
         $byStatus = [
-            'active' => $compostings->whereNull('end_date')->count(),
-            'completed' => $compostings->whereNotNull('end_date')->count()
+            'active' => $compostings->filter(function($c) { return $c->status !== 'Completada'; })->count(),
+            'completed' => $compostings->filter(function($c) { return $c->status === 'Completada'; })->count()
         ];
         
         return [
@@ -290,8 +290,8 @@ class MonitoringController extends Controller
         
         // Por estado
         $byStatus = [
-            'active' => $compostings->whereNull('end_date')->count(),
-            'completed' => $compostings->whereNotNull('end_date')->count()
+            'active' => $compostings->filter(function($c) { return $c->status !== 'Completada'; })->count(),
+            'completed' => $compostings->filter(function($c) { return $c->status === 'Completada'; })->count()
         ];
         
         // Por usuario
@@ -707,7 +707,7 @@ class MonitoringController extends Controller
                     </tr>';
 
                     foreach ($records as $record) {
-                        $status = $record->end_date ? 'Completada' : 'Activa';
+                        $status = $record->status === 'Completada' ? 'Completada' : 'Activa';
                         echo '<tr>';
                         echo '<td>' . e($record->created_at->format('d/m/Y')) . '</td>';
                         echo '<td>' . e($record->code ?? 'N/A') . '</td>';

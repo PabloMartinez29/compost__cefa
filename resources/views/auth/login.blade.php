@@ -231,15 +231,7 @@
                             </div>
                         </form>
 
-                            <!-- Register Link -->
-                            <div class="auth-divider">
-                                <p class="text-sm text-soft-gray-500">
-                                    ¿No tienes una cuenta? 
-                                    <a href="{{ route('register') }}" class="auth-link">
-                                        Regístrate aquí
-                                    </a>
-                                </p>
-                            </div>
+
                         </div>
                     </div>
                 </div>
