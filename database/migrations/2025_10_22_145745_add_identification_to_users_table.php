@@ -11,21 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('identification')->nullable()->after('email');
-        });
-        
+        if (!Schema::hasColumn('users', 'identification')) {
+            Schema::table('users', function (Blueprint $table) {
+                // Avoid after()/change() so this works on SQLite (CI) and MySQL
+                $table->string('identification')->nullable()->unique();
+            });
+        }
+
         // Asignar identificaciones únicas a usuarios existentes
-        $users = \App\Models\User::all();
-        foreach ($users as $index => $user) {
-            $user->identification = 'ID' . str_pad($user->id, 6, '0', STR_PAD_LEFT);
+        $users = \App\Models\User::query()->whereNull('identification')->get();
+        foreach ($users as $user) {
+            $user->identification = 'ID' . str_pad((string) $user->id, 6, '0', STR_PAD_LEFT);
             $user->save();
         }
-        
-        // Ahora hacer la columna única
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('identification')->unique()->change();
-        });
     }
 
     /**
