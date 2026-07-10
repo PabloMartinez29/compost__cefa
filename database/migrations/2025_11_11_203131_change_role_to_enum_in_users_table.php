@@ -12,7 +12,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Cambiar el tipo de columna role de string a enum
+        // MySQL/MariaDB only — SQLite does not support MODIFY/ENUM (needed for CI tests)
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('admin', 'aprendiz') NOT NULL DEFAULT 'aprendiz'");
     }
 
@@ -21,7 +25,10 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Revertir a string
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         DB::statement("ALTER TABLE users MODIFY COLUMN role VARCHAR(255) NOT NULL DEFAULT 'aprendiz'");
     }
 };
