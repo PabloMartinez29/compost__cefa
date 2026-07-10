@@ -146,7 +146,7 @@
                     <table id="usageControlsTable" class="waste-table min-w-[800px]">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th>N°</th>
                                 <th>Imagen</th>
                                 <th>Maquinaria</th>
                                 <th>Fecha/Hora Inicio</th>

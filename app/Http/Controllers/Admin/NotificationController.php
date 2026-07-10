@@ -152,6 +152,12 @@ class NotificationController extends Controller
             $notification->update(['read_at' => now()]);
 
             if ($notification->type === 'maintenance_reminder' && $notification->machinery_id) {
+                // Marcar como leída para todos los demás usuarios (aprendices, etc.)
+                \App\Models\Notification::where('machinery_id', $notification->machinery_id)
+                    ->where('type', 'maintenance_reminder')
+                    ->whereNull('read_at')
+                    ->update(['read_at' => now()]);
+
                 $machinery = \App\Models\Machinery::find($notification->machinery_id);
                 if ($machinery) {
                     try {

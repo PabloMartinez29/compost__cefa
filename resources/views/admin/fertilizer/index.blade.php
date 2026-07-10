@@ -153,7 +153,7 @@
                     <table id="fertilizersTable" class="waste-table">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th>N°</th>
                                 <th>Fecha</th>
                                 <th>Hora</th>
                                 <th>Pila</th>

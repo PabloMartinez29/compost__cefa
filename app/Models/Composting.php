@@ -28,6 +28,11 @@ class Composting extends Model
         'efficiency' => 'decimal:2'
     ];
 
+    protected $appends = [
+        'status',
+        'days_elapsed'
+    ];
+
     // Relación con ingredientes
     public function ingredients(): HasMany
     {

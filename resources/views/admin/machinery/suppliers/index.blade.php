@@ -144,7 +144,7 @@
                     <table id="suppliersTable" class="waste-table min-w-[900px]">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th>N°</th>
                                 <th>Imagen</th>
                                 <th>Maquinaria</th>
                                 <th>Fabricante</th>
