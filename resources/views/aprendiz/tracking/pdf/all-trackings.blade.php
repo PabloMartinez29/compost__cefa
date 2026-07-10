@@ -104,7 +104,7 @@
     <table>
         <thead>
             <tr>
-                <th>ID</th>
+                <th>N°</th>
                 <th>Pila</th>
                 <th>Día</th>
                 <th>Fecha</th>

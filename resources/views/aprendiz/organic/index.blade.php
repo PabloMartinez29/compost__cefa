@@ -3,10 +3,6 @@
 @section('content')
 @vite(['resources/css/waste.css'])
 
-@php
-use Illuminate\Support\Facades\Storage;
-@endphp
-
 <!-- Notification Alerts -->
 @if(isset($recentNotifications) && $recentNotifications->count() > 0)
     @foreach($recentNotifications as $notification)
@@ -154,9 +150,9 @@ use Illuminate\Support\Facades\Storage;
                     <div class="waste-mobile-card bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm" data-id="{{ $organic->id }}">
                         <div class="flex gap-3">
                             <div class="flex-shrink-0">
-                                @if($organic->img && Storage::disk('public')->exists($organic->img))
-                                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 cursor-pointer" onclick="openImageModal('{{ Storage::url($organic->img) }}')">
-                                        <img src="{{ Storage::url($organic->img) }}" alt="Residuo" class="w-full h-full object-cover" onerror="this.style.display='none';">
+                                @if($organic->img)
+                                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 cursor-pointer" onclick="openImageModal('{{ asset('storage-file/'.$organic->img) }}')">
+                                        <img src="{{ asset('storage-file/'.$organic->img) }}" alt="Residuo" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                         <div class="w-full h-full bg-gray-200 flex items-center justify-center" style="display: none;"><i class="fas fa-image text-gray-400"></i></div>
                                     </div>
                                 @else
@@ -172,8 +168,26 @@ use Illuminate\Support\Facades\Storage;
                         </div>
                         <div class="waste-mobile-card-actions mt-4 pt-3 border-t border-gray-200">
                             <button type="button" onclick="openViewModal({{ $organic->id }})" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg flex-shrink-0" title="Ver"><i class="fas fa-eye"></i></button>
-                            <button type="button" onclick="confirmEdit({{ $organic->id }})" class="p-2 text-green-600 hover:bg-green-50 rounded-lg flex-shrink-0" title="Editar"><i class="fas fa-edit"></i></button>
-                            <form action="{{ route('aprendiz.organic.destroy', $organic) }}" method="POST" class="inline flex-shrink-0" onsubmit="return confirmDelete(event, this)">@csrf @method('DELETE')<button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Eliminar"><i class="fas fa-trash"></i></button></form>
+                            @if($organic->created_by == auth()->id())
+                                <button type="button" onclick="confirmEdit({{ $organic->id }})" class="p-2 text-green-600 hover:bg-green-50 rounded-lg flex-shrink-0" title="Editar"><i class="fas fa-edit"></i></button>
+                                @php
+                                    $isApprovedCard = isset($approvedOrganicIds) && in_array($organic->id, $approvedOrganicIds);
+                                    $isPendingCard = isset($pendingOrganicIds) && in_array($organic->id, $pendingOrganicIds);
+                                    $isRejectedCard = isset($rejectedOrganicIds) && in_array($organic->id, $rejectedOrganicIds);
+                                @endphp
+                                @if($isRejectedCard)
+                                    <button type="button" onclick="showRejectedAlert({{ $organic->id }})" class="p-2 text-red-600 rounded-lg flex-shrink-0" title="Solicitud rechazada"><i class="fas fa-ban"></i></button>
+                                @elseif($isApprovedCard)
+                                    <form id="delete-form-card-{{ $organic->id }}" action="{{ route('aprendiz.organic.destroy', $organic) }}" method="POST" class="inline flex-shrink-0">@csrf @method('DELETE')<button type="button" onclick="confirmDelete('delete-form-card-{{ $organic->id }}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Eliminar"><i class="fas fa-trash"></i></button></form>
+                                @elseif($isPendingCard)
+                                    <button type="button" class="p-2 text-yellow-500 cursor-default rounded-lg flex-shrink-0" title="Permiso pendiente"><i class="fas fa-hourglass-half"></i></button>
+                                @else
+                                    <form id="request-delete-form-card-{{ $organic->id }}" action="{{ route('aprendiz.organic.request-delete', $organic) }}" method="POST" class="inline flex-shrink-0">@csrf<button type="button" onclick="confirmRequestPermission('request-delete-form-card-{{ $organic->id }}')" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Solicitar eliminar"><i class="fas fa-trash"></i></button></form>
+                                @endif
+                            @else
+                                <button type="button" onclick="showPermissionAlert()" class="p-2 text-gray-400 rounded-lg flex-shrink-0" title="Sin permisos"><i class="fas fa-lock"></i></button>
+                                <button type="button" class="p-2 text-gray-400 rounded-lg flex-shrink-0 cursor-not-allowed" title="No puede eliminar registros de otro aprendiz"><i class="fas fa-trash"></i></button>
+                            @endif
                             <a href="{{ route('aprendiz.organic.download.pdf', $organic) }}" class="p-2 text-red-700 hover:bg-red-50 rounded-lg flex-shrink-0" title="PDF"><i class="fas fa-file-pdf"></i></a>
                         </div>
                     </div>
@@ -190,7 +204,7 @@ use Illuminate\Support\Facades\Storage;
                     <table id="organicsTable" class="waste-table">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th>N°</th>
                                 <th>Fecha</th>
                                 <th>Imagen</th>
                                 <th>Tipo</th>
@@ -207,15 +221,13 @@ use Illuminate\Support\Facades\Storage;
                             <td class="font-mono">#{{ str_pad($organic->id, 3, '0', STR_PAD_LEFT) }}</td>
                             <td>{{ $organic->formatted_date }}</td>
                             <td>
-                                @if($organic->img && Storage::disk('public')->exists($organic->img))
-                                    @php
-                                        $imageUrl = Storage::url($organic->img);
-                                    @endphp
+                                @if($organic->img)
+                                    @php $imageUrl = asset('storage-file/'.$organic->img); @endphp
                                     <img src="{{ $imageUrl }}?v={{ $organic->updated_at->timestamp }}" 
                                          alt="Imagen del residuo" 
                                          class="w-12 h-12 object-cover rounded-full cursor-pointer hover:opacity-80 transition-opacity"
                                          onclick="openImageModal('{{ $imageUrl }}?v={{ $organic->updated_at->timestamp }}')"
-                                         onerror="console.log('Error loading image:', this.src); this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                     <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center" style="display: none;">
                                         <i class="fas fa-image text-gray-400"></i>
                                     </div>
@@ -816,10 +828,21 @@ function openEditModal(organicId) {
             'Accept': 'application/json'
         }
     })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                return response.json().catch(() => ({})).then(body => {
+                    throw new Error(body.message || body.error || 'Error al cargar los datos');
+                });
+            }
+            return response.json();
+        })
         .then(data => {
+            if (!data || data.id == null) {
+                alert('Error al cargar los datos del registro');
+                return;
+            }
             // Llenar el formulario
-            document.getElementById('editRecordId').textContent = data.id.toString().padStart(3, '0');
+            document.getElementById('editRecordId').textContent = String(data.id).padStart(3, '0');
             document.getElementById('editDate').value = data.date;
             document.getElementById('editType').value = data.type;
             document.getElementById('editWeight').value = data.weight;
@@ -853,7 +876,7 @@ function openEditModal(organicId) {
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error al cargar los datos del registro');
+            alert(error.message || 'Error al cargar los datos del registro');
         });
 }
 
@@ -912,10 +935,21 @@ function openViewModal(organicId) {
             'Accept': 'application/json'
         }
     })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                return response.json().catch(() => ({})).then(body => {
+                    throw new Error(body.message || body.error || 'Error al cargar los datos');
+                });
+            }
+            return response.json();
+        })
         .then(data => {
+            if (!data || data.id == null) {
+                alert('Error al cargar los datos del registro');
+                return;
+            }
             // Llenar el formulario
-            document.getElementById('viewRecordId').textContent = data.id.toString().padStart(3, '0');
+            document.getElementById('viewRecordId').textContent = String(data.id).padStart(3, '0');
             document.getElementById('viewDate').textContent = data.date_formatted || data.date;
             document.getElementById('viewType').textContent = data.type_in_spanish || data.type;
             document.getElementById('viewWeight').textContent = data.formatted_weight || data.weight + ' Kg';
@@ -939,7 +973,7 @@ function openViewModal(organicId) {
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error al cargar los datos del registro');
+            alert(error.message || 'Error al cargar los datos del registro');
         });
 }
 

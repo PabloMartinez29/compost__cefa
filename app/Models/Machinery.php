@@ -1,5 +1,7 @@
 <?php
 
+// Modelo Machinery — Maquinaria del centro (estado, frecuencia de mantenimiento, cronómetro)
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -21,6 +23,7 @@ class Machinery extends Model
         'maint_freq',
         'next_maintenance_due_at',
         'image',
+        'created_by',
     ];
 
     protected $casts = [
@@ -28,9 +31,7 @@ class Machinery extends Model
         'next_maintenance_due_at' => 'datetime',
     ];
 
-    /**
-     * Atributos que se incluyen automáticamente al serializar a JSON
-     */
+    // Atributos serializados automáticamente
     protected $appends = ['status'];
 
     // Relación con mantenimientos
@@ -51,14 +52,10 @@ class Machinery extends Model
         return $this->hasMany(UsageControl::class);
     }
 
-    /**
-     * Estado en Identificación y especificaciones. Sincronizado con Control de actividades:
-     * se usa el último registro de control de actividades (por updated_at y fecha);
-     * status 'mantenimiento' → "Mantenimiento requerido", 'operativa' → "Operativa".
-     */
+    // Obtener estado actual de la maquinaria
     public function getStatusAttribute()
     {
-        // Buscar en usageControls primero (Control de actividades)
+
         $lastUsageControl = $this->usageControls()
             ->orderByDesc('updated_at')
             ->orderByDesc('start_date')
@@ -70,8 +67,7 @@ class Machinery extends Model
                 : 'Operativa';
         }
 
-        // Fallback a maintenances si no hay usageControls
-        // Buscar el último registro de mantenimiento
+
         $lastActivity = $this->maintenances()
             ->orderByDesc('updated_at')
             ->orderByDesc('date')
@@ -81,20 +77,16 @@ class Machinery extends Model
             return 'Sin mantenimiento registrado';
         }
 
-        // Si el último registro es tipo 'M' (Mantenimiento) y NO tiene fecha de fin, está en mantenimiento
+
         if ($lastActivity->type === 'M' && is_null($lastActivity->end_date)) {
             return 'Mantenimiento requerido';
         }
 
-        // Si es tipo 'O' (Operación) o tiene fecha de fin, está operativa
+
         return 'Operativa';
     }
 
-    /**
-     * Convierte frecuencia de mantenimiento a días (recordatorios y cronómetro).
-     * Equivalencias: Diario = 1, Semanal = 7, Quincenal = 15, Mensual = 30,
-     * Bimestral = 60, Trimestral = 90, Semestral = 180, Anual = 365.
-     */
+    // Convertir frecuencia de mantenimiento a días
     public function getMaintenanceFrequencyInDays(): int
     {
         $freq = strtolower(trim($this->maint_freq ?? ''));
@@ -128,16 +120,12 @@ class Machinery extends Model
         return 30;
     }
 
-    /**
-     * Fecha/hora en que vence el próximo mantenimiento (cronómetro).
-     * Si la maquinaria está "En mantenimiento" (último registro tipo M), retorna null (cronómetro pausado).
-     * Si está en Operación, usa next_maintenance_due_at o calcula por frecuencia.
-     */
+    // Obtener fecha del próximo mantenimiento
     public function getNextMaintenanceDueDateTime(): ?\Carbon\Carbon
     {
         $lastActivity = $this->maintenances()->orderByDesc('updated_at')->orderByDesc('date')->first();
         if ($lastActivity && $lastActivity->type === 'M') {
-            return null; // En mantenimiento: cronómetro pausado
+            return null;
         }
         if ($this->next_maintenance_due_at) {
             return $this->next_maintenance_due_at;
@@ -163,9 +151,7 @@ class Machinery extends Model
         return $reference->copy()->addDays($freqDays);
     }
 
-    /**
-     * Programa el próximo vencimiento (al guardar maquinaria o al marcar alerta como leída).
-     */
+    // Programar próximo vencimiento de mantenimiento
     public function scheduleNextMaintenanceDue(): void
     {
         $freqDays = $this->getMaintenanceFrequencyInDays();
@@ -173,19 +159,14 @@ class Machinery extends Model
         $this->saveQuietly();
     }
 
-    /**
-     * Indica si la maquinaria requiere mantenimiento por frecuencia (cronómetro en 0).
-     */
+    // Verificar si requiere mantenimiento
     public function requiresMaintenanceByFrequency(): bool
     {
         $nextDue = $this->getNextMaintenanceDueDateTime();
         return $nextDue && now()->gte($nextDue);
     }
 
-    /**
-     * Alertas por frecuencia: crea notificaciones para maquinarias que requieren mantenimiento
-     * según Identificación y especificaciones (maint_freq). No usa fechas de control de actividades.
-     */
+    // Crear recordatorios de mantenimiento por frecuencia
     public static function ensureFrequencyBasedRemindersForUser(\App\Models\User $user): void
     {
         $machineries = self::with('maintenances')->get();

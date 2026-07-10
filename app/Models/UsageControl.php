@@ -1,5 +1,7 @@
 <?php
 
+// Modelo UsageControl — Control de actividades de maquinaria (uso, horas, responsable)
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -21,6 +23,7 @@ class UsageControl extends Model
         'responsible',
         'description',
         'status',
+        'created_by',
     ];
 
     protected $casts = [
@@ -29,9 +32,7 @@ class UsageControl extends Model
         'end_date' => 'datetime',
     ];
 
-    /**
-     * Relación con maquinaria
-     */
+    // Relación con maquinaria
     public function machinery(): BelongsTo
     {
         return $this->belongsTo(Machinery::class);

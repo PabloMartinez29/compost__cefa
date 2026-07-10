@@ -2,13 +2,16 @@
 <html lang="es">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="theme-color" content="#16a34a">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Sistema de Compostaje</title>
     
     <!-- Favicon -->
-    <link rel="icon" type="image/webp" href="{{ asset('img/logo-compost-cefa.webp') }}">
-    <link rel="shortcut icon" type="image/webp" href="{{ asset('img/logo-compost-cefa.webp') }}">
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('favicon.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('img/logo-compost-cefa.webp') }}">
     
     <!-- Fonts -->
@@ -136,6 +139,12 @@
             background-color: #9ca3af;
         }
 
+        /* Firefox scrollbar */
+        nav {
+            scrollbar-width: thin;
+            scrollbar-color: #d1d5db transparent;
+        }
+
         [x-cloak] { display: none !important; }
         
         /* Responsive Tables */
@@ -143,6 +152,7 @@
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
             width: 100%;
+            scrollbar-width: thin;
         }
         
         .table-responsive table {
@@ -232,10 +242,10 @@
 
         <!-- Sidebar -->
         <div :class="sidebarOpen ? 'translate-x-0 ease-out' : '-translate-x-full ease-in'" class="fixed inset-y-0 left-0 z-30 w-64 sm:w-72 bg-white shadow-lg transition duration-300 transform lg:translate-x-0 lg:static lg:inset-0 flex flex-col h-screen overflow-hidden">
-            <!-- Logo/Brand -->
+            <!-- Logo/Brand (si no existe img, se muestra fallback COMPOST CEFA) -->
             <div class="h-32 flex items-center justify-center border-b border-soft-gray-200 px-4 flex-shrink-0">
-                <img src="{{ asset('img/logo-compost-cefa.webp') }}" alt="COMPOST CEFA" class="h-28 w-auto max-w-full object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                <div class="h-28 hidden items-center justify-center gap-2 text-soft-green-700 font-bold text-lg" style="display: none;">
+                <img src="{{ asset('img/logo-compost-cefa.webp') }}" alt="COMPOST CEFA" class="h-28 w-auto max-w-full object-contain logo-img" onerror="this.classList.add('!hidden'); var fb = this.nextElementSibling; if(fb) { fb.classList.remove('hidden'); fb.style.display = 'flex'; }">
+                <div class="h-28 hidden items-center justify-center gap-2 text-soft-green-700 font-bold text-lg logo-fallback" style="display: none;">
                     <i class="fas fa-seedling text-2xl"></i>
                     <span>COMPOST CEFA</span>
                 </div>
@@ -471,7 +481,6 @@
                             $showMaintenanceReminderAlert = \App\Models\Notification::where('user_id', auth()->id())
                                 ->where('type', 'maintenance_reminder')
                                 ->whereNull('read_at')
-                                ->where('created_at', '<=', now()->subMinute())
                                 ->exists();
                         @endphp
                         <button onclick="toggleNotifications()" 
@@ -492,12 +501,12 @@
                             @endif
                         </button>
                         
-                        <!-- Notifications Dropdown -->
-                        <div id="notificationsMenu" class="hidden absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-lg shadow-lg border border-soft-gray-200 py-2 z-50 max-h-96 overflow-y-auto">
-                            <div class="px-4 py-2 border-b border-soft-gray-100 flex items-center justify-between">
+                        <!-- Notifications Dropdown: pegado bajo la campana, con scroll invisible pero funcional -->
+                        <div id="notificationsMenu" class="hidden fixed top-14 right-2 w-[calc(100vw-1rem)] max-w-[360px] sm:absolute sm:top-auto sm:right-0 sm:mt-2 sm:w-80 sm:max-w-none bg-white rounded-lg shadow-xl ring-1 ring-black ring-opacity-5 py-2 z-50 max-h-[75vh] sm:max-h-96 overflow-y-auto min-w-0 transition-transform origin-top-right [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                            <div class="px-3 sm:px-4 py-2 border-b border-soft-gray-100 flex flex-wrap items-center justify-between gap-2">
                                 <h3 class="text-sm font-semibold text-soft-gray-800">Notificaciones</h3>
                                 <a href="{{ route('admin.notifications.history') }}" 
-                                   class="text-xs text-soft-green-600 hover:text-soft-green-700 font-medium">
+                                   class="text-xs text-soft-green-600 hover:text-soft-green-700 font-medium whitespace-nowrap">
                                     Ver historial
                                 </a>
                             </div>
@@ -515,25 +524,17 @@
                             @forelse($notifications as $notification)
                                 @if($notification->type === 'maintenance_reminder')
                                     <!-- Notificación de Mantenimiento -->
-                                    <div class="px-4 py-3 hover:bg-soft-gray-50 border-b border-soft-gray-100 last:border-b-0">
-                                        <div class="flex items-start space-x-3">
+                                    <div class="px-3 sm:px-4 py-3 hover:bg-soft-gray-50 border-b border-soft-gray-100 last:border-b-0">
+                                        <div class="flex items-start gap-2 sm:space-x-3 min-w-0">
                                             <div class="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
                                                 <i class="fas fa-tools text-orange-600 text-sm"></i>
                                             </div>
                                             <div class="flex-1 min-w-0">
-                                                <p class="text-sm font-medium text-soft-gray-800">
-                                                    Recordatorio de Mantenimiento
-                                                </p>
-                                                <p class="text-xs text-soft-gray-600 mt-1">
-                                                    {{ $notification->machinery->name ?? 'Maquinaria no encontrada' }}
-                                                </p>
-                                                <p class="text-xs text-soft-gray-500 mt-1">
-                                                    {{ $notification->message }}
-                                                </p>
-                                                <p class="text-xs text-soft-gray-500 mt-1">
-                                                    {{ $notification->created_at->diffForHumans() }}
-                                                </p>
-                                                <div class="flex space-x-2 mt-2">
+                                                <p class="text-sm font-medium text-soft-gray-800 break-words">Recordatorio de Mantenimiento</p>
+                                                <p class="text-xs text-soft-gray-600 mt-1 break-words">{{ $notification->machinery->name ?? 'Maquinaria no encontrada' }}</p>
+                                                <p class="text-xs text-soft-gray-500 mt-1 break-words">{{ $notification->message }}</p>
+                                                <p class="text-xs text-soft-gray-500 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
+                                                <div class="flex flex-wrap gap-2 mt-2">
                                                     <button onclick="markNotificationAsRead({{ $notification->id }})" 
                                                         class="px-2 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600 transition-colors">
                                                         Marcar como leída
@@ -544,16 +545,14 @@
                                     </div>
                                 @elseif($notification->type === 'delete_request')
                                     <!-- Notificación de Solicitud de Eliminación -->
-                                    <div class="px-4 py-3 hover:bg-soft-gray-50 border-b border-soft-gray-100 last:border-b-0">
-                                        <div class="flex items-start space-x-3">
+                                    <div class="px-3 sm:px-4 py-3 hover:bg-soft-gray-50 border-b border-soft-gray-100 last:border-b-0">
+                                        <div class="flex items-start gap-2 sm:space-x-3 min-w-0">
                                             <div class="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
                                                 <i class="fas fa-trash text-yellow-600 text-sm"></i>
                                             </div>
                                             <div class="flex-1 min-w-0">
-                                                <p class="text-sm font-medium text-soft-gray-800">
-                                                    {{ $notification->fromUser->name ?? 'Usuario desconocido' }}
-                                                </p>
-                                                <p class="text-xs text-soft-gray-600 mt-1">
+                                                <p class="text-sm font-medium text-soft-gray-800 break-words">{{ $notification->fromUser->name ?? 'Usuario desconocido' }}</p>
+                                                <p class="text-xs text-soft-gray-600 mt-1 break-words">
                                                     @if($notification->composting_id)
                                                         Solicita eliminar pila de compostaje #{{ $notification->composting->formatted_pile_num ?? 'N/A' }}
                                                     @elseif($notification->organic_id)
@@ -570,10 +569,8 @@
                                                         {{ $notification->message }}
                                                     @endif
                                                 </p>
-                                                <p class="text-xs text-soft-gray-500 mt-1">
-                                                    {{ $notification->created_at->diffForHumans() }}
-                                                </p>
-                                                <div class="flex space-x-2 mt-2">
+                                                <p class="text-xs text-soft-gray-500 mt-1">{{ $notification->created_at->diffForHumans() }}</p>
+                                                <div class="flex flex-wrap gap-2 mt-2">
                                                     <button onclick="approveDeleteRequest({{ $notification->id }})" 
                                                         class="px-2 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors">
                                                         Aprobar
@@ -588,11 +585,37 @@
                                     </div>
                                 @endif
                             @empty
-                                <div class="px-4 py-6 text-center">
+                                <div class="px-3 sm:px-4 py-6 text-center">
                                     <i class="fas fa-bell-slash text-soft-gray-400 text-2xl mb-2"></i>
                                     <p class="text-sm text-soft-gray-500">No hay notificaciones pendientes</p>
                                 </div>
                             @endforelse
+                        </div>
+                    </div>
+
+                    <!-- Help Button -->
+                    <div class="relative">
+                        <button onclick="toggleHelpMenu()" 
+                            class="relative p-1.5 sm:p-2 text-soft-gray-600 hover:text-soft-green-600 hover:bg-soft-gray-100 rounded-lg transition-all duration-200">
+                            <i class="fas fa-question-circle text-base sm:text-lg"></i>
+                        </button>
+                        
+                        <div id="helpMenu" class="hidden absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-soft-gray-200 py-2 z-50">
+                            <div class="px-4 py-2 border-b border-soft-gray-100">
+                                <h3 class="text-sm font-semibold text-soft-gray-800"><i class="fas fa-book mr-1"></i> Manuales</h3>
+                            </div>
+                            <div class="py-1">
+                                <a href="{{ route('manual.view', 'administrador') }}" target="_blank" rel="noopener"
+                                   class="flex items-center px-4 py-2.5 text-sm text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 transition-colors duration-200">
+                                    <i class="fas fa-file-pdf text-red-500 w-5 mr-3"></i>
+                                    Manual de Administrador
+                                </a>
+                                <a href="{{ route('manual.view.tecnico') }}" target="_blank" rel="noopener"
+                                   class="flex items-center px-4 py-2.5 text-sm text-soft-gray-700 hover:bg-soft-green-50 hover:text-soft-green-700 transition-colors duration-200">
+                                    <i class="fas fa-file-pdf text-red-500 w-5 mr-3"></i>
+                                    Manual Técnico
+                                </a>
+                            </div>
                         </div>
                     </div>
                     
@@ -602,20 +625,15 @@
                             <div class="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-soft-green-500 to-soft-green-600 rounded-full flex items-center justify-center flex-shrink-0">
                                 <i class="fas fa-user text-white text-xs sm:text-sm"></i>
                             </div>
-                            <div class="text-right hidden md:block">
+                            <div class="text-right">
                                 <p class="text-xs sm:text-sm font-medium text-soft-gray-800 truncate max-w-[100px] sm:max-w-none">{{ Auth::user()?->name ?? 'Usuario' }}</p>
                                 <p class="text-xs text-soft-gray-500">Administrador</p>
                             </div>
-                            <i id="userArrow" class="fas fa-chevron-down text-soft-gray-400 text-xs transition-transform duration-200 hidden md:block"></i>
+                            <i id="userArrow" class="fas fa-chevron-down text-soft-gray-400 text-xs transition-transform duration-200"></i>
                         </button>
                         
                         <!-- Dropdown Menu -->
                         <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-soft-gray-200 py-2 z-50">
-                            <!-- User Info (Visible only on mobile in dropdown) -->
-                            <div class="px-4 py-2 border-b border-soft-gray-100 sm:hidden">
-                                <p class="text-sm font-medium text-soft-gray-800">{{ Auth::user()?->name ?? 'Usuario' }}</p>
-                                <p class="text-xs text-soft-gray-500">Administrador</p>
-                            </div>
                             <!-- User Email -->
                             <div class="px-4 py-2 border-b border-soft-gray-100">
                                 <p class="text-xs text-soft-gray-500">{{ Auth::user()?->email ?? 'N/A' }}</p>
@@ -773,41 +791,62 @@
         function toggleNotifications() {
             const menu = document.getElementById('notificationsMenu');
             const userMenu = document.getElementById('userMenu');
+            const helpMenu = document.getElementById('helpMenu');
             
-            // Close user menu if open
-            if (!userMenu.classList.contains('hidden')) {
-                userMenu.classList.add('hidden');
-            }
+            if (!userMenu.classList.contains('hidden')) userMenu.classList.add('hidden');
+            if (!helpMenu.classList.contains('hidden')) helpMenu.classList.add('hidden');
             
             menu.classList.toggle('hidden');
         }
 
+        function toggleHelpMenu() {
+            const helpMenu = document.getElementById('helpMenu');
+            const notificationsMenu = document.getElementById('notificationsMenu');
+            const userMenu = document.getElementById('userMenu');
+            
+            if (!notificationsMenu.classList.contains('hidden')) notificationsMenu.classList.add('hidden');
+            if (!userMenu.classList.contains('hidden')) userMenu.classList.add('hidden');
+            
+            helpMenu.classList.toggle('hidden');
+        }
+
         function approveDeleteRequest(notificationId) {
+            const csrf = document.querySelector('meta[name="csrf-token"]');
+            const token = csrf ? csrf.getAttribute('content') : '';
             fetch(`/admin/notifications/${notificationId}/approve`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                }
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRF-TOKEN': token,
+                    'Accept': 'application/json'
+                },
+                body: new URLSearchParams({ _token: token })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(d => Promise.reject(d));
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     Swal.fire({
                         title: '¡Aprobado!',
-                        text: 'Solicitud de eliminación aprobada exitosamente',
+                        text: 'Solicitud aprobada. Recarga la página para ver el conteo.',
                         icon: 'success',
                         confirmButtonColor: '#22c55e'
                     }).then(() => {
                         location.reload();
                     });
+                } else {
+                    Swal.fire({ title: 'Error', text: data.message || 'No se pudo aprobar', icon: 'error' });
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
                 Swal.fire({
                     title: 'Error',
-                    text: 'Ocurrió un error al procesar la solicitud',
+                    text: error.message || 'Ocurrió un error al procesar la solicitud',
                     icon: 'error'
                 });
             });
@@ -868,26 +907,55 @@
             });
         }
 
-        // Close notifications when clicking outside
+        // Close dropdowns when clicking outside
         document.addEventListener('click', function(event) {
+            // Ignorar clics en modales de SweetAlert2 para evitar conflictos con Ver Notificaciones
+            if (event.target.closest('.swal2-container')) return;
+
             const notificationsMenu = document.getElementById('notificationsMenu');
+            const helpMenu = document.getElementById('helpMenu');
             const notificationButton = event.target.closest('[onclick="toggleNotifications()"]');
+            const helpButton = event.target.closest('[onclick="toggleHelpMenu()"]');
             
-            if (!notificationButton && !notificationsMenu.contains(event.target)) {
+            if (notificationsMenu && !notificationButton && !notificationsMenu.contains(event.target)) {
                 notificationsMenu.classList.add('hidden');
+            }
+            if (helpMenu && !helpButton && !helpMenu.contains(event.target)) {
+                helpMenu.classList.add('hidden');
             }
         });
 
         @if(!empty($showMaintenanceReminderAlert))
         document.addEventListener('DOMContentLoaded', function() {
+            function showMaintenanceReminder() {
+                Swal.fire({
+                    title: 'Recordatorio de Mantenimiento',
+                    text: 'Tiene recordatorios de mantenimiento sin leer. Revise sus notificaciones.',
+                    icon: 'warning',
+                    showConfirmButton: true,
+                    confirmButtonText: '<i class="fas fa-bell mr-1"></i> Ver Notificaciones',
+                    confirmButtonColor: '#f59e0b'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        setTimeout(() => {
+                            toggleNotifications();
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }, 150);
+                    }
+                });
+            }
+            showMaintenanceReminder();
+        });
+        @endif
+
+        @if(session('unauthorized_access'))
+        document.addEventListener('DOMContentLoaded', function() {
             Swal.fire({
-                title: 'Recordatorio de Mantenimiento',
-                text: 'Tiene recordatorios de mantenimiento sin leer. La información se encuentra en Notificaciones.',
-                icon: 'warning',
-                timer: 15000,
-                timerProgressBar: true,
-                showConfirmButton: true,
-                confirmButtonText: 'Entendido'
+                title: '¡Acceso No Autorizado!',
+                text: 'No tienes permisos para acceder a esa sección.',
+                icon: 'error',
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#ef4444'
             });
         });
         @endif

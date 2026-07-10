@@ -1,5 +1,6 @@
 <?php
 
+// Controlador Admin TrackingController — CRUD de seguimientos diarios
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -13,13 +14,12 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class TrackingController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Listar todos los registros
     public function index()
     {
         // Verificar autenticación
         if (!auth()->check()) {
+            // Redirigir con mensaje
             return redirect()->route('login');
         }
 
@@ -35,12 +35,11 @@ class TrackingController extends Controller
         $activePiles = $compostings->whereNull('end_date')->count();
         $totalTrackings = Tracking::count();
 
+        // Mostrar vista
         return view('admin.tracking.index', compact('compostings', 'totalPiles', 'activePiles', 'totalTrackings'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    // Mostrar formulario de creación
     public function create()
     {
         // Obtener todas las pilas activas (tanto del usuario como del administrador)
@@ -52,21 +51,22 @@ class TrackingController extends Controller
             });
 
         if ($activeCompostings->isEmpty()) {
+            // Redirigir con mensaje
             return redirect()->route('admin.tracking.index')
                 ->with('error', 'No hay pilas activas para registrar seguimiento. Primero debe crear una pila de compostaje.');
         }
 
+        // Mostrar vista
         return view('admin.tracking.create', compact('activeCompostings'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Guardar nuevo registro
     public function store(Request $request)
     {
         \Log::info('=== ADMIN TRACKING STORE METHOD CALLED ===');
         \Log::info('Admin tracking store method called with data: ', $request->all());
         
+        // Validar datos recibidos
         $request->validate([
             'composting_id' => 'required|exists:compostings,id',
             'day' => 'required|integer|min:1|max:45',
@@ -95,6 +95,7 @@ class TrackingController extends Controller
 
         if (!$composting) {
             \Log::error('Composting not found - redirecting back');
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'La pila de compostaje no existe.');
         }
@@ -102,6 +103,7 @@ class TrackingController extends Controller
         // Verificar si la pila ya está completada
         if ($composting->status === 'Completada') {
             \Log::info('Composting pile is already completed');
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Esta pila ya está completada y no se pueden agregar más seguimientos.');
         }
@@ -115,6 +117,7 @@ class TrackingController extends Controller
 
         if ($existingTracking) {
             \Log::info('Existing tracking found for day: ' . $request->day);
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withInput()
                 ->with('error', "Ya existe un seguimiento para el día {$request->day} en esta pila.");
@@ -130,6 +133,7 @@ class TrackingController extends Controller
         
         if ($requestDate->lt($startDate)) {
             \Log::info('Date validation failed - redirecting back');
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'La fecha del seguimiento no puede ser anterior a la fecha de inicio de la pila.');
@@ -173,73 +177,82 @@ class TrackingController extends Controller
         }
 
         \Log::info('Redirecting to index with success message');
-        return redirect()->route('admin.tracking.index')
+        // Redirigir con mensaje
+            return redirect()->route('admin.tracking.index')
             ->with('success', 'Seguimiento registrado exitosamente!');
     }
 
-    /**
-     * Display the specified resource.
-     */
+    // Mostrar detalle del registro
     public function show(Tracking $tracking)
     {
-        // Permitir ver seguimientos de cualquier pila
-        $tracking->load(['composting.ingredients.organic', 'composting']);
-        
         if (request()->ajax() || request()->wantsJson()) {
-            return response()->json([
-                'tracking' => [
+            try {
+                $tracking->load(['composting.ingredients.organic', 'composting']);
+                $composting = $tracking->composting;
+                if (!$composting) {
+                    return response()->json(['error' => 'Pila de compostaje no encontrada.'], 404);
+                }
+                $tempTime = $tracking->temp_time;
+                $trackingData = [
                     'id' => $tracking->id,
                     'composting_id' => $tracking->composting_id,
-                    'pile_num' => $tracking->composting->formatted_pile_num,
+                    'pile_num' => $composting->formatted_pile_num ?? ('P-' . str_pad($composting->pile_num, 3, '0', STR_PAD_LEFT)),
                     'day' => $tracking->day,
                     'formatted_day' => $tracking->formatted_day ?? 'Día ' . $tracking->day,
-                    'date' => $tracking->date->format('Y-m-d'),
-                    'formatted_date' => $tracking->formatted_date ?? $tracking->date->format('d/m/Y'),
+                    'date' => $tracking->date?->format('Y-m-d'),
+                    'formatted_date' => $tracking->formatted_date ?? $tracking->date?->format('d/m/Y'),
                     'activity' => $tracking->activity,
                     'work_hours' => $tracking->work_hours,
                     'temp_internal' => $tracking->temp_internal,
-                    'formatted_temp_internal' => $tracking->formatted_temp_internal ?? ($tracking->temp_internal ? $tracking->temp_internal . '°C' : 'N/A'),
-                    'temp_time' => $tracking->temp_time,
-                    'formatted_temp_time' => $tracking->formatted_temp_time ?? ($tracking->temp_time ? date('H:i', strtotime($tracking->temp_time)) : 'N/A'),
+                    'formatted_temp_internal' => $tracking->temp_internal !== null ? $tracking->temp_internal . '°C' : 'N/A',
+                    'temp_time' => $tempTime instanceof \Carbon\Carbon ? $tempTime->format('H:i') : $tempTime,
+                    'formatted_temp_time' => $tempTime instanceof \Carbon\Carbon ? $tempTime->format('H:i') : 'N/A',
                     'temp_env' => $tracking->temp_env,
-                    'formatted_temp_env' => $tracking->formatted_temp_env ?? ($tracking->temp_env ? $tracking->temp_env . '°C' : 'N/A'),
+                    'formatted_temp_env' => $tracking->temp_env !== null ? $tracking->temp_env . '°C' : 'N/A',
                     'hum_pile' => $tracking->hum_pile,
-                    'formatted_hum_pile' => $tracking->formatted_hum_pile ?? ($tracking->hum_pile ? $tracking->hum_pile . '%' : 'N/A'),
+                    'formatted_hum_pile' => $tracking->hum_pile !== null ? $tracking->hum_pile . '%' : 'N/A',
                     'hum_env' => $tracking->hum_env,
-                    'formatted_hum_env' => $tracking->formatted_hum_env ?? ($tracking->hum_env ? $tracking->hum_env . '%' : 'N/A'),
+                    'formatted_hum_env' => $tracking->hum_env !== null ? $tracking->hum_env . '%' : 'N/A',
                     'ph' => $tracking->ph,
-                    'formatted_ph' => $tracking->formatted_ph ?? ($tracking->ph ? $tracking->ph : 'N/A'),
+                    'formatted_ph' => $tracking->ph !== null ? (string) $tracking->ph : 'N/A',
                     'water' => $tracking->water,
-                    'formatted_water' => $tracking->formatted_water ?? ($tracking->water ? $tracking->water . 'L' : 'N/A'),
+                    'formatted_water' => $tracking->water !== null ? $tracking->water . 'L' : 'N/A',
                     'lime' => $tracking->lime,
-                    'formatted_lime' => $tracking->formatted_lime ?? ($tracking->lime ? $tracking->lime . 'Kg' : 'N/A'),
+                    'formatted_lime' => $tracking->lime !== null ? $tracking->lime . 'Kg' : 'N/A',
                     'others' => $tracking->others,
                     'composting' => [
-                        'id' => $tracking->composting->id,
-                        'formatted_pile_num' => $tracking->composting->formatted_pile_num,
-                        'formatted_start_date' => $tracking->composting->formatted_start_date,
-                        'formatted_total_kg' => $tracking->composting->formatted_total_kg,
-                        'status' => $tracking->composting->status,
-                        'end_date' => $tracking->composting->end_date,
-                        'ingredients' => $tracking->composting->ingredients->map(function($ingredient) {
+                        'id' => $composting->id,
+                        'formatted_pile_num' => $composting->formatted_pile_num ?? ('P-' . str_pad($composting->pile_num, 3, '0', STR_PAD_LEFT)),
+                        'formatted_start_date' => $composting->formatted_start_date ?? $composting->start_date?->format('d/m/Y'),
+                        'formatted_total_kg' => $composting->formatted_total_kg ?? ($composting->total_kg !== null ? number_format($composting->total_kg, 2) . ' Kg' : 'N/A'),
+                        'status' => $composting->status ?? 'En proceso',
+                        'end_date' => $composting->end_date?->format('Y-m-d'),
+                        'ingredients' => $composting->ingredients->map(function ($ingredient) {
                             return [
-                                'type' => $ingredient->organic->type_in_spanish ?? 'N/A',
-                                'amount' => number_format($ingredient->amount, 2) . ' Kg',
-                                'notes' => $ingredient->notes
+                                'type' => $ingredient->organic?->type_in_spanish ?? 'N/A',
+                                'amount' => number_format((float) $ingredient->amount, 2) . ' Kg',
+                                'notes' => $ingredient->notes ?? null
                             ];
-                        })
+                        })->values()->all()
                     ],
-                    'missing_days' => $tracking->composting->missing_days
-                ]
-            ]);
+                    'missing_days' => $composting->missing_days ?? []
+                ];
+                return response()->json(['tracking' => $trackingData]);
+            } catch (\Throwable $e) {
+                Log::error('Error en show tracking: ' . $e->getMessage(), ['tracking_id' => $tracking->id, 'exception' => $e]);
+                return response()->json([
+                    'error' => 'Error en la respuesta del servidor',
+                    'message' => config('app.debug') ? $e->getMessage() : null
+                ], 500);
+            }
         }
-        
+
+        $tracking->load(['composting.ingredients.organic', 'composting']);
+        // Mostrar vista
         return view('admin.tracking.show', compact('tracking'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    // Mostrar formulario de edición
     public function edit(Tracking $tracking)
     {
         // Permitir editar seguimientos de cualquier pila
@@ -277,16 +290,16 @@ class TrackingController extends Controller
             ]);
         }
 
+        // Mostrar vista
         return view('admin.tracking.edit', compact('tracking', 'activeCompostings'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    // Actualizar registro existente
     public function update(Request $request, Tracking $tracking)
     {
         // Permitir editar seguimientos de cualquier pila
 
+        // Validar datos recibidos
         $request->validate([
             'composting_id' => 'required|exists:compostings,id',
             'day' => 'required|integer|min:1|max:45',
@@ -315,6 +328,7 @@ class TrackingController extends Controller
 
         if (!$composting) {
             \Log::error('Composting not found - redirecting back');
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'La pila de compostaje no existe.');
         }
@@ -329,6 +343,7 @@ class TrackingController extends Controller
 
         if ($existingTracking) {
             \Log::info('Existing tracking found for day: ' . $request->day);
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withInput()
                 ->with('error', "Ya existe un seguimiento para el día {$request->day} en esta pila.");
@@ -344,6 +359,7 @@ class TrackingController extends Controller
         
         if ($requestDate->lt($startDate)) {
             \Log::info('Date validation failed - redirecting back');
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'La fecha del seguimiento no puede ser anterior a la fecha de inicio de la pila.');
@@ -351,6 +367,7 @@ class TrackingController extends Controller
 
         \Log::info('Date validation passed, creating tracking...');
 
+        // Iniciar transacción
         DB::beginTransaction();
         try {
             $tracking->update([
@@ -370,101 +387,120 @@ class TrackingController extends Controller
                 'others' => $request->others
             ]);
 
+            // Confirmar cambios
             DB::commit();
 
+            // Redirigir con mensaje
             return redirect()->route('admin.tracking.index')
                 ->with('success', 'Seguimiento actualizado exitosamente!');
 
         } catch (\Exception $e) {
+            // Revertir error
             DB::rollback();
             Log::error('Error al actualizar seguimiento: ' . $e->getMessage());
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Error al actualizar el seguimiento: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    // Eliminar registro del sistema
     public function destroy(Tracking $tracking)
     {
         // Permitir eliminar seguimientos de cualquier pila
 
+        // Iniciar transacción
         DB::beginTransaction();
         try {
             $tracking->delete();
             
+            // Confirmar cambios
             DB::commit();
             
+            // Redirigir con mensaje
             return redirect()->route('admin.tracking.index')
                 ->with('success', 'Seguimiento eliminado exitosamente!');
                 
         } catch (\Exception $e) {
+            // Revertir error
             DB::rollback();
             Log::error('Error al eliminar seguimiento: ' . $e->getMessage());
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Error al eliminar el seguimiento: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Obtener seguimientos de una pila específica (para AJAX)
-     */
+    // Obtener seguimientos de una pila específica (para
     public function getByComposting(Composting $composting)
     {
-        // Permitir ver seguimientos de cualquier pila (tanto del usuario como del administrador)
-        
-        $trackings = $composting->trackings()
-            ->orderBy('day', 'asc')
-            ->get()
-            ->map(function($tracking) {
-                return [
-                    'id' => $tracking->id,
-                    'composting_id' => $tracking->composting_id,
-                    'day' => $tracking->day,
-                    'date' => $tracking->date->format('Y-m-d'),
-                    'activity' => $tracking->activity,
-                    'work_hours' => $tracking->work_hours,
-                    'temp_internal' => $tracking->temp_internal,
-                    'temp_time' => $tracking->temp_time ? $tracking->temp_time->format('H:i') : null,
-                    'temp_env' => $tracking->temp_env,
-                    'hum_pile' => $tracking->hum_pile,
-                    'hum_env' => $tracking->hum_env,
-                    'ph' => $tracking->ph,
-                    'water' => $tracking->water,
-                    'lime' => $tracking->lime,
-                    'others' => $tracking->others,
-                    'created_by' => $tracking->created_by
-                ];
-            });
+        try {
+            // Permitir ver seguimientos de cualquier pila (tanto del usuario como del administrador)
+            $trackings = $composting->trackings()
+                ->orderBy('day', 'asc')
+                ->get()
+                ->map(function ($tracking) {
+                    return [
+                        'id' => $tracking->id,
+                        'composting_id' => $tracking->composting_id,
+                        'day' => $tracking->day,
+                        'date' => $tracking->date->format('Y-m-d'),
+                        'activity' => $tracking->activity,
+                        'work_hours' => $tracking->work_hours,
+                        'temp_internal' => $tracking->temp_internal,
+                        'temp_time' => $tracking->temp_time ? $tracking->temp_time->format('H:i') : null,
+                        'temp_env' => $tracking->temp_env,
+                        'hum_pile' => $tracking->hum_pile,
+                        'hum_env' => $tracking->hum_env,
+                        'ph' => $tracking->ph,
+                        'water' => $tracking->water,
+                        'lime' => $tracking->lime,
+                        'others' => $tracking->others,
+                        'created_by' => $tracking->created_by
+                    ];
+                });
 
-        // Obtener los días faltantes (días sin seguimiento registrado)
-        $missingDays = $composting->missing_days;
+            $missingDays = $composting->missing_days ?? [];
 
-        return response()->json([
-            'composting' => [
+            $compostingData = [
                 'id' => $composting->id,
                 'pile_num' => $composting->pile_num,
                 'formatted_pile_num' => $composting->formatted_pile_num,
-                'start_date' => $composting->start_date,
-                'end_date' => $composting->end_date,
+                'start_date' => $composting->start_date?->format('Y-m-d'),
+                'end_date' => $composting->end_date?->format('Y-m-d'),
                 'status' => $composting->status,
                 'trackings_count' => $trackings->count(),
-                'process_progress' => $composting->process_progress,
-                'current_phase' => $composting->current_phase,
-                'tracking_progress' => $composting->tracking_progress,
-                'is_process_completed_by_trackings' => $composting->is_process_completed_by_trackings,
-                'days_elapsed' => $composting->days_elapsed
-            ],
-            'trackings' => $trackings,
-            'missing_days' => $missingDays
-        ]);
+                'days_elapsed' => $composting->days_elapsed ?? 0,
+            ];
+            if (isset($composting->process_progress)) {
+                $compostingData['process_progress'] = $composting->process_progress;
+            }
+            if (isset($composting->current_phase)) {
+                $compostingData['current_phase'] = $composting->current_phase;
+            }
+            if (isset($composting->tracking_progress)) {
+                $compostingData['tracking_progress'] = $composting->tracking_progress;
+            }
+            if (isset($composting->is_process_completed_by_trackings)) {
+                $compostingData['is_process_completed_by_trackings'] = $composting->is_process_completed_by_trackings;
+            }
+
+            return response()->json([
+                'composting' => $compostingData,
+                'trackings' => $trackings,
+                'missing_days' => $missingDays
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Error en getByComposting: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json([
+                'error' => 'Error al cargar los seguimientos.',
+                'message' => config('app.debug') ? $e->getMessage() : null
+            ], 500);
+        }
     }
 
-    /**
-     * Generate PDF for all trackings (o solo los filtrados si se pasan ids)
-     */
+    // Generate PDF for all trackings (o solo
     public function downloadAllTrackingsPDF(Request $request)
     {
         $query = Tracking::with('composting')
@@ -491,9 +527,7 @@ class TrackingController extends Controller
         return $pdf->download('todos_los_seguimientos_' . date('Y-m-d') . '.pdf');
     }
 
-    /**
-     * Generate PDF for all trackings of a specific composting pile
-     */
+    // Generate PDF for all trackings of a
     public function downloadCompostingTrackingsPDF(Composting $composting)
     {
         $composting->load('trackings');
@@ -511,17 +545,15 @@ class TrackingController extends Controller
         return $pdf->download('seguimientos_' . str_replace(' ', '_', $composting->formatted_pile_num) . '_' . date('Y-m-d') . '.pdf');
     }
 
-    /**
-     * Generate PDF for individual tracking
-     */
+    // Generate PDF for individual tracking
     public function downloadTrackingPDF(Tracking $tracking)
     {
         $tracking->load('composting');
         
         // Convertir imagen de la pila a base64 si existe
         $imageBase64 = null;
-        if ($tracking->composting && $tracking->composting->image && file_exists(public_path($tracking->composting->image))) {
-            $imagePath = public_path($tracking->composting->image);
+        if ($tracking->composting && $tracking->composting->image && file_exists(upload_base_path('storage/' . $tracking->composting->image))) {
+            $imagePath = upload_base_path('storage/' . $tracking->composting->image);
             $imageData = file_get_contents($imagePath);
             $imageInfo = getimagesize($imagePath);
             $mimeType = $imageInfo['mime'];

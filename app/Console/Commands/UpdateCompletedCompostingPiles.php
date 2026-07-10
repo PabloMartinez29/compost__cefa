@@ -1,5 +1,6 @@
 <?php
 
+// Comando UpdateCompletedCompostingPiles — Actualiza pilas completadas
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
@@ -8,23 +9,13 @@ use Carbon\Carbon;
 
 class UpdateCompletedCompostingPiles extends Command
 {
-    /**
-     * The name and signature of the console command.
-     *
-     * @var string
-     */
+    // The name and signature of the console
     protected $signature = 'composting:update-completed';
 
-    /**
-     * The console command description.
-     *
-     * @var string
-     */
+    // The console command description
     protected $description = 'Update composting piles that have completed 45 days but no end_date';
 
-    /**
-     * Execute the console command.
-     */
+    // Execute the console command
     public function handle()
     {
         $this->info('Checking for completed composting piles...');

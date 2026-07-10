@@ -1,9 +1,5 @@
 @extends('layouts.master')
 
-@php
-use Illuminate\Support\Facades\Storage;
-@endphp
-
 @section('content')
 @vite(['resources/css/waste.css'])
 
@@ -124,9 +120,9 @@ use Illuminate\Support\Facades\Storage;
                     <div class="waste-mobile-card bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm" data-id="{{ $organic->id }}">
                         <div class="flex gap-3">
                             <div class="flex-shrink-0">
-                                @if($organic->img && Storage::disk('public')->exists($organic->img))
-                                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 cursor-pointer" onclick="openImageModal('{{ Storage::url($organic->img) }}?v={{ $organic->updated_at->timestamp }}')">
-                                        <img src="{{ Storage::url($organic->img) }}?v={{ $organic->updated_at->timestamp }}" alt="Residuo" class="w-full h-full object-cover" onerror="this.style.display='none';">
+                                @if($organic->img)
+                                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 cursor-pointer" onclick="openImageModal('{{ asset('storage-file/'.$organic->img) }}?v={{ $organic->updated_at->timestamp }}')">
+                                        <img src="{{ asset('storage-file/'.$organic->img) }}?v={{ $organic->updated_at->timestamp }}" alt="Residuo" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                         <div class="w-full h-full bg-gray-200 flex items-center justify-center" style="display: none;"><i class="fas fa-image text-gray-400"></i></div>
                                     </div>
                                 @else
@@ -162,7 +158,7 @@ use Illuminate\Support\Facades\Storage;
                     <table id="organicsTable" class="waste-table">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th>N°</th>
                                 <th>Fecha</th>
                                 <th>Imagen</th>
                                 <th>Tipo</th>
@@ -179,15 +175,13 @@ use Illuminate\Support\Facades\Storage;
                             <td class="font-mono">#{{ str_pad($organic->id, 3, '0', STR_PAD_LEFT) }}</td>
                             <td>{{ $organic->formatted_date }}</td>
                             <td>
-                                @if($organic->img && Storage::disk('public')->exists($organic->img))
-                                    @php
-                                        $imageUrl = Storage::url($organic->img);
-                                    @endphp
+                                @if($organic->img)
+                                    @php $imageUrl = asset('storage-file/'.$organic->img); @endphp
                                     <img src="{{ $imageUrl }}?v={{ $organic->updated_at->timestamp }}" 
                                          alt="Imagen del residuo" 
                                          class="w-12 h-12 object-cover rounded-full cursor-pointer hover:opacity-80 transition-opacity"
                                          onclick="openImageModal('{{ $imageUrl }}?v={{ $organic->updated_at->timestamp }}')"
-                                         onerror="console.log('Error loading image:', this.src); this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                     <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center" style="display: none;">
                                         <i class="fas fa-image text-gray-400"></i>
                                     </div>
@@ -885,10 +879,21 @@ function openEditModal(organicId) {
             'Accept': 'application/json'
         }
     })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                return response.json().catch(() => ({})).then(body => {
+                    throw new Error(body.message || body.error || 'Error al cargar los datos');
+                });
+            }
+            return response.json();
+        })
         .then(data => {
+            if (!data || data.id == null) {
+                alert('Error al cargar los datos del registro');
+                return;
+            }
             // Llenar el formulario
-            document.getElementById('editRecordId').textContent = data.id.toString().padStart(3, '0');
+            document.getElementById('editRecordId').textContent = String(data.id).padStart(3, '0');
             document.getElementById('editDate').value = data.date;
             document.getElementById('editType').value = data.type;
             document.getElementById('editWeight').value = data.weight;
@@ -922,7 +927,7 @@ function openEditModal(organicId) {
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error al cargar los datos del registro');
+            alert(error.message || 'Error al cargar los datos del registro');
         });
 }
 
@@ -1008,10 +1013,21 @@ function openViewModal(organicId) {
             'Accept': 'application/json'
         }
     })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                return response.json().catch(() => ({})).then(body => {
+                    throw new Error(body.message || body.error || 'Error al cargar los datos');
+                });
+            }
+            return response.json();
+        })
         .then(data => {
+            if (!data || data.id == null) {
+                alert('Error al cargar los datos del registro');
+                return;
+            }
             // Llenar el formulario
-            document.getElementById('viewRecordId').textContent = data.id.toString().padStart(3, '0');
+            document.getElementById('viewRecordId').textContent = String(data.id).padStart(3, '0');
             document.getElementById('viewDate').textContent = data.date_formatted || data.date;
             document.getElementById('viewType').textContent = data.type_in_spanish || data.type;
             document.getElementById('viewWeight').textContent = data.formatted_weight || data.weight + ' Kg';
@@ -1036,7 +1052,7 @@ function openViewModal(organicId) {
         })
         .catch(error => {
             console.error('Error:', error);
-            alert('Error al cargar los datos del registro');
+            alert(error.message || 'Error al cargar los datos del registro');
         });
 }
 

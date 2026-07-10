@@ -8,7 +8,7 @@ use Illuminate\Notifications\Notification;
 class CustomResetPassword extends Notification
 {
 
-    /** @var string */
+    // @var string
     protected $resetUrl;
 
     public function __construct(string $resetUrl)

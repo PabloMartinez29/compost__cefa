@@ -1,5 +1,6 @@
 <?php
 
+// Controlador Admin MaintenanceController — CRUD de mantenimientos
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -12,9 +13,7 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 
 class MaintenanceController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Listar todos los registros
     public function index()
     {
         $maintenances = Maintenance::with('machinery')
@@ -31,6 +30,7 @@ class MaintenanceController extends Controller
         $operationsCount = Maintenance::where('type', 'O')->count();
         $machineries = Machinery::orderBy('name')->get();
         
+        // Mostrar vista
         return view('admin.machinery.maintenances.index', compact(
             'maintenances', 
             'totalMaintenances', 
@@ -42,19 +42,16 @@ class MaintenanceController extends Controller
         ));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    // Mostrar formulario de creación
     public function create()
     {
         // Mostrar todas las maquinarias, incluso las que ya tienen registros
         $machineries = Machinery::orderBy('name')->get();
+        // Mostrar vista
         return view('admin.machinery.maintenances.create', compact('machineries'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Guardar nuevo registro
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -81,6 +78,7 @@ class MaintenanceController extends Controller
         ]);
 
         if ($validator->fails()) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
@@ -97,18 +95,18 @@ class MaintenanceController extends Controller
             $data['created_by'] = auth()->id();
             Maintenance::create($data);
 
+            // Redirigir con mensaje
             return redirect()->route('admin.machinery.maintenance.index')
                 ->with('success', 'Registro de actividad creado exitosamente.');
         } catch (\Exception $e) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Error al crear el registro: ' . $e->getMessage())
                 ->withInput();
         }
     }
 
-    /**
-     * Display the specified resource.
-     */
+    // Mostrar detalle del registro
     public function show(Maintenance $maintenance)
     {
         $maintenance->load('machinery');
@@ -131,12 +129,11 @@ class MaintenanceController extends Controller
             ]);
         }
         
+        // Mostrar vista
         return view('admin.machinery.maintenances.show', compact('maintenance'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    // Mostrar formulario de edición
     public function edit(Maintenance $maintenance)
     {
         $machineries = Machinery::orderBy('name')->get();
@@ -164,12 +161,11 @@ class MaintenanceController extends Controller
             ]);
         }
         
+        // Mostrar vista
         return view('admin.machinery.maintenances.edit', compact('maintenance', 'machineries'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    // Actualizar registro existente
     public function update(Request $request, Maintenance $maintenance)
     {
         $validator = Validator::make($request->all(), [
@@ -196,6 +192,7 @@ class MaintenanceController extends Controller
         ]);
 
         if ($validator->fails()) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
@@ -211,34 +208,34 @@ class MaintenanceController extends Controller
                 $maintenance->machinery->scheduleNextMaintenanceDue();
             }
             
+            // Redirigir con mensaje
             return redirect()->route('admin.machinery.maintenance.index')
                 ->with('success', 'Registro de actividad actualizado exitosamente.');
         } catch (\Exception $e) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Error al actualizar el registro: ' . $e->getMessage())
                 ->withInput();
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    // Eliminar registro del sistema
     public function destroy(Maintenance $maintenance)
     {
         try {
             $maintenance->delete();
             
+            // Redirigir con mensaje
             return redirect()->route('admin.machinery.maintenance.index')
                 ->with('success', 'Registro de actividad eliminado exitosamente.');
         } catch (\Exception $e) {
+            // Redirigir con mensaje
             return redirect()->back()
                 ->with('error', 'Error al eliminar el registro: ' . $e->getMessage());
         }
     }
 
-    /**
-     * Generate PDF for all maintenances (o solo los filtrados si se pasan ids)
-     */
+    // Generate PDF for all maintenances (o solo
     public function downloadAllMaintenancesPDF(Request $request)
     {
         $query = Maintenance::with('machinery')->orderBy('date', 'desc');
@@ -264,17 +261,15 @@ class MaintenanceController extends Controller
         return $pdf->download('todos_los_mantenimientos_' . date('Y-m-d') . '.pdf');
     }
 
-    /**
-     * Generate PDF for individual maintenance
-     */
+    // Generate PDF for individual maintenance
     public function downloadMaintenancePDF(Maintenance $maintenance)
     {
         $maintenance->load('machinery');
         
         // Convertir imagen a base64 si existe
         $imageBase64 = null;
-        if ($maintenance->machinery && $maintenance->machinery->image && file_exists(public_path($maintenance->machinery->image))) {
-            $imagePath = public_path($maintenance->machinery->image);
+        if ($maintenance->machinery && $maintenance->machinery->image && file_exists(upload_base_path('storage/' . $maintenance->machinery->image))) {
+            $imagePath = upload_base_path('storage/' . $maintenance->machinery->image);
             $imageData = file_get_contents($imagePath);
             $imageInfo = getimagesize($imagePath);
             $mimeType = $imageInfo['mime'];
@@ -293,9 +288,7 @@ class MaintenanceController extends Controller
         return $pdf->download('mantenimiento_' . $maintenance->id . '_' . date('Y-m-d') . '.pdf');
     }
 
-    /**
-     * Devuelve la fecha/hora del próximo mantenimiento por frecuencia (para cronómetro).
-     */
+    // Devuelve la fecha/hora del próximo mantenimiento por
     public function nextMaintenanceDue(Request $request)
     {
         $machineryId = $request->query('machinery_id');

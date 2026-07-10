@@ -2,8 +2,16 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="format-detection" content="telephone=no">
+        <meta name="theme-color" content="#16a34a">
         <title>Desarrolladores - COMPOST CEFA</title>
+
+        <!-- Favicon -->
+        <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+        <link rel="shortcut icon" type="image/png" href="{{ asset('favicon.png') }}">
+        <link rel="apple-touch-icon" href="{{ asset('img/logo-compost-cefa.webp') }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -68,7 +76,7 @@
                     <a href="{{ url('/') }}#about" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Acerca de</a>
                     <a href="{{ url('/') }}#modules" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Módulos</a>
                     <a href="{{ url('/') }}#features" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Características</a>
-                    <a href="{{ route('soporte') }}" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105">Soporte</a>
+                    <a href="{{ route('soporte') }}" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105"><i class="fas fa-question-circle mr-1"></i>Ayuda</a>
                     <a href="{{ route('developers') }}" class="text-compost-700 hover:text-compost-800 font-semibold transition-all duration-300 hover:scale-105 border-b-2 border-compost-600 pb-1">Desarrolladores</a>
                     @if (Route::has('login'))
                         @auth
@@ -91,7 +99,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Title -->
             <div class="text-center mb-16">
-                <h1 class="text-5xl md:text-6xl font-black text-compost-800 mb-6">Desarrolladores</h1>
+                <h1 class="scroll-animated-title text-5xl md:text-6xl font-black text-compost-800 mb-6">Desarrolladores</h1>
                 <div class="w-24 h-1 bg-gradient-to-r from-compost-600 to-compost-500 mx-auto mb-8"></div>
                 <p class="text-xl text-gray-600 max-w-3xl mx-auto">
                     Conoce al equipo que desarrolló este sistema
@@ -101,7 +109,7 @@
             <!-- Developers Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 <!-- Developer 1: Juan Pablo Martinez Lievano -->
-                <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-100 overflow-hidden developer-card">
+                <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-100 overflow-hidden developer-card scroll-reveal" style="transition-delay: 0.1s;">
                     <div class="p-6">
                         <!-- Profile Image -->
                         <div class="flex justify-center mb-6 relative">
@@ -122,9 +130,15 @@
                         </div>
                         
                         <!-- Name -->
-                        <h3 class="text-xl font-bold text-compost-800 text-center mb-6 break-words">
+                        <h3 class="text-xl font-bold text-compost-800 text-center mb-1 break-words">
                             Juan Pablo Martinez Lievano
                         </h3>
+                        <p class="text-center mb-2 text-sm font-semibold bg-gradient-to-r from-compost-600 to-compost-800 bg-clip-text text-transparent">
+                            Desarrollador de Software
+                        </p>
+                        <p class="text-xs text-gray-500 text-justify mb-6 leading-relaxed px-2">
+                            Encargado del Frontend, diseño y la experiencia de usuario (UI/UX) del sistema.
+                        </p>
                         
                         <!-- Social Links -->
                         <div class="flex justify-center space-x-3">
@@ -139,7 +153,7 @@
                 </div>
 
                 <!-- Developer 2: Ivan Dario Perdomo Perez -->
-                <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-100 overflow-hidden developer-card">
+                <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-100 overflow-hidden developer-card scroll-reveal" style="transition-delay: 0.25s;">
                     <div class="p-6">
                         <!-- Profile Image -->
                         <div class="flex justify-center mb-6 relative">
@@ -160,9 +174,15 @@
                         </div>
                         
                         <!-- Name -->
-                        <h3 class="text-xl font-bold text-compost-800 text-center mb-6 break-words">
+                        <h3 class="text-xl font-bold text-compost-800 text-center mb-1 break-words">
                             Iván Darío Perdomo Pérez
                         </h3>
+                        <p class="text-center mb-2 text-sm font-semibold bg-gradient-to-r from-compost-600 to-compost-800 bg-clip-text text-transparent">
+                            Desarrollador de Software
+                        </p>
+                        <p class="text-xs text-gray-500 text-justify mb-6 leading-relaxed px-2">
+                            Encargado del Backend y la construcción de la lógica interna y bases de datos.
+                        </p>
                         
                         <!-- Social Links -->
                         <div class="flex justify-center space-x-3">
@@ -177,7 +197,7 @@
                 </div>
 
                 <!-- Developer 3: Anggie Lizeth Anaya Perdomo -->
-                <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-100 overflow-hidden developer-card">
+                <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-100 overflow-hidden developer-card scroll-reveal" style="transition-delay: 0.4s;">
                     <div class="p-6">
                         <!-- Profile Image -->
                         <div class="flex justify-center mb-6 relative">
@@ -198,13 +218,19 @@
                         </div>
                         
                         <!-- Name -->
-                        <h3 class="text-xl font-bold text-compost-800 text-center mb-6 break-words">
+                        <h3 class="text-xl font-bold text-compost-800 text-center mb-1 break-words">
                             Anggie Lizeth Anaya Perdomo
                         </h3>
+                        <p class="text-center mb-2 text-sm font-semibold bg-gradient-to-r from-compost-600 to-compost-800 bg-clip-text text-transparent">
+                            Desarrolladora de Software
+                        </p>
+                        <p class="text-xs text-gray-500 text-justify mb-6 leading-relaxed px-2">
+                            Encargada del análisis y levantamiento de requerimientos del sistema.
+                        </p>
                         
                         <!-- Social Links -->
                         <div class="flex justify-center space-x-3">
-                            <a href="www.linkedin.com/in/anggie-anaya-00187639a/" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
+                            <a href="https://www.linkedin.com/in/anggie-anaya-00187639a/" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
                                 <i class="fab fa-linkedin-in text-sm"></i>
                             </a>
                             <a href="https://github.com/anggieanaya16" target="_blank" class="w-10 h-10 bg-gray-800 hover:bg-gray-900 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
@@ -215,7 +241,7 @@
                 </div>
 
                 <!-- Developer 4: Juan Andres Almanza Salinas  -->
-                <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-100 overflow-hidden developer-card">
+                <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-100 overflow-hidden developer-card scroll-reveal" style="transition-delay: 0.55s;">
                     <div class="p-6">
                         <!-- Profile Image -->
                         <div class="flex justify-center mb-6 relative">
@@ -236,13 +262,19 @@
                         </div>
                         
                         <!-- Name -->
-                        <h3 class="text-xl font-bold text-compost-800 text-center mb-6 break-words">
+                        <h3 class="text-xl font-bold text-compost-800 text-center mb-1 break-words">
                             Juan Andres Almanza Salinas 
                         </h3>
+                        <p class="text-center mb-2 text-sm font-semibold bg-gradient-to-r from-compost-600 to-compost-800 bg-clip-text text-transparent">
+                            Desarrollador de Software
+                        </p>
+                        <p class="text-xs text-gray-500 text-justify mb-6 leading-relaxed px-2">
+                            Encargado de la ejecución de pruebas y validación de calidad de código y funcionalidad.
+                        </p>
                         
                         <!-- Social Links -->
                         <div class="flex justify-center space-x-3">
-                            <a href="www.linkedin.com/in/juan-andres-almanza-salinas-80b87639a/" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
+                            <a href="https://www.linkedin.com/in/juan-andres-almanza-salinas-80b87639a/" target="_blank" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
                                 <i class="fab fa-linkedin-in text-sm"></i>
                             </a>
                             <a href="https://github.com/Almanza310" target="_blank" class="w-10 h-10 bg-gray-800 hover:bg-gray-900 rounded-lg flex items-center justify-center text-white transition-all duration-300 transform hover:scale-110 shadow-md social-link">
@@ -260,7 +292,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Title -->
             <div class="text-center mb-16">
-                <h2 class="text-5xl md:text-6xl font-black text-compost-800 mb-6">Créditos</h2>
+                <h2 class="scroll-animated-title text-5xl md:text-6xl font-black text-compost-800 mb-6">Créditos</h2>
                 <div class="w-24 h-1 bg-gradient-to-r from-compost-600 to-compost-500 mx-auto mb-8"></div>
                 <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-6">
                     Tecnologías y herramientas utilizadas en el desarrollo de este sistema
@@ -329,18 +361,18 @@
                     </div>
                 </div>
 
-                <!-- AdminLTE -->
+                <!-- Alpine.js -->
                 <div class="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-100 overflow-hidden">
                     <div class="p-6 text-center">
                         <div class="flex justify-center mb-4">
-                            <img src="{{ asset('img/credits/adminlte.png') }}" alt="AdminLTE" class="w-20 h-20 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="w-20 h-20 bg-blue-500 rounded-lg flex items-center justify-center shadow-md" style="display:none;">
-                                <i class="fas fa-cube text-white text-4xl"></i>
+                            <img src="{{ asset('img/credits/alpinejs.png') }}" alt="Alpine.js" class="w-20 h-20 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="w-20 h-20 bg-teal-500 rounded-lg flex items-center justify-center shadow-md" style="display:none;">
+                                <i class="fas fa-mountain text-white text-4xl"></i>
                             </div>
                         </div>
-                        <h3 class="text-lg font-bold text-compost-800 mb-2">AdminLTE</h3>
-                        <p class="text-sm text-gray-600 mb-4">v3.2.0</p>
-                        <a href="https://adminlte.io" target="_blank" class="inline-flex items-center justify-center space-x-2 w-full bg-compost-600 hover:bg-compost-700 text-white px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105">
+                        <h3 class="text-lg font-bold text-compost-800 mb-2">Alpine.js</h3>
+                        <p class="text-sm text-gray-600 mb-4">v3.4.2</p>
+                        <a href="https://alpinejs.dev" target="_blank" class="inline-flex items-center justify-center space-x-2 w-full bg-compost-600 hover:bg-compost-700 text-white px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105">
                             <span>Más Info</span>
                             <i class="fas fa-external-link-alt text-xs"></i>
                         </a>
@@ -419,18 +451,18 @@
                     </div>
                 </div>
 
-                <!-- CSS -->
+                <!-- Vite -->
                 <div class="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-100 overflow-hidden">
                     <div class="p-6 text-center">
                         <div class="flex justify-center mb-4">
-                            <img src="{{ asset('img/credits/css.png') }}" alt="CSS" class="w-20 h-20 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="w-20 h-20 bg-blue-500 rounded-lg flex items-center justify-center shadow-md" style="display:none;">
-                                <i class="fab fa-css3 text-white text-4xl"></i>
+                            <img src="{{ asset('img/credits/vite.png') }}" alt="Vite" class="w-20 h-20 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="w-20 h-20 bg-purple-600 rounded-lg flex items-center justify-center shadow-md" style="display:none;">
+                                <i class="fas fa-bolt text-white text-4xl"></i>
                             </div>
                         </div>
-                        <h3 class="text-lg font-bold text-compost-800 mb-2">CSS</h3>
-                        <p class="text-sm text-gray-600 mb-4">CSS3</p>
-                        <a href="https://developer.mozilla.org/es/docs/Web/CSS" target="_blank" class="inline-flex items-center justify-center space-x-2 w-full bg-compost-600 hover:bg-compost-700 text-white px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105">
+                        <h3 class="text-lg font-bold text-compost-800 mb-2">Vite</h3>
+                        <p class="text-sm text-gray-600 mb-4">v7.0.4</p>
+                        <a href="https://vitejs.dev" target="_blank" class="inline-flex items-center justify-center space-x-2 w-full bg-compost-600 hover:bg-compost-700 text-white px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105">
                             <span>Más Info</span>
                             <i class="fas fa-external-link-alt text-xs"></i>
                         </a>
@@ -473,18 +505,18 @@
                     </div>
                 </div>
 
-                <!-- DataTables -->
+                <!-- DomPDF -->
                 <div class="bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-compost-100 overflow-hidden">
                     <div class="p-6 text-center">
                         <div class="flex justify-center mb-4">
-                            <img src="{{ asset('img/credits/datatables.png') }}" alt="DataTables" class="w-20 h-20 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                            <div class="w-20 h-20 bg-blue-600 rounded-lg flex items-center justify-center shadow-md" style="display:none;">
-                                <i class="fas fa-table text-white text-4xl"></i>
+                            <img src="{{ asset('img/credits/dompdf.png') }}" alt="DomPDF" class="w-20 h-20 object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="w-20 h-20 bg-red-600 rounded-lg flex items-center justify-center shadow-md" style="display:none;">
+                                <i class="fas fa-file-pdf text-white text-4xl"></i>
                             </div>
                         </div>
-                        <h3 class="text-lg font-bold text-compost-800 mb-2">DataTables</h3>
-                        <p class="text-sm text-gray-600 mb-4">Plataforma</p>
-                        <a href="https://datatables.net" target="_blank" class="inline-flex items-center justify-center space-x-2 w-full bg-compost-600 hover:bg-compost-700 text-white px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105">
+                        <h3 class="text-lg font-bold text-compost-800 mb-2">DomPDF</h3>
+                        <p class="text-sm text-gray-600 mb-4">Generación de Reportes</p>
+                        <a href="https://github.com/dompdf/dompdf" target="_blank" class="inline-flex items-center justify-center space-x-2 w-full bg-compost-600 hover:bg-compost-700 text-white px-4 py-2 rounded-lg transition-all duration-300 transform hover:scale-105">
                             <span>Más Info</span>
                             <i class="fas fa-external-link-alt text-xs"></i>
                         </a>
@@ -519,9 +551,10 @@
                 <!-- Brand -->
                 <div class="col-span-1 md:col-span-2">
                     <h3 class="text-lg font-bold text-white mb-4">Ubicación</h3>
+                    <!-- Iframe de Google Maps público: q=coordenadas | z=zoom | t=k indica vista satélite -->
                     <div class="rounded-lg overflow-hidden shadow-lg" style="height: 300px;">
                         <iframe 
-                            src="https://www.google.com/maps?q=2.61361,-75.36111&hl=es&z=15&output=embed" 
+                            src="https://www.google.com/maps?q=2.61361,-75.36111&hl=es&z=15&t=k&output=embed"
                             width="100%" 
                             height="100%" 
                             style="border:0;" 
@@ -681,6 +714,29 @@
                 creditsToggle.classList.add('animate-bounce');
             }
         }
+
+        // Scroll animations (IntersectionObserver)
+        document.addEventListener('DOMContentLoaded', function() {
+            const animatedElements = document.querySelectorAll('.scroll-animated-title, .scroll-reveal');
+            if (!animatedElements.length) return;
+
+            if ('IntersectionObserver' in window) {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('in-view');
+                        }
+                    });
+                }, {
+                    threshold: 0.15,
+                    rootMargin: '0px 0px -10% 0px'
+                });
+
+                animatedElements.forEach(el => observer.observe(el));
+            } else {
+                animatedElements.forEach(el => el.classList.add('in-view'));
+            }
+        });
     </script>
 </body>
 </html>

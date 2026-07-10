@@ -1,5 +1,6 @@
 <?php
 
+// Controlador Auth — Verificación de email
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -9,12 +10,11 @@ use Illuminate\Http\RedirectResponse;
 
 class VerifyEmailController extends Controller
 {
-    /**
-     * Mark the authenticated user's email address as verified.
-     */
+    // Mark the authenticated user's email address as
     public function __invoke(EmailVerificationRequest $request): RedirectResponse
     {
         if ($request->user()->hasVerifiedEmail()) {
+            // Redirigir con mensaje
             return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
         }
 
@@ -22,6 +22,7 @@ class VerifyEmailController extends Controller
             event(new Verified($request->user()));
         }
 
-        return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
+        // Redirigir con mensaje
+            return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
     }
 }

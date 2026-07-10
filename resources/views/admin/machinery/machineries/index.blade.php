@@ -5,10 +5,6 @@
 @section('content')
 @vite(['resources/css/waste.css'])
 
-@php
-    use Illuminate\Support\Facades\Storage;
-@endphp
-
 <!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
@@ -105,7 +101,7 @@
         </div>
 
         @if($machineries->count() > 0)
-            <!-- Vista móvil: tarjetas (solo en pantallas pequeñas) -->
+            <!-- Vista móvil: tarjetas (solo en pantallas pequeñas; en laptop/PC se muestra la tabla) -->
             <div class="block md:hidden p-3 sm:p-4 space-y-4">
                 @foreach($machineries as $machinery)
                     @php
@@ -122,8 +118,8 @@
                         <div class="flex gap-3">
                             <div class="flex-shrink-0">
                                 @if($machinery->image)
-                                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 cursor-pointer" onclick="openImageModal('{{ Storage::url($machinery->image) }}')">
-                                        <img src="{{ Storage::url($machinery->image) }}" alt="{{ $machinery->name }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <div class="w-14 h-14 rounded-xl overflow-hidden bg-gray-100 cursor-pointer" onclick="openImageModal('{{ asset('storage-file/'.$machinery->image) }}')">
+                                        <img src="{{ asset('storage-file/'.$machinery->image) }}" alt="{{ $machinery->name }}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                         <div class="w-full h-full bg-gray-200 flex items-center justify-center" style="display: none;"><i class="fas fa-cogs text-gray-400"></i></div>
                                     </div>
                                 @else
@@ -134,13 +130,24 @@
                                 <h3 class="font-semibold text-gray-900 truncate">{{ $machinery->name }}</h3>
                                 <p class="text-sm text-gray-600 truncate">{{ $machinery->location }}</p>
                                 <p class="text-xs text-gray-500">{{ $machinery->brand }} {{ $machinery->model }} · {{ $machinery->serial }}</p>
-                                <span class="inline-flex items-center mt-2 px-2 py-0.5 rounded-full text-xs font-medium {{ $statusClass }}">{{ $status === 'En mantenimiento' ? 'Mantenimiento' : $status }}</span>
+                                <div class="mt-2 flex items-center justify-between flex-wrap gap-2">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $statusClass }}">{{ $status === 'En mantenimiento' ? 'Mantenimiento' : $status }}</span>
+                                    <div class="flex items-center text-xs text-gray-600 bg-white border border-gray-200 px-2 py-1 rounded-md shadow-sm">
+                                        <i class="fas fa-stopwatch text-soft-green-500 mr-1"></i>
+                                        @if($status === 'En mantenimiento')
+                                            <span class="font-semibold text-amber-600">Pausado</span>
+                                        @else
+                                            @php $nextDue = $machinery->getNextMaintenanceDueDateTime(); @endphp
+                                            <span class="machinery-countdown font-mono font-semibold" data-next-due="{{ $nextDue?->toIso8601String() ?? '' }}">--</span>
+                                        @endif
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="waste-mobile-card-actions mt-4 pt-3 border-t border-gray-200">
                             <a href="{{ route('admin.machinery.show', $machinery) }}" class="p-2 text-blue-500 hover:bg-blue-50 rounded-lg flex-shrink-0" title="Ver"><i class="fas fa-eye"></i></a>
                             <button type="button" onclick="confirmEdit({{ $machinery->id }})" class="p-2 text-green-600 hover:bg-green-50 rounded-lg flex-shrink-0" title="Editar"
-                                data-id="{{ $machinery->id }}" data-name="{{ $machinery->name }}" data-location="{{ $machinery->location }}" data-brand="{{ $machinery->brand }}" data-model="{{ $machinery->model }}" data-serial="{{ $machinery->serial }}" data-start_func="{{ $machinery->start_func->format('Y-m-d') }}" data-maint_freq="{{ $machinery->maint_freq }}" data-image="{{ $machinery->image ? Storage::url($machinery->image) : '' }}"><i class="fas fa-edit"></i></button>
+                                data-id="{{ $machinery->id }}" data-name="{{ $machinery->name }}" data-location="{{ $machinery->location }}" data-brand="{{ $machinery->brand }}" data-model="{{ $machinery->model }}" data-serial="{{ $machinery->serial }}" data-start_func="{{ $machinery->start_func->format('Y-m-d') }}" data-maint_freq="{{ $machinery->maint_freq }}" data-image="{{ $machinery->image ? asset('storage-file/'.$machinery->image) : '' }}"><i class="fas fa-edit"></i></button>
                             <form action="{{ route('admin.machinery.destroy', $machinery) }}" method="POST" class="inline flex-shrink-0" onsubmit="return confirmDelete(event, this)">@csrf @method('DELETE')<button type="submit" class="p-2 text-red-500 hover:bg-red-50 rounded-lg" title="Eliminar"><i class="fas fa-trash"></i></button></form>
                             <a href="{{ route('admin.machinery.download.pdf', $machinery) }}" class="p-2 text-red-700 hover:bg-red-50 rounded-lg flex-shrink-0" title="PDF"><i class="fas fa-file-pdf"></i></a>
                         </div>
@@ -148,7 +155,7 @@
                 @endforeach
             </div>
 
-            <!-- Tabla de maquinaria (escritorio: md en adelante) -->
+            <!-- Tabla de maquinaria (escritorio: md 768px en adelante) -->
             <div class="hidden md:block overflow-x-auto -mx-3 sm:mx-0">
                 <div id="machineriesTable_wrapper" class="p-3 sm:p-4 md:p-6 pr-6 sm:pr-12">
                     <div style="width: 100%; overflow: hidden; margin-bottom: 1rem;">
@@ -175,10 +182,10 @@
                                     <td class="text-center align-middle py-2">
                                         @if($machinery->image)
                                             <div class="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 mx-auto cursor-pointer hover:opacity-80 transition-opacity">
-                                                <img src="{{ Storage::url($machinery->image) }}" 
+                                                <img src="{{ asset('storage-file/'.$machinery->image) }}" 
                                                      alt="{{ $machinery->name }}" 
                                                      class="w-full h-full object-cover"
-                                                     onclick="openImageModal('{{ Storage::url($machinery->image) }}')"
+                                                     onclick="openImageModal('{{ asset('storage-file/'.$machinery->image) }}')"
                                                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                                 <div class="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center" style="display: none;">
                                                     <i class="fas fa-image text-gray-400"></i>
@@ -251,7 +258,7 @@
                                                     data-serial="{{ $machinery->serial }}"
                                                     data-start_func="{{ $machinery->start_func->format('Y-m-d') }}"
                                                     data-maint_freq="{{ $machinery->maint_freq }}"
-                                                    data-image="{{ $machinery->image ? Storage::url($machinery->image) : '' }}">
+                                                    data-image="{{ $machinery->image ? asset('storage-file/'.$machinery->image) : '' }}">
                                                 <i class="fas fa-edit text-sm"></i>
                                             </button>
                                             <form action="{{ route('admin.machinery.destroy', $machinery) }}" 

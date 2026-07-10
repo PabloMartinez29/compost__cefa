@@ -1,8 +1,8 @@
 <?php
 
+// Controlador AprendizController — Dashboard y estadísticas del aprendiz
 namespace App\Http\Controllers;
 
-use App\Models\Aprendiz;
 use App\Models\Notification;
 use App\Models\Organic;
 use App\Models\Composting;
@@ -10,107 +10,50 @@ use App\Models\Tracking;
 use App\Models\Fertilizer;
 use Illuminate\Http\Request;
 
+// Controlador principal del Aprendiz
 class AprendizController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Dashboard aprendiz: muestra métricas filtradas por created_by
     public function index()
     {
         $userId = auth()->id();
-        
-        // Estadísticas de residuos orgánicos creados por el aprendiz
+
         $organicStats = [
             'total_records' => Organic::where('created_by', $userId)->count(),
             'total_weight' => Organic::where('created_by', $userId)->sum('weight'),
             'today_records' => Organic::where('created_by', $userId)->whereDate('created_at', today())->count(),
             'today_weight' => Organic::where('created_by', $userId)->whereDate('created_at', today())->sum('weight'),
         ];
-        
-        // Estadísticas de pilas de compostaje creadas por el aprendiz
+
         $compostingStats = [
             'total_piles' => Composting::where('created_by', $userId)->count(),
-            'active_piles' => Composting::where('created_by', $userId)->whereNull('end_date')->count(),
-            'completed_piles' => Composting::where('created_by', $userId)->whereNotNull('end_date')->count(),
+            'active_piles' => Composting::where('created_by', $userId)->get()->filter(function($c) { return $c->status !== 'Completada'; })->count(),
+            'completed_piles' => Composting::where('created_by', $userId)->get()->filter(function($c) { return $c->status === 'Completada'; })->count(),
         ];
-        
-        // Estadísticas de seguimientos registrados por el aprendiz
-        // Contar seguimientos de las pilas creadas por el aprendiz
+
         $myCompostingIds = Composting::where('created_by', $userId)->pluck('id');
         $trackingStats = [
             'total_trackings' => Tracking::whereIn('composting_id', $myCompostingIds)->count(),
             'today_trackings' => Tracking::whereIn('composting_id', $myCompostingIds)->whereDate('created_at', today())->count(),
         ];
-        
-        // Estadísticas de abonos creados por el aprendiz
+
         $fertilizerStats = [
-            'total_records' => Fertilizer::count(), // El aprendiz puede ver todos los abonos
+            'total_records' => Fertilizer::count(),
             'total_amount' => Fertilizer::sum('amount'),
         ];
-        
-        // Notificaciones pendientes
+
         $pendingNotifications = Notification::where('from_user_id', $userId)
             ->where('type', 'delete_request')
             ->where('status', 'pending')
             ->count();
-        
+
+        // Mostrar vista
         return view('aprendiz.dashboard', compact('organicStats', 'compostingStats', 'trackingStats', 'fertilizerStats', 'pendingNotifications'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Aprendiz $aprendiz)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Aprendiz $aprendiz)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Aprendiz $aprendiz)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Aprendiz $aprendiz)
-    {
-        //
-    }
-
-    /**
-     * Mark notification as read
-     */
+    // Marcar notificación como leída
     public function markNotificationAsRead(Notification $notification)
     {
-        // Permitir si es el destinatario (user_id) o el remitente (from_user_id) en solicitudes aprobadas/rechazadas
         $isRecipient = $notification->user_id === auth()->id();
         $isSenderAndProcessed = $notification->from_user_id === auth()->id()
             && in_array($notification->status, ['approved', 'rejected'], true);
@@ -127,13 +70,11 @@ class AprendizController extends Controller
                 $machinery->scheduleNextMaintenanceDue();
             }
         }
-        
+
         return response()->json(['success' => true, 'message' => 'Notificación marcada como leída']);
     }
 
-    /**
-     * Show notifications history for apprentice
-     */
+    // Historial de solicitudes de eliminación enviadas por
     public function notificationsHistory()
     {
         $notifications = Notification::where('from_user_id', auth()->id())
@@ -142,6 +83,7 @@ class AprendizController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
+        // Mostrar vista
         return view('aprendiz.notifications.history', compact('notifications'));
     }
 }

@@ -1,128 +1,69 @@
-# Setup Inicial - Compost CEFA
+# Configuración del proyecto COMPOST CEFA (después de descomprimir)
 
-## Requisitos Previos
+Si recibiste el proyecto en una carpeta comprimida y al abrirlo no ves el logo, las imágenes de los registros o los registros no aparecen en las tablas, sigue estos pasos.
 
-- PHP 8.2 o superior
-- Composer
-- Node.js 18 o superior
-- npm o yarn
-- Laragon (recomendado para Windows)
+## 1. Variables de entorno
 
-## Instalación Paso a Paso
+- Copia el archivo `.env.example` a `.env` si no tienes `.env`.
+- Ejecuta: `php artisan key:generate`
 
-### 1. Clonar el Repositorio
+## 2. Base de datos
 
-```bash
-git clone <url-del-repositorio>
-cd compost_cefa
-```
+- Crea la base de datos (MySQL/MariaDB) y configura `DB_*` en `.env`.
+- Ejecuta las migraciones: `php artisan migrate`
+- Si el proyecto incluye seeders (datos iniciales): `php artisan db:seed`
 
-### 2. Instalar Dependencias de PHP
+**Importante:** Si no hay residuos orgánicos ni datos de bodega, no podrás crear pilas de compostaje (el formulario requiere ingredientes disponibles). En ese caso ejecuta los seeders o crea primero residuos y movimientos de bodega.
 
-```bash
-composer install
-```
+## 3. Logo en la barra lateral
 
-### 3. Configurar Variables de Entorno
+El logo **no viene** en la carpeta comprimida (solo la ruta). Tienes dos opciones:
 
-```bash
-cp .env.example .env
-php artisan key:generate
-```
+- **Opción A:** Pide a tu compañero el archivo `logo-compost-cefa.webp` (o `.png`) y colócalo en:  
+  `public/img/logo-compost-cefa.webp`
+- **Opción B:** No hacer nada: si el archivo no existe, se mostrará el texto **"COMPOST CEFA"** con un icono como respaldo.
 
-Edita el archivo `.env` con tu configuración de base de datos.
+Más detalles: `public/img/README.md`
 
-### 4. Configurar Base de Datos
+## 4. Imágenes de los registros
 
-```bash
-php artisan migrate
-php artisan db:seed
-```
+Las imágenes de pilas, residuos, maquinaria, etc. se guardan en **storage**. En un proyecto recién descomprimido suele pasar que:
 
-### 5. Instalar Dependencias de Node.js
+- La carpeta `storage/app/public` está vacía (los archivos no se incluyen en el zip).
+- No existe el enlace simbólico para servir archivos desde `storage`.
 
-```bash
-npm install
-```
-
-### 6. Compilar Assets de Vite
-
-**Opción A: Comando manual**
-```bash
-npm run build
-```
-
-**Opción B: Script automatizado (Windows)**
-```powershell
-.\build-assets.ps1
-```
-
-**Opción C: Script automatizado (Linux/Mac)**
-```bash
-./build-assets.sh
-```
-
-### 7. Configurar Almacenamiento
+Haz lo siguiente:
 
 ```bash
 php artisan storage:link
 ```
 
-### 8. Ejecutar el Servidor
+Esto crea el enlace `public/storage` → `storage/app/public`. Las **nuevas** subidas se verán bien. Los registros que ya tengan ruta de imagen pero cuyos archivos no estén en tu carpeta (porque no venían en el zip) mostrarán un icono por defecto hasta que vuelvas a subir una imagen.
+
+## 5. Registros que no aparecen en las tablas (Pilas, Proveedores)
+
+Si **haces un registro nuevo** y no aparece en la lista:
+
+1. **Revisa mensajes de error:** Después de guardar, si hay error de validación o de servidor, debería mostrarse en la parte superior de la página (mensaje en rojo o verde). Si ves uno, léelo para saber qué falta (por ejemplo: “La cantidad excede la disponible en bodega”, “Debe seleccionar una maquinaria”, etc.).
+2. **Base de datos:** Comprueba que estás usando la misma base de datos en `.env` y que las migraciones se ejecutaron correctamente.
+3. **Pilas:** Para crear una pila necesitas tener **residuos orgánicos** y **cantidad disponible en bodega**. Si no hay datos de bodega o residuos, primero créalos desde los módulos correspondientes.
+4. **Proveedores:** Para “Nuevo Registro” de proveedor debes elegir una **maquinaria** que aún no tenga proveedor. Si no hay maquinarias creadas, crea primero al menos una en Maquinaria.
+
+## 6. Errores en el módulo de Seguimientos
+
+Si al abrir una pila en Seguimientos o al hacer alguna acción te sale error en pantalla:
+
+- Los errores del servidor ahora se capturan y se muestra un mensaje en el modal en lugar de una pantalla en blanco o 500.
+- Revisa el archivo `storage/logs/laravel.log` para ver el detalle del error (útil para depuración o para reportar al que mantiene el proyecto).
+
+## Resumen de comandos
 
 ```bash
-php artisan serve
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan db:seed
+php artisan storage:link
 ```
 
-O usar Laragon para iniciar el servidor.
-
-## Verificación
-
-1. Accede a `http://localhost:8000`
-2. Deberías ver la página de bienvenida sin errores
-3. Haz clic en "Iniciar Sesión" - no debería haber errores de Vite
-
-## Solución de Problemas
-
-### Error: ViteManifestNotFoundException
-
-Si ves este error, significa que los assets de Vite no están compilados:
-
-```bash
-npm run build
-```
-
-### Error: Node.js no encontrado
-
-Instala Node.js desde [nodejs.org](https://nodejs.org/)
-
-### Error: npm no encontrado
-
-Node.js incluye npm por defecto. Si no funciona, reinstala Node.js.
-
-### Error: Permisos en Linux/Mac
-
-```bash
-chmod +x build-assets.sh
-```
-
-## Comandos Útiles
-
-- `npm run dev` - Modo desarrollo con hot reload
-- `npm run build` - Compilar para producción
-- `npm run build:watch` - Compilar en modo watch
-- `php artisan cache:clear` - Limpiar caché de Laravel
-- `php artisan config:clear` - Limpiar caché de configuración
-
-## Estructura de Assets
-
-Los assets compilados se guardan en:
-- `public/build/manifest.json` - Mapa de assets
-- `public/build/assets/` - Archivos CSS y JS optimizados
-
-## Notas Importantes
-
-- Siempre ejecuta `npm run build` después de cambios en assets
-- El directorio `public/build/` se regenera automáticamente
-- Para desarrollo, usa `npm run dev` para hot reload
-- Los assets se optimizan automáticamente (minificación, hashing)
+Luego coloca el logo en `public/img/logo-compost-cefa.webp` si lo tienes.

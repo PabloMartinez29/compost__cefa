@@ -1,5 +1,6 @@
 <?php
 
+// Controlador Admin NotificationController — Gestión de notificaciones
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
@@ -9,9 +10,7 @@ use Illuminate\Http\Request;
 
 class NotificationController extends Controller
 {
-    /**
-     * Obtener notificaciones pendientes
-     */
+    // Obtener notificaciones pendientes
     public function getNotifications()
     {
         $notifications = Notification::with(['fromUser', 'organic', 'fertilizer', 'composting', 'machinery', 'maintenance', 'supplier', 'usageControl'])
@@ -24,9 +23,7 @@ class NotificationController extends Controller
         return response()->json($notifications);
     }
 
-    /**
-     * Aprobar solicitud de eliminación
-     */
+    // Aprobar solicitud de eliminación
     public function approveDelete(Request $request)
     {
         $notification = Notification::findOrFail($request->notification_id);
@@ -85,9 +82,7 @@ class NotificationController extends Controller
         ]);
     }
 
-    /**
-     * Rechazar solicitud de eliminación
-     */
+    // Rechazar solicitud de eliminación
     public function rejectDelete(Request $request)
     {
         $notification = Notification::findOrFail($request->notification_id);
@@ -146,9 +141,7 @@ class NotificationController extends Controller
         ]);
     }
 
-    /**
-     * Marcar notificación como leída
-     */
+    // Marcar notificación como leída
     public function markAsRead(Notification $notification)
     {
         if ($notification->user_id !== auth()->id()) {
@@ -159,6 +152,12 @@ class NotificationController extends Controller
             $notification->update(['read_at' => now()]);
 
             if ($notification->type === 'maintenance_reminder' && $notification->machinery_id) {
+                // Marcar como leída para todos los demás usuarios (aprendices, etc.)
+                \App\Models\Notification::where('machinery_id', $notification->machinery_id)
+                    ->where('type', 'maintenance_reminder')
+                    ->whereNull('read_at')
+                    ->update(['read_at' => now()]);
+
                 $machinery = \App\Models\Machinery::find($notification->machinery_id);
                 if ($machinery) {
                     try {

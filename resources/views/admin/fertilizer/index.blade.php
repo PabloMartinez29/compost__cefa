@@ -153,7 +153,7 @@
                     <table id="fertilizersTable" class="waste-table">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th>N°</th>
                                 <th>Fecha</th>
                                 <th>Hora</th>
                                 <th>Pila</th>
@@ -732,27 +732,25 @@ const cancelEditBtn = document.getElementById('cancelEditModal');
 const editForm = document.getElementById('editForm');
 
 function showEditModal() {
-    editModal.classList.remove('hidden');
+    if (editModal) editModal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 }
 
 function closeEditModal() {
-    editModal.classList.add('hidden');
+    if (editModal) editModal.classList.add('hidden');
     document.body.style.overflow = 'auto';
 }
 
-closeEditBtn.addEventListener('click', closeEditModal);
-cancelEditBtn.addEventListener('click', closeEditModal);
-editModal.addEventListener('click', (e) => {
-    // Cerrar solo cuando se hace clic directamente sobre el fondo del modal,
-    // no cuando se interactúa con el contenido interno.
+if (closeEditBtn) closeEditBtn.addEventListener('click', closeEditModal);
+if (cancelEditBtn) cancelEditBtn.addEventListener('click', closeEditModal);
+if (editModal) editModal.addEventListener('click', (e) => {
     if (e.target === editModal) {
         closeEditModal();
     }
 });
 
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape' && !editModal.classList.contains('hidden')) {
+    if (e.key === 'Escape' && editModal && !editModal.classList.contains('hidden')) {
         closeEditModal();
     }
 });

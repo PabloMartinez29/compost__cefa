@@ -2,15 +2,18 @@
 <html lang="es">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="theme-color" content="#16a34a">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     
     <!-- Favicon -->
-    <link rel="icon" type="image/webp" href="{{ asset('img/logo-compost-cefa.webp') }}">
-    <link rel="shortcut icon" type="image/webp" href="{{ asset('img/logo-compost-cefa.webp') }}">
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('favicon.png') }}">
     <link rel="apple-touch-icon" href="{{ asset('img/logo-compost-cefa.webp') }}">
     
-    <title>Iniciar Sesión - Sistema de Compostaje</title>
+    <title>Iniciar Sesión</title>
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -228,15 +231,7 @@
                             </div>
                         </form>
 
-                            <!-- Register Link -->
-                            <div class="auth-divider">
-                                <p class="text-sm text-soft-gray-500">
-                                    ¿No tienes una cuenta? 
-                                    <a href="{{ route('register') }}" class="auth-link">
-                                        Regístrate aquí
-                                    </a>
-                                </p>
-                            </div>
+
                         </div>
                     </div>
                 </div>

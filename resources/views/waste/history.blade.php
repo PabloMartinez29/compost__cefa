@@ -141,7 +141,7 @@
             <table class="waste-table">
                 <thead>
                     <tr>
-                        <th>ID</th>
+                        <th>N°</th>
                         <th>Date</th>
                         <th>Type</th>
                         <th>Weight (Kg)</th>

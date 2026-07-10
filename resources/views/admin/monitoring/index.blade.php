@@ -501,12 +501,12 @@ function showModuleHistory(module, records) {
             html += `<tr class="hover:bg-gray-50"><td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">${date}</td><td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">${typeName}</td><td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">${record.weight || 0}</td><td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">${record.creator ? record.creator.name : 'N/A'}</td></tr>`;
         });
     } else if (module === 'pilas') {
-        html += '<thead class="bg-gray-50"><tr><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha Creación</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Código</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Creado por</th></tr></thead>';
+        html += '<thead class="bg-gray-50"><tr><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha Creación</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Estado</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Creado por</th></tr></thead>';
         html += '<tbody class="bg-white divide-y divide-gray-200">';
         records.forEach(record => {
             const date = new Date(record.created_at).toLocaleDateString('es-ES');
-            const status = record.end_date ? 'Completada' : 'Activa';
-            html += `<tr class="hover:bg-gray-50"><td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">${date}</td><td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">${record.code || 'N/A'}</td><td class="px-4 py-3 whitespace-nowrap text-sm"><span class="px-2 py-1 text-xs rounded-full ${status === 'Activa' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}">${status}</span></td><td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">${record.creator ? record.creator.name : 'N/A'}</td></tr>`;
+            const status = record.status === 'Completada' ? 'Completada' : 'Activa';
+            html += `<tr class="hover:bg-gray-50"><td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">${date}</td><td class="px-4 py-3 whitespace-nowrap text-sm"><span class="px-2 py-1 text-xs rounded-full ${status === 'Activa' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}">${status}</span></td><td class="px-4 py-3 whitespace-nowrap text-sm text-gray-700">${record.creator ? record.creator.name : 'N/A'}</td></tr>`;
         });
     } else if (module === 'abono') {
         html += '<thead class="bg-gray-50"><tr><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Fecha</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tipo</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Cantidad</th><th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Unidad</th></tr></thead>';
@@ -883,6 +883,8 @@ function createExpandedChart(canvasId, data, module) {
         if (isChartJS4) {
             // Configuración para Chart.js 4.x
             const isPieChart = chartType === 'pie' || chartType === 'doughnut';
+            const isNarrow = typeof window !== 'undefined' && window.innerWidth < 640;
+            const legendPosition = isPieChart ? (isNarrow ? 'bottom' : 'right') : 'top';
             
             chartConfig = {
                 type: chartType,
@@ -919,12 +921,13 @@ function createExpandedChart(canvasId, data, module) {
                     plugins: {
                         legend: {
                             display: true,
-                            position: isPieChart ? 'right' : 'top',
+                            position: legendPosition,
                             labels: {
                                 padding: 15,
                                 usePointStyle: isPieChart,
+                                boxWidth: isNarrow ? 12 : 40,
                                 font: {
-                                    size: 14,
+                                    size: isNarrow ? 12 : 14,
                                     weight: 'bold'
                                 }
                             }
@@ -965,6 +968,8 @@ function createExpandedChart(canvasId, data, module) {
         } else {
             // Configuración para Chart.js 2.x
             const isPieChart = chartType === 'pie' || chartType === 'doughnut';
+            const isNarrow = typeof window !== 'undefined' && window.innerWidth < 640;
+            const legendPosition = isPieChart ? (isNarrow ? 'bottom' : 'right') : 'top';
             
             chartConfig = {
                 type: chartType,
@@ -1000,11 +1005,12 @@ function createExpandedChart(canvasId, data, module) {
                     }),
                     legend: {
                         display: true,
-                        position: isPieChart ? 'right' : 'top',
+                        position: legendPosition,
                         labels: {
                             padding: 15,
                             usePointStyle: isPieChart,
-                            fontSize: 14,
+                            boxWidth: isNarrow ? 12 : 40,
+                            fontSize: isNarrow ? 12 : 14,
                             fontStyle: 'bold'
                         }
                     },

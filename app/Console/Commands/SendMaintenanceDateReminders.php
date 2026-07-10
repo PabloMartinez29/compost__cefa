@@ -1,5 +1,6 @@
 <?php
 
+// Comando SendMaintenanceDateReminders — Envía alertas de mantenimiento
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;

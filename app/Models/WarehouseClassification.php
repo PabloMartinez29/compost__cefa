@@ -1,5 +1,7 @@
 <?php
 
+// Modelo WarehouseClassification — Inventario de bodega (entradas/salidas por tipo de residuo)
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -74,9 +76,7 @@ class WarehouseClassification extends Model
         return $this->movement_type === 'entry' ? 'Entrada' : 'Salida';
     }
 
-    /**
-     * Relación con el residuo orgánico (solo para entradas automáticas desde residuos).
-     */
+    // Relación con residuo orgánico
     public function organic()
     {
         return $this->belongsTo(Organic::class);

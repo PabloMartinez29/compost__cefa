@@ -1,5 +1,6 @@
 <?php
 
+// Controlador Auth — Inicio y cierre de sesión
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
@@ -11,17 +12,14 @@ use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
 {
-    /**
-     * Display the login view.
-     */
+    // Display the login view
     public function create(): View
     {
+        // Mostrar vista
         return view('auth.login');
     }
 
-    /**
-     * Handle an incoming authentication request.
-     */
+    // Handle an incoming authentication request
     public function store(LoginRequest $request): RedirectResponse
     {
         try {
@@ -33,7 +31,8 @@ class AuthenticatedSessionController extends Controller
             
             if (!$user) {
                 // Si no hay usuario autenticado, redirigir al login
-                return redirect()->route('login')->with('error', 'Error de autenticación.');
+                // Redirigir con mensaje
+            return redirect()->route('login')->with('error', 'Error de autenticación.');
             }
 
             // Si la cuenta está desactivada, cerrar sesión inmediatamente y mostrar mensaje
@@ -42,7 +41,8 @@ class AuthenticatedSessionController extends Controller
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
 
-                return redirect()->route('login')
+                // Redirigir con mensaje
+            return redirect()->route('login')
                     ->with('account_deactivated_login', true);
             }
 
@@ -54,18 +54,19 @@ class AuthenticatedSessionController extends Controller
             }
 
             if ($user->role === 'admin') {
-                return redirect()->route('dashboard.admin');
+                // Redirigir con mensaje
+            return redirect()->route('dashboard.admin');
             } else {
-                return redirect()->route('aprendiz.dashboard');
+                // Redirigir con mensaje
+            return redirect()->route('aprendiz.dashboard');
             }
         } catch (\Illuminate\Validation\ValidationException $e) {
+            // Redirigir con mensaje
             return redirect()->route('login')->with('error', 'Estas credenciales no coinciden con nuestros registros.');
         }
     }
 
-    /**
-     * Destroy an authenticated session.
-     */
+    // Destroy an authenticated session
     public function destroy(Request $request): RedirectResponse
     {
         Auth::guard('web')->logout();
@@ -74,6 +75,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        // Redirigir con mensaje
+            return redirect('/');
     }
 }
