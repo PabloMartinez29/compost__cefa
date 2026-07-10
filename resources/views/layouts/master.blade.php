@@ -501,8 +501,8 @@
                             @endif
                         </button>
                         
-                        <!-- Notifications Dropdown: en móvil fixed para verse completo en pantalla, en escritorio absolute bajo la campana -->
-                        <div id="notificationsMenu" class="hidden fixed left-2 right-2 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80 bg-white rounded-lg shadow-lg border border-soft-gray-200 py-2 z-50 max-h-[70vh] sm:max-h-96 overflow-y-auto min-w-0">
+                        <!-- Notifications Dropdown: pegado bajo la campana, con scroll invisible pero funcional -->
+                        <div id="notificationsMenu" class="hidden fixed top-14 right-2 w-[calc(100vw-1rem)] max-w-[360px] sm:absolute sm:top-auto sm:right-0 sm:mt-2 sm:w-80 sm:max-w-none bg-white rounded-lg shadow-xl ring-1 ring-black ring-opacity-5 py-2 z-50 max-h-[75vh] sm:max-h-96 overflow-y-auto min-w-0 transition-transform origin-top-right [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                             <div class="px-3 sm:px-4 py-2 border-b border-soft-gray-100 flex flex-wrap items-center justify-between gap-2">
                                 <h3 class="text-sm font-semibold text-soft-gray-800">Notificaciones</h3>
                                 <a href="{{ route('admin.notifications.history') }}" 
@@ -909,15 +909,18 @@
 
         // Close dropdowns when clicking outside
         document.addEventListener('click', function(event) {
+            // Ignorar clics en modales de SweetAlert2 para evitar conflictos con Ver Notificaciones
+            if (event.target.closest('.swal2-container')) return;
+
             const notificationsMenu = document.getElementById('notificationsMenu');
             const helpMenu = document.getElementById('helpMenu');
             const notificationButton = event.target.closest('[onclick="toggleNotifications()"]');
             const helpButton = event.target.closest('[onclick="toggleHelpMenu()"]');
             
-            if (!notificationButton && !notificationsMenu.contains(event.target)) {
+            if (notificationsMenu && !notificationButton && !notificationsMenu.contains(event.target)) {
                 notificationsMenu.classList.add('hidden');
             }
-            if (!helpButton && !helpMenu.contains(event.target)) {
+            if (helpMenu && !helpButton && !helpMenu.contains(event.target)) {
                 helpMenu.classList.add('hidden');
             }
         });

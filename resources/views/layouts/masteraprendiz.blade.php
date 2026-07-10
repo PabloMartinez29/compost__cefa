@@ -405,7 +405,7 @@
                             @endif
                         </button>
                         
-                        <!-- Notifications Dropdown: en móvil fixed para verse completo en pantalla, en escritorio absolute bajo la campana -->
+                        <!-- Notifications Dropdown: pegado bajo la campana, con scroll invisible pero funcional -->
                         <div x-show="notificationsOpen" 
                              @click.away="notificationsOpen = false"
                              x-transition:enter="transition ease-out duration-200"
@@ -414,7 +414,7 @@
                              x-transition:leave="transition ease-in duration-150"
                              x-transition:leave-start="opacity-100 scale-100"
                              x-transition:leave-end="opacity-0 scale-95"
-                             class="fixed left-2 right-2 top-16 sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80 bg-white rounded-lg shadow-lg border border-soft-gray-200 py-2 z-50 max-h-[70vh] sm:max-h-96 overflow-y-auto min-w-0">
+                             class="fixed top-14 right-2 w-[calc(100vw-1rem)] max-w-[360px] sm:absolute sm:top-auto sm:right-0 sm:mt-2 sm:w-80 sm:max-w-none bg-white rounded-lg shadow-xl ring-1 ring-black ring-opacity-5 py-2 z-50 max-h-[75vh] sm:max-h-96 overflow-y-auto min-w-0 transition-transform origin-top-right [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                             <div class="px-3 sm:px-4 py-2 border-b border-soft-gray-100 flex flex-wrap items-center justify-between gap-2">
                                 <h3 class="text-sm font-semibold text-soft-gray-800">Notificaciones</h3>
                                 <a href="{{ route('aprendiz.notifications.history') }}" 
@@ -689,6 +689,8 @@
                     title: 'Recordatorio de Mantenimiento',
                     text: 'Tiene recordatorios de mantenimiento sin leer. Revise sus notificaciones.',
                     icon: 'warning',
+                    timer: 15000,
+                    timerProgressBar: true,
                     showConfirmButton: true,
                     confirmButtonText: '<i class="fas fa-bell mr-1"></i> Ver Notificaciones',
                     confirmButtonColor: '#f59e0b'
@@ -703,6 +705,7 @@
                 });
             }
             showMaintenanceReminder();
+            setInterval(showMaintenanceReminder, 15000);
         });
         @endif
 

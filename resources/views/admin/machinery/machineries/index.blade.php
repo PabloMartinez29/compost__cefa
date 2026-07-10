@@ -130,7 +130,18 @@
                                 <h3 class="font-semibold text-gray-900 truncate">{{ $machinery->name }}</h3>
                                 <p class="text-sm text-gray-600 truncate">{{ $machinery->location }}</p>
                                 <p class="text-xs text-gray-500">{{ $machinery->brand }} {{ $machinery->model }} · {{ $machinery->serial }}</p>
-                                <span class="inline-flex items-center mt-2 px-2 py-0.5 rounded-full text-xs font-medium {{ $statusClass }}">{{ $status === 'En mantenimiento' ? 'Mantenimiento' : $status }}</span>
+                                <div class="mt-2 flex items-center justify-between flex-wrap gap-2">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $statusClass }}">{{ $status === 'En mantenimiento' ? 'Mantenimiento' : $status }}</span>
+                                    <div class="flex items-center text-xs text-gray-600 bg-white border border-gray-200 px-2 py-1 rounded-md shadow-sm">
+                                        <i class="fas fa-stopwatch text-soft-green-500 mr-1"></i>
+                                        @if($status === 'En mantenimiento')
+                                            <span class="font-semibold text-amber-600">Pausado</span>
+                                        @else
+                                            @php $nextDue = $machinery->getNextMaintenanceDueDateTime(); @endphp
+                                            <span class="machinery-countdown font-mono font-semibold" data-next-due="{{ $nextDue?->toIso8601String() ?? '' }}">--</span>
+                                        @endif
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         <div class="waste-mobile-card-actions mt-4 pt-3 border-t border-gray-200">
