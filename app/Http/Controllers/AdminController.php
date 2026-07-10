@@ -29,8 +29,8 @@ class AdminController extends Controller
 
         $compostingStats = [
             'total' => Composting::count(),
-            'active' => Composting::whereNull('end_date')->count(),
-            'completed' => Composting::whereNotNull('end_date')->count(),
+            'active' => Composting::get()->filter(function ($c) { return $c->status !== 'Completada'; })->count(),
+            'completed' => Composting::get()->filter(function ($c) { return $c->status === 'Completada'; })->count(),
         ];
 
         $fertilizerStats = [

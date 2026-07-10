@@ -932,19 +932,19 @@
                     title: 'Recordatorio de Mantenimiento',
                     text: 'Tiene recordatorios de mantenimiento sin leer. Revise sus notificaciones.',
                     icon: 'warning',
-                    timer: 15000,
-                    timerProgressBar: true,
                     showConfirmButton: true,
                     confirmButtonText: '<i class="fas fa-bell mr-1"></i> Ver Notificaciones',
                     confirmButtonColor: '#f59e0b'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        toggleNotifications();
+                        setTimeout(() => {
+                            toggleNotifications();
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }, 150);
                     }
                 });
             }
             showMaintenanceReminder();
-            setInterval(showMaintenanceReminder, 15000);
         });
         @endif
 

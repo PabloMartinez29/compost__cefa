@@ -204,7 +204,7 @@
                     <table id="organicsTable" class="waste-table">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th>N°</th>
                                 <th>Fecha</th>
                                 <th>Imagen</th>
                                 <th>Tipo</th>

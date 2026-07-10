@@ -146,7 +146,7 @@
                     <table id="maintenancesTable" class="waste-table min-w-[900px]">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th>N°</th>
                                 <th>Imagen</th>
                                 <th>Fecha</th>
                                 <th>Maquinaria</th>

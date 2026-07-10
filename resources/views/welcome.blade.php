@@ -323,12 +323,7 @@
                                 <i class="fas fa-sign-in-alt mr-3 group-hover:rotate-12 transition-transform duration-300"></i>
                                 Iniciar Sesión
                             </a>
-                            @if (Route::has('register'))
-                                <a href="{{ route('register') }}" class="w-full sm:w-auto group border-2 border-compost-600 text-compost-600 px-6 md:px-8 py-3 md:py-4 rounded-xl font-bold text-base md:text-lg hover:bg-compost-600 hover:text-white transform hover:scale-105 transition-all duration-300 text-center">
-                                    <i class="fas fa-user-plus mr-3 group-hover:rotate-12 transition-transform duration-300"></i>
-                                    Registrarse
-                                </a>
-                            @endif
+
                         @endauth
                     @endif
                 </div>

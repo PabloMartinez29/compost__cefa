@@ -394,7 +394,7 @@
                                 ->count();
                             $pendingNotifications = $pendingResponses + $pendingReminders;
                         @endphp
-                        <button @click="notificationsOpen = !notificationsOpen" 
+                        <button id="bell-button-aprendiz" @click="notificationsOpen = !notificationsOpen" 
                             class="relative p-2 text-soft-gray-600 hover:text-soft-green-600 hover:bg-soft-gray-100 rounded-lg transition-all duration-200">
                             <i class="fas fa-bell text-lg"></i>
                             <!-- Notification Badge -->
@@ -696,8 +696,11 @@
                     confirmButtonColor: '#f59e0b'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        const bellButton = document.querySelector('[\\@click="notificationsOpen = !notificationsOpen"]') || document.querySelector('[x-data="{ notificationsOpen: false }"] button');
-                        if (bellButton) bellButton.click();
+                        setTimeout(() => {
+                            const bellButton = document.getElementById('bell-button-aprendiz');
+                            if (bellButton) bellButton.click();
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }, 150);
                     }
                 });
             }
